@@ -1,10 +1,22 @@
 'use strict';
 
-const { sequelize, testConnection } = require('../config/database');
-const User = require('./user');
-const Diagnosis = require('./diagnosis');
+const {
+  sequelize,
+  dynamoDB,
+  useDynamoDB,
+  testConnection,
+  initializeDatabase,
+} = require('../config/database');
+const User = require('./User');
+const Diagnosis = require('./Diagnosis');
 
+// For SQL databases only
 const syncDatabase = async (force = false) => {
+  if (useDynamoDB) {
+    console.log('Using DynamoDB, no need to sync models');
+    return;
+  }
+
   try {
     await sequelize.sync({ force });
     console.log('Database synced successfully');
@@ -16,7 +28,10 @@ const syncDatabase = async (force = false) => {
 
 module.exports = {
   sequelize,
+  dynamoDB,
+  useDynamoDB,
   testConnection,
+  initializeDatabase,
   syncDatabase,
   User,
   Diagnosis,

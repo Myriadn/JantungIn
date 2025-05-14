@@ -14,14 +14,20 @@ const register = async (request, h) => {
       return Boom.conflict('Email already registered');
     }
 
+    // Create user with either Sequelize or DynamoDB
     const user = await User.create({
       name,
       email,
-      password, // Password akan di-hash oleh hook beforeCreate
+      password, // Password akan di-hash sebelum disimpan
       dateOfBirth,
     });
 
-    const token = generateToken(user);
+    // Generate JWT token for authentication
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
     return h
       .response({
@@ -36,7 +42,8 @@ const register = async (request, h) => {
       })
       .code(201);
   } catch (error) {
-    return Boom.badImplementation('Error registering user', error);
+    console.error('Registration error:', error);
+    return Boom.badImplementation('Error registering user');
   }
 };
 
@@ -48,15 +55,18 @@ const login = async (request, h) => {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return Boom.unauthorized('Invalid email or password');
-    }
-
-    // Verifikasi password
-    const isValid = await user.validatePassword(password);
+    } // Verifikasi password
+    const isValid = await user.verifyPassword(password);
     if (!isValid) {
       return Boom.unauthorized('Invalid email or password');
     }
 
-    const token = generateToken(user);
+    // Generate JWT token
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
     return h.response({
       statusCode: 200,
@@ -69,7 +79,8 @@ const login = async (request, h) => {
       },
     });
   } catch (error) {
-    return Boom.badImplementation('Error during login', error);
+    console.error('Login error:', error);
+    return Boom.badImplementation('Error during login');
   }
 };
 
@@ -77,9 +88,18 @@ const getProfile = async (request, h) => {
   try {
     const { id } = request.auth.credentials;
 
-    const user = await User.findByPk(id, {
-      attributes: { exclude: ['password'] },
-    });
+    // Handle both Sequelize and DynamoDB models
+    let user;
+    if (require('../models').useDynamoDB) {
+      user = await User.findOne({ where: { id } });
+      if (user) {
+        delete user.password; // Remove password from response
+      }
+    } else {
+      user = await User.findByPk(id, {
+        attributes: { exclude: ['password'] },
+      });
+    }
 
     if (!user) {
       return Boom.notFound('User not found');
@@ -91,7 +111,8 @@ const getProfile = async (request, h) => {
       data: user,
     });
   } catch (error) {
-    return Boom.badImplementation('Error retrieving profile', error);
+    console.error('Profile retrieval error:', error);
+    return Boom.badImplementation('Error retrieving profile');
   }
 };
 
@@ -100,24 +121,44 @@ const updateProfile = async (request, h) => {
     const { id } = request.auth.credentials;
     const { name, dateOfBirth } = request.payload;
 
-    const user = await User.findByPk(id);
-    if (!user) {
-      return Boom.notFound('User not found');
-    }
+    // Handle both Sequelize and DynamoDB models
+    let updatedUser;
+    if (require('../models').useDynamoDB) {
+      // For DynamoDB
+      const user = await User.findOne({ where: { id } });
+      if (!user) {
+        return Boom.notFound('User not found');
+      }
 
-    await user.update({
-      name: name || user.name,
-      dateOfBirth: dateOfBirth || user.dateOfBirth,
-    });
+      const updateData = {
+        name: name || user.name,
+        dateOfBirth: dateOfBirth || user.dateOfBirth,
+      };
+
+      updatedUser = await User.update(updateData, { where: { id } });
+    } else {
+      // For SQL database with Sequelize
+      const user = await User.findByPk(id);
+      if (!user) {
+        return Boom.notFound('User not found');
+      }
+
+      await user.update({
+        name: name || user.name,
+        dateOfBirth: dateOfBirth || user.dateOfBirth,
+      });
+
+      updatedUser = user;
+    }
 
     return h.response({
       statusCode: 200,
       message: 'Profile updated successfully',
       data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        dateOfBirth: user.dateOfBirth,
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        dateOfBirth: updatedUser.dateOfBirth,
       },
     });
   } catch (error) {

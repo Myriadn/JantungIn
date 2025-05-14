@@ -20,10 +20,17 @@ const authPlugin = {
 
             // Extract token dari header
             const token = authHeader.substring(7);
-            const decoded = verifyToken(token);
+            const decoded = verifyToken(token); // Cari user berdasarkan id dari token
+            let user;
 
-            // Cari user berdasarkan id dari token
-            const user = await User.findByPk(decoded.id);
+            if (require('../models').useDynamoDB) {
+              // For DynamoDB
+              user = await User.findOne({ where: { id: decoded.id } });
+            } else {
+              // For SQL database with Sequelize
+              user = await User.findByPk(decoded.id);
+            }
+
             if (!user) {
               return h.unauthenticated(new Error('User not found'));
             }

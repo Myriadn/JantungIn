@@ -5,7 +5,7 @@ const Boom = require('@hapi/boom');
 require('dotenv').config();
 
 // Import models
-const { testConnection, syncDatabase } = require('./models');
+const { useDynamoDB, initializeDatabase } = require('./models');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -45,6 +45,12 @@ const init = async () => {
   // Add routes
   server.route([...authRoutes, ...diagnosisRoutes]);
 
+  // Print registered routes for debugging
+  console.log('Registered routes:');
+  server.table().forEach((route) => {
+    console.log(`${route.method}\t${route.path}`);
+  });
+
   // Add health check route
   server.route({
     method: 'GET',
@@ -65,14 +71,10 @@ const init = async () => {
       return Boom.notFound('Endpoint not found');
     },
   });
+  // Initialize database (either SQL or DynamoDB)
+  await initializeDatabase();
 
-  // Test database connection
-  await testConnection();
-
-  // Sync database models (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    await syncDatabase(false); // Set to true to force recreate tables
-  }
+  console.log(`Database connection established successfully.`);
 
   await server.start();
   console.log(`Server running on ${server.info.uri}`);

@@ -7,10 +7,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '1h';
 
 // Generate token untuk user
-const generateToken = (user) => {
+const generateToken = (userData) => {
+  // Handle case when userData is already in the right format or is a model instance
   const payload = {
-    id: user.id,
-    email: user.email,
+    id: userData.id,
+    email: userData.email,
+    name: userData.name || '',
   };
 
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRATION });

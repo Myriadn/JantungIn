@@ -1,7 +1,7 @@
 'use strict';
 
 const Boom = require('@hapi/boom');
-const { Diagnosis } = require('../models');
+const { Diagnosis, useDynamoDB } = require('../models');
 const { predictCardiovascularDisease } = require('../services/predictionService');
 
 const createDiagnosis = async (request, h) => {
@@ -29,12 +29,13 @@ const createDiagnosis = async (request, h) => {
           id: diagnosis.id,
           resultPercentage,
           cardiovascularRisk,
-          createdAt: diagnosis.createdAt,
+          createdAt: diagnosis.createdAt || new Date().toISOString(),
         },
       })
       .code(201);
   } catch (error) {
-    return Boom.badImplementation('Error creating diagnosis', error);
+    console.error('Error creating diagnosis:', error);
+    return Boom.badImplementation('Error creating diagnosis');
   }
 };
 
@@ -49,7 +50,6 @@ const getDiagnosisById = async (request, h) => {
         userId,
       },
     });
-
     if (!diagnosis) {
       return Boom.notFound('Diagnosis not found');
     }
@@ -60,7 +60,8 @@ const getDiagnosisById = async (request, h) => {
       data: diagnosis,
     });
   } catch (error) {
-    return Boom.badImplementation('Error retrieving diagnosis', error);
+    console.error('Error retrieving diagnosis:', error);
+    return Boom.badImplementation('Error retrieving diagnosis');
   }
 };
 
@@ -68,10 +69,22 @@ const getUserDiagnoses = async (request, h) => {
   try {
     const { id: userId } = request.auth.credentials;
 
-    const diagnoses = await Diagnosis.findAll({
-      where: { userId },
-      order: [['createdAt', 'DESC']],
-    });
+    let diagnoses;
+    if (useDynamoDB) {
+      // For DynamoDB
+      diagnoses = await Diagnosis.findAll({
+        where: { userId },
+      });
+
+      // Sort manually since DynamoDB doesn't support sorting in the query
+      diagnoses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else {
+      // For SQL database with Sequelize
+      diagnoses = await Diagnosis.findAll({
+        where: { userId },
+        order: [['createdAt', 'DESC']],
+      });
+    }
 
     return h.response({
       statusCode: 200,
@@ -79,7 +92,8 @@ const getUserDiagnoses = async (request, h) => {
       data: diagnoses,
     });
   } catch (error) {
-    return Boom.badImplementation('Error retrieving diagnoses', error);
+    console.error('Error retrieving diagnoses:', error);
+    return Boom.badImplementation('Error retrieving diagnoses');
   }
 };
 
