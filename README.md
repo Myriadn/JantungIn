@@ -3,44 +3,28 @@
 Tugas Akhir untuk Studi Independen DBS Foundation dan Dicoding
 
 Jangan lupa atur buat .gitignore kalo mau import file gede disini
-sama satu lagi, kalo pindah branch jaga-jaga ya suka kebawa folder dari branch lainnya hehe
 
-<<<<<<< backend
-Brach buat Backend, pake Hapi sama Axios.
+## BackEnd Tech Stack & How TO RUN
 
-## Project Setup
+JantungIn API adalah layanan backend RESTful untuk aplikasi penilaian risiko kardiovaskular JantungIn. API ini mendukung otentikasi pengguna, manajemen data pasien, dan prediksi risiko kardiovaskular.
 
-```sh
-cd JantungIn-API
+- Node.js
+- Hapi.js framework
+- MySQL/PostgreSQL (for development/testing)
+- AWS DynamoDB (for production)
+- JWT for authentication
+
+```bash
+cd JantungIn_API
 ```
 
-Atau
-
-```sh
-cd JantungIn-API && npm install
+```bash
+cp .env.example .env
+isi format di dalemnya
 ```
 
-### Run Debugging
-
-```sh
-npm run dev
+```bash
+docker-compose up
 ```
 
-atau check lagi package.json
-
-### Check error with Eslint
-
-```sh
-npm run lint
-```
-
-Check result, kalau ada yg Error, run
-
-```sh
-npx eslit .
-```
-=======
-Tugas Akhir untuk Studi Independen DBS Foundation dan Dicoding
-
-Jangan lupa atur buat .gitignore kalo mau import file gede disini
->>>>>>> main
+Cek selebihnya di JantungIn_API
