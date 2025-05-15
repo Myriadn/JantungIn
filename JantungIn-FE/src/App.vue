@@ -1,6 +1,6 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
-import Tes from '@/components/Tes.vue'
+import LandingPage from '@/components/LandingPage.vue'
 </script>
 
 <template>
@@ -8,7 +8,7 @@ import Tes from '@/components/Tes.vue'
     <Navbar />
     <main class="flex-grow pt-20">
       <!-- Konten halaman akan masuk di sini -->
-       <Tes />
+       <LandingPage />
     </main>
   </div>
 </template>
