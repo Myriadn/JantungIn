@@ -9,8 +9,9 @@ To get started with this project, follow the steps below to set up and run the a
 ### Prerequisites
 
 Make sure you have the following installed:
-- **Node.js** (v14 or later)
-- **npm** (comes with Node.js)
+
+* **Node.js** (v14 or later)
+* **npm** (comes with Node.js)
 
 ### Installation
 
@@ -41,13 +42,14 @@ This will start the application, and you can access it on your browser at:
 http://localhost:3000
 ```
 
-### Notes
+### Model Performance
 
-- The model has already been tuned, and further improvements in accuracy cannot be achieved at this stage.
-- UI/UX improvements are planned and will be implemented soon.
+* The MLP model implemented in this project achieves an accuracy testing of **94.67%** in distinguishing between Normal and Heart Disease cases.
+* The model has already been tuned, and further improvements in accuracy cannot be achieved at this stage.
+* UI/UX improvements are planned and will be implemented soon.
 
 ### Authors
 
-- Ridho Alkhoiri
-- Muhammad Rizqy Hidayah
-- Farhan Abdul Mukhlis
+* Ridho Alkhoiri
+* Muhammad Rizqy Hidayah
+* Farhan Abdul Mukhlis
