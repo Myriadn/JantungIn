@@ -1,7 +1,7 @@
 'use strict';
 
 const Boom = require('@hapi/boom');
-const { Diagnosis, useDynamoDB } = require('../models');
+const { Diagnosis } = require('../models');
 const { predictCardiovascularDisease } = require('../services/predictionService');
 
 const createDiagnosis = async (request, h) => {
@@ -69,22 +69,11 @@ const getUserDiagnoses = async (request, h) => {
   try {
     const { id: userId } = request.auth.credentials;
 
-    let diagnoses;
-    if (useDynamoDB) {
-      // For DynamoDB
-      diagnoses = await Diagnosis.findAll({
-        where: { userId },
-      });
-
-      // Sort manually since DynamoDB doesn't support sorting in the query
-      diagnoses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else {
-      // For SQL database with Sequelize
-      diagnoses = await Diagnosis.findAll({
-        where: { userId },
-        order: [['createdAt', 'DESC']],
-      });
-    }
+    // For PostgreSQL with Sequelize
+    const diagnoses = await Diagnosis.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+    });
 
     return h.response({
       statusCode: 200,

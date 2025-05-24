@@ -88,18 +88,10 @@ const getProfile = async (request, h) => {
   try {
     const { id } = request.auth.credentials;
 
-    // Handle both Sequelize and DynamoDB models
-    let user;
-    if (require('../models').useDynamoDB) {
-      user = await User.findOne({ where: { id } });
-      if (user) {
-        delete user.password; // Remove password from response
-      }
-    } else {
-      user = await User.findByPk(id, {
-        attributes: { exclude: ['password'] },
-      });
-    }
+    // Get user from PostgreSQL
+    const user = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+    });
 
     if (!user) {
       return Boom.notFound('User not found');
@@ -121,44 +113,25 @@ const updateProfile = async (request, h) => {
     const { id } = request.auth.credentials;
     const { name, dateOfBirth } = request.payload;
 
-    // Handle both Sequelize and DynamoDB models
-    let updatedUser;
-    if (require('../models').useDynamoDB) {
-      // For DynamoDB
-      const user = await User.findOne({ where: { id } });
-      if (!user) {
-        return Boom.notFound('User not found');
-      }
-
-      const updateData = {
-        name: name || user.name,
-        dateOfBirth: dateOfBirth || user.dateOfBirth,
-      };
-
-      updatedUser = await User.update(updateData, { where: { id } });
-    } else {
-      // For SQL database with Sequelize
-      const user = await User.findByPk(id);
-      if (!user) {
-        return Boom.notFound('User not found');
-      }
-
-      await user.update({
-        name: name || user.name,
-        dateOfBirth: dateOfBirth || user.dateOfBirth,
-      });
-
-      updatedUser = user;
+    // For PostgreSQL with Sequelize
+    const user = await User.findByPk(id);
+    if (!user) {
+      return Boom.notFound('User not found');
     }
+
+    await user.update({
+      name: name || user.name,
+      dateOfBirth: dateOfBirth || user.dateOfBirth,
+    });
 
     return h.response({
       statusCode: 200,
       message: 'Profile updated successfully',
       data: {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        dateOfBirth: updatedUser.dateOfBirth,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        dateOfBirth: user.dateOfBirth,
       },
     });
   } catch (error) {

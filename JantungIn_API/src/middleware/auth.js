@@ -16,20 +16,19 @@ const authPlugin = {
             const authHeader = request.headers.authorization;
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
               return h.unauthenticated(new Error('Missing or invalid authentication token'));
-            }
-
-            // Extract token dari header
+            } // Extract token dari header
             const token = authHeader.substring(7);
-            const decoded = verifyToken(token); // Cari user berdasarkan id dari token
-            let user;
 
-            if (require('../models').useDynamoDB) {
-              // For DynamoDB
-              user = await User.findOne({ where: { id: decoded.id } });
-            } else {
-              // For SQL database with Sequelize
-              user = await User.findByPk(decoded.id);
+            let decoded;
+            try {
+              decoded = verifyToken(token); // Cari user berdasarkan id dari token
+            } catch (error) {
+              console.error('Token verification error:', error.message);
+              return h.unauthenticated(new Error(error.message || 'Invalid token'));
             }
+
+            // For PostgreSQL with Sequelize
+            const user = await User.findByPk(decoded.id);
 
             if (!user) {
               return h.unauthenticated(new Error('User not found'));
