@@ -10,10 +10,17 @@ const Diagnosis = sequelize.define('Diagnosis', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-  },
-  userId: {
+  },  userId: {
     type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
+    },
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true, // Bisa null untuk backward compatibility
     references: {
       model: User,
       key: 'id',
@@ -82,7 +89,11 @@ const Diagnosis = sequelize.define('Diagnosis', {
 });
 
 // Definisi relasi
-User.hasMany(Diagnosis, { foreignKey: 'userId' });
-Diagnosis.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Diagnosis, { foreignKey: 'userId', as: 'patientDiagnoses' });
+Diagnosis.belongsTo(User, { foreignKey: 'userId', as: 'patient' });
+
+// Relasi untuk pembuat diagnosis (dokter/admin)
+User.hasMany(Diagnosis, { foreignKey: 'createdBy', as: 'createdDiagnoses' });
+Diagnosis.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
 
 module.exports = Diagnosis;

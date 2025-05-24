@@ -11,8 +11,9 @@ const generateToken = (userData) => {
   // Handle case when userData is already in the right format or is a model instance
   const payload = {
     id: userData.id,
-    email: userData.email,
+    email: userData.email || '',
     name: userData.name || '',
+    role: userData.role || 'user',
   };
 
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRATION });

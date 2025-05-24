@@ -38,9 +38,11 @@ const init = async () => {
       },
     },
   });
-
   // Register plugins
   await server.register([authPlugin, errorHandler]);
+
+  // Register admin routes
+  await server.register(require('./routes/adminRoutes'));
 
   // Add routes
   server.route([...authRoutes, ...diagnosisRoutes]);
