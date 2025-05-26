@@ -1,14 +1,16 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
-import LandingPage from '@/components/LandingPage.vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 </script>
 
 <template>
   <div class="flex flex-col min-h-screen">
-    <Navbar />
-    <main class="flex-grow pt-20">
-      <!-- Konten halaman akan masuk di sini -->
-       <LandingPage />
+    <!-- Only show navbar on pages other than login and register -->
+    <Navbar v-if="route.name !== 'login' && route.name !== 'register'" />
+    <main :class="[route.name !== 'login' && route.name !== 'register' ? 'flex-grow pt-20' : 'flex-grow']">
+      <router-view />
     </main>
   </div>
 </template>
