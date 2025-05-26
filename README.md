@@ -11,20 +11,33 @@ JantungIn API adalah layanan backend RESTful untuk aplikasi penilaian risiko kar
 - Node.js
 - Hapi.js framework
 - MySQL/PostgreSQL (for development/testing)
-- AWS DynamoDB (for production)
 - JWT for authentication
-
-```bash
-cd JantungIn_API
-```
-
-```bash
-cp .env.example .env
-isi format di dalemnya
-```
-
-```bash
-docker-compose up
-```
-
 Cek selebihnya di JantungIn_API
+
+FrontEnd dengan Vuejs, serta untuk mempercantiknya dengan Tailwind, Gsap, dll.
+
+## Project Setup
+
+```sh
+cd JantungIn-FE
+```
+
+Atau
+
+```sh
+cd JantungIn-FE && npm install
+```
+
+### Run Debugging
+
+```sh
+npm run dev
+```
+
+atau check lagi package.json
+
+### Compile and Minify for Production
+
+```sh
+npm run build
+```
