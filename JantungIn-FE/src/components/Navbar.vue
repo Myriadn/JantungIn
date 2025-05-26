@@ -1,12 +1,14 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 defineOptions({
   name: 'NavBar',
 })
 
 const menuItems = ref([
-  { name: 'Home', path: '/' },
+  { name: 'Home', path: '/home' },
+  { name: 'News', path: '/news' },
   { name: 'Diagnose', path: '/diagnose' },
   { name: 'History', path: '/history' },
 ])
@@ -14,15 +16,14 @@ const menuItems = ref([
 // State untuk menu mobile
 const showMobileMenu = ref(false)
 
-// Menggunakan path dari window.location untuk navigasi aktif
-const currentPath = ref('/')
-onMounted(() => {
-  currentPath.value = window.location.pathname
-})
+// Using vue-router for navigation
+const route = useRoute()
+const router = useRouter()
 
-const currentRoute = computed(() => {
-  return { path: currentPath.value }
-})
+const logout = () => {
+  // Perform logout logic here
+  router.push('/');  // Redirect to login page
+}
 </script>
 
 <template>
@@ -51,20 +52,20 @@ const currentRoute = computed(() => {
         <div class="flex items-center">
           <!-- Menu Items -->
           <nav class="hidden md:flex items-center mr-4">
-            <a
+            <router-link
               v-for="item in menuItems"
               :key="item.path"
-              :href="item.path"
+              :to="item.path"
               class="px-4 py-2 mx-1 font-medium transition-all duration-200 rounded-md hover:bg-blue-700 overflow-hidden relative group"
               :class="{
-                'bg-blue-700 shadow-md': currentRoute.path === item.path,
+                'bg-blue-700 shadow-md': route.path === item.path,
               }"
             >
               <span class="relative z-10">{{ item.name }}</span>
               <span
                 class="absolute inset-0 bg-white opacity-0 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100 group-hover:opacity-10"
               ></span>
-            </a>
+            </router-link>
           </nav>
 
           <!-- Mobile Menu Button -->
@@ -90,25 +91,35 @@ const currentRoute = computed(() => {
 
           <!-- Account Button -->
           <div class="flex items-center">
-            <button
-              class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div class="relative group">
+              <button
+                class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              <span class="font-medium">Account</span>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <span class="font-medium">Account</span>
+              </button>
+              <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                <button 
+                  @click="logout" 
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -118,15 +129,15 @@ const currentRoute = computed(() => {
         v-if="showMobileMenu"
         class="md:hidden bg-blue-600 mt-2 pb-3 rounded-b-lg shadow-lg animate-slideDown"
       >
-        <a
+        <router-link
           v-for="item in menuItems"
           :key="item.path"
-          :href="item.path"
+          :to="item.path"
           class="block px-4 py-2 text-white hover:bg-blue-700 transition-colors"
-          :class="{ 'bg-blue-700': currentRoute.path === item.path }"
+          :class="{ 'bg-blue-700': route.path === item.path }"
         >
           {{ item.name }}
-        </a>
+        </router-link>
       </div>
     </div>
   </header>
