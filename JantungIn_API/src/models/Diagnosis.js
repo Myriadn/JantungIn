@@ -10,7 +10,8 @@ const Diagnosis = sequelize.define('Diagnosis', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-  },  userId: {
+  },
+  userId: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {

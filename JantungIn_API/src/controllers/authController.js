@@ -3,7 +3,7 @@
 const Boom = require('@hapi/boom');
 const { User } = require('../models');
 const { generateToken } = require('../utils/jwt');
-const { findUsersByEncryptedNIK } = require('../services/nikService');
+const { findUsersByEncryptedNIK, isNIKRegistered } = require('../services/nikService');
 
 const register = async (request, h) => {
   try {
@@ -14,12 +14,15 @@ const register = async (request, h) => {
       return Boom.badRequest('NIK harus 16 digit angka');
     }
 
-    // Cek apakah NIK sudah digunakan
-    const existingUsers = await User.findAll({ scope: 'withNIK' });
-    for (const user of existingUsers) {
-      if (user.getNIK() === nik) {
-        return Boom.conflict('NIK sudah terdaftar');
-      }
+    console.log(`Attempting to register with NIK: ${nik}`);
+
+    // Cek apakah NIK sudah digunakan (menggunakan service khusus)
+    const nikRegistered = await isNIKRegistered(nik);
+    console.log(`NIK ${nik} registration check result: ${nikRegistered}`);
+
+    if (nikRegistered) {
+      console.log(`Registration rejected: NIK ${nik} is already registered`);
+      return Boom.conflict('NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.');
     }
 
     // Cek email jika diisi
@@ -80,13 +83,13 @@ const login = async (request, h) => {
     if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
       console.log('NIK validation failed');
       return Boom.badRequest('NIK harus 16 digit angka');
-    }    // Cari user berdasarkan NIK
-    const users = await User.findAll({ 
+    } // Cari user berdasarkan NIK
+    const users = await User.findAll({
       scope: 'withCredentials',
-      attributes: { include: ['nik_encrypted', 'password'] }
+      attributes: { include: ['nik_encrypted', 'password'] },
     });
     console.log(`Found ${users.length} users to check against`);
-    
+
     // Cari user dengan NIK yang cocok
     let foundUser = null;
     for (const user of users) {
@@ -241,35 +244,35 @@ const loginWithEmail = async (request, h) => {
 const debugNIK = async (request, h) => {
   try {
     console.log('Starting NIK debugging...');
-    
+
     // Cek semua NIK terenkripsi di database
     const users = await User.findAll({
       scope: 'withCredentials',
-      attributes: ['id', 'name', 'email', 'nik_encrypted']
+      attributes: ['id', 'name', 'email', 'nik_encrypted'],
     });
-    
+
     console.log(`Found ${users.length} users in database`);
-    
+
     // Daftar NIK terenkripsi
     console.log('--- DAFTAR NIK TERENKRIPSI ---');
     const userDetails = [];
-    
+
     for (const user of users) {
       console.log(`User ID: ${user.id}, Encrypted NIK: ${user.nik_encrypted}`);
-      
+
       // Coba dekripsi NIK
       const decryptedNIK = user.getNIK();
       console.log(`Decrypted NIK: ${decryptedNIK || 'Failed to decrypt'}`);
-      
+
       userDetails.push({
         id: user.id,
         name: user.name,
         email: user.email,
         hasEncryptedNIK: user.nik_encrypted ? 'Yes' : 'No',
-        decryptedNIK: decryptedNIK || 'Failed to decrypt'
+        decryptedNIK: decryptedNIK || 'Failed to decrypt',
       });
     }
-    
+
     // Cek kunci enkripsi
     let keyStr = process.env.ENCRYPTION_KEY || 'fallback_encryption_key_for_development';
     if (keyStr.length < 32) {
@@ -277,17 +280,19 @@ const debugNIK = async (request, h) => {
     } else if (keyStr.length > 32) {
       keyStr = keyStr.substring(0, 32);
     }
-    
-    console.log(`Using encryption key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`);
-    
+
+    console.log(
+      `Using encryption key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`
+    );
+
     // Tes enkripsi dan dekripsi
     const testNIK = '1234567890123456';
     const encrypted = User.encryptNIK(testNIK);
     console.log(`Test encryption: ${testNIK} -> ${encrypted}`);
-    
+
     const decrypted = User.decryptNIK(encrypted);
     console.log(`Test decryption: ${encrypted} -> ${decrypted}`);
-    
+
     return h.response({
       statusCode: 200,
       message: 'NIK debugging completed',
@@ -298,8 +303,8 @@ const debugNIK = async (request, h) => {
           original: testNIK,
           encrypted: encrypted,
           decrypted: decrypted,
-          successful: testNIK === decrypted
-        }
+          successful: testNIK === decrypted,
+        },
       },
     });
   } catch (error) {
@@ -312,31 +317,42 @@ const debugNIK = async (request, h) => {
 const updateUserNIK = async (request, h) => {
   try {
     const { userId, newNIK } = request.payload;
-    
+
     // Validasi NIK
     if (!newNIK || newNIK.length !== 16 || !/^\d+$/.test(newNIK)) {
       return Boom.badRequest('NIK harus 16 digit angka');
     }
-    
+
+    console.log(`Attempting to update NIK for user ${userId} to: ${newNIK}`);
+
+    // Cek apakah NIK sudah digunakan oleh pengguna lain
+    const nikRegistered = await isNIKRegistered(newNIK);
+    console.log(`NIK ${newNIK} registration check result: ${nikRegistered}`);
+
+    if (nikRegistered) {
+      console.log(`Update rejected: NIK ${newNIK} is already registered`);
+      return Boom.conflict('NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.');
+    }
+
     // Ambil user
     const user = await User.findByPk(userId);
     if (!user) {
       return Boom.notFound('User not found');
     }
-    
+
     // Enkripsi NIK baru
     const nik_encrypted = User.encryptNIK(newNIK);
-    
+
     // Update NIK
     await user.update({ nik_encrypted });
-    
+
     return h.response({
       statusCode: 200,
       message: 'NIK updated successfully',
       data: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
       },
     });
   } catch (error) {

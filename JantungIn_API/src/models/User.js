@@ -8,7 +8,7 @@ const crypto = require('crypto');
 // Fungsi untuk enkripsi NIK
 const encryptNIK = (nik) => {
   const algorithm = 'aes-256-cbc';
-  
+
   // Pastikan kunci memiliki panjang 32 bytes (256 bits) untuk AES-256
   let keyStr = process.env.ENCRYPTION_KEY || 'fallback_encryption_key_for_development';
   // Padding kunci jika kurang dari 32 karakter atau memotong jika lebih
@@ -17,7 +17,7 @@ const encryptNIK = (nik) => {
   } else if (keyStr.length > 32) {
     keyStr = keyStr.substring(0, 32);
   }
-  
+
   const key = Buffer.from(keyStr, 'utf-8');
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
@@ -30,14 +30,14 @@ const encryptNIK = (nik) => {
 const decryptNIK = (encryptedNIK) => {
   try {
     console.log(`Attempting to decrypt: ${encryptedNIK}`);
-    
+
     if (!encryptedNIK || !encryptedNIK.includes(':')) {
       console.error(`Invalid encrypted NIK format: ${encryptedNIK}`);
       return null;
     }
-    
+
     const algorithm = 'aes-256-cbc';
-    
+
     // Pastikan kunci memiliki panjang 32 bytes (256 bits) untuk AES-256
     let keyStr = process.env.ENCRYPTION_KEY || 'fallback_encryption_key_for_development';
     // Padding kunci jika kurang dari 32 karakter atau memotong jika lebih
@@ -46,21 +46,25 @@ const decryptNIK = (encryptedNIK) => {
     } else if (keyStr.length > 32) {
       keyStr = keyStr.substring(0, 32);
     }
-    
-    console.log(`Using key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`);
-    
+
+    console.log(
+      `Using key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`
+    );
+
     const key = Buffer.from(keyStr, 'utf-8');
     const textParts = encryptedNIK.split(':');
-    
-    console.log(`IV part length: ${textParts[0].length}, Encrypted part length: ${textParts[1]?.length || 0}`);
-    
+
+    console.log(
+      `IV part length: ${textParts[0].length}, Encrypted part length: ${textParts[1]?.length || 0}`
+    );
+
     const iv = Buffer.from(textParts[0], 'hex');
     const encryptedText = Buffer.from(textParts[1], 'hex');
-    
+
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     let decrypted = decipher.update(encryptedText);
     decrypted += decipher.final('utf8');
-    
+
     console.log(`Successfully decrypted to: ${decrypted}`);
     return decrypted;
   } catch (error) {
@@ -106,12 +110,16 @@ const User = sequelize.define(
       type: DataTypes.ENUM('user', 'admin', 'dokter'),
       defaultValue: 'user',
     },
-  },  {    hooks: {
+  },
+  {
+    hooks: {
       beforeCreate: async (user) => {
         if (user.password) {
           console.log(`Hashing password for new user`);
           const hashedPassword = await bcrypt.hash(user.password, 10);
-          console.log(`Original password length: ${user.password.length}, Hashed password length: ${hashedPassword.length}`);
+          console.log(
+            `Original password length: ${user.password.length}, Hashed password length: ${hashedPassword.length}`
+          );
           user.password = hashedPassword;
         }
       },
@@ -122,7 +130,7 @@ const User = sequelize.define(
         }
       },
     },
-  defaultScope: {
+    defaultScope: {
       attributes: { exclude: ['nik_encrypted', 'password'] },
     },
     scopes: {
@@ -137,7 +145,7 @@ const User = sequelize.define(
 );
 
 // Getter dan setter untuk NIK (virtual field)
-User.prototype.getNIK = function() {
+User.prototype.getNIK = function () {
   try {
     if (this.nik_encrypted) {
       const decrypted = decryptNIK(this.nik_encrypted);

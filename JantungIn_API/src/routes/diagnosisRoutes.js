@@ -29,10 +29,11 @@ module.exports = [
       },
       handler: diagnosisController.createDiagnosis,
       app: {
-        requiredRoles: ['admin', 'dokter'] // Hanya admin/dokter yang bisa melakukan diagnosis
-      }
+        requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melakukan diagnosis
+      },
     },
-  },  {
+  },
+  {
     method: 'GET',
     path: '/api/diagnosis/{id}',
     options: {
@@ -66,8 +67,8 @@ module.exports = [
       handler: diagnosisController.getAllDiagnoses,
       app: {
         requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melihat semua diagnosis
-        localhostOnly: true // Hanya bisa diakses dari localhost
-      }
+        localhostOnly: true, // Hanya bisa diakses dari localhost
+      },
     },
   },
 ];

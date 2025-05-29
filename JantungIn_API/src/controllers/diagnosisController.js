@@ -62,14 +62,14 @@ const getDiagnosisById = async (request, h) => {
 
     // Buat query berdasarkan peran
     const query = { where: { id } };
-    
+
     // Jika bukan admin/dokter, batasi hanya melihat diagnosis sendiri
     if (role !== 'admin' && role !== 'dokter') {
       query.where.userId = userId;
     }
 
     const diagnosis = await Diagnosis.findOne(query);
-    
+
     if (!diagnosis) {
       return Boom.notFound('Diagnosis not found');
     }
@@ -92,7 +92,7 @@ const getUserDiagnoses = async (request, h) => {
 
     // Buat query berdasarkan peran
     const query = { order: [['createdAt', 'DESC']] };
-    
+
     // Jika admin/dokter dan ada patientId yang diberikan, lihat diagnosis pasien tersebut
     if ((role === 'admin' || role === 'dokter') && patientId) {
       query.where = { userId: patientId };

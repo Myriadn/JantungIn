@@ -10,11 +10,11 @@ const adminLogin = async (request, h) => {
     const { username, password } = request.payload;
 
     // Cari user berdasarkan email sebagai username
-    const admin = await User.findOne({ 
-      where: { 
+    const admin = await User.findOne({
+      where: {
         email: username,
-        role: ['admin', 'dokter']  // Hanya user dengan role admin atau dokter
-      } 
+        role: ['admin', 'dokter'], // Hanya user dengan role admin atau dokter
+      },
     });
 
     if (!admin) {
@@ -57,7 +57,7 @@ const getAllPatients = async (request, h) => {
   try {
     const patients = await User.findAll({
       where: { role: 'user' },
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password'] },
     });
 
     return h.response({
@@ -75,13 +75,13 @@ const getAllPatients = async (request, h) => {
 const getPatientById = async (request, h) => {
   try {
     const { id } = request.params;
-    
+
     const patient = await User.findOne({
-      where: { 
+      where: {
         id,
-        role: 'user'
+        role: 'user',
       },
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password'] },
     });
 
     if (!patient) {
@@ -110,12 +110,12 @@ const findPatientByNik = async (request, h) => {
     }
 
     // Cari semua user dengan scope untuk akses nik_encrypted
-    const users = await User.findAll({ 
+    const users = await User.findAll({
       where: { role: 'user' },
       scope: 'withNIK',
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password'] },
     });
-    
+
     // Cari user dengan NIK yang cocok
     let patient = null;
     for (const user of users) {
@@ -136,7 +136,7 @@ const findPatientByNik = async (request, h) => {
         id: patient.id,
         name: patient.name,
         email: patient.email,
-        dateOfBirth: patient.dateOfBirth
+        dateOfBirth: patient.dateOfBirth,
       },
     });
   } catch (error) {

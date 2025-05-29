@@ -16,8 +16,8 @@ module.exports = {
           tags: ['api', 'admin'],
           description: 'Login khusus admin/dokter',
           app: {
-            localhostOnly: true // Hanya bisa diakses dari localhost
-          }
+            localhostOnly: true, // Hanya bisa diakses dari localhost
+          },
         },
       },
       {
@@ -30,8 +30,8 @@ module.exports = {
           description: 'Mendapatkan semua data pasien',
           app: {
             requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa akses
-            localhostOnly: true
-          }
+            localhostOnly: true,
+          },
         },
       },
       {
@@ -44,8 +44,8 @@ module.exports = {
           description: 'Mendapatkan data pasien berdasarkan ID',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true
-          }
+            localhostOnly: true,
+          },
         },
       },
       {
@@ -58,8 +58,8 @@ module.exports = {
           description: 'Mencari pasien berdasarkan NIK',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true
-          }
+            localhostOnly: true,
+          },
         },
       },
     ]);

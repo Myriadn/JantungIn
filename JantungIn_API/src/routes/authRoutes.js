@@ -3,7 +3,8 @@
 const Joi = require('@hapi/joi');
 const authController = require('../controllers/authController');
 
-module.exports = [  // Rute dengan prefix /api
+module.exports = [
+  // Rute dengan prefix /api
   {
     method: 'POST',
     path: '/api/auth/register',
@@ -38,7 +39,7 @@ module.exports = [  // Rute dengan prefix /api
       },
       handler: authController.register,
     },
-  },  // Rute dengan prefix /api
+  }, // Rute dengan prefix /api
   {
     method: 'POST',
     path: '/api/auth/login',
@@ -67,7 +68,7 @@ module.exports = [  // Rute dengan prefix /api
       },
       handler: authController.login,
     },
-  },  // Login dengan email (fallback) dengan prefix /api
+  }, // Login dengan email (fallback) dengan prefix /api
   {
     method: 'POST',
     path: '/api/auth/login-email',
@@ -81,7 +82,7 @@ module.exports = [  // Rute dengan prefix /api
       },
       handler: authController.loginWithEmail,
     },
-  },  // Debugging endpoint untuk NIK
+  }, // Debugging endpoint untuk NIK
   {
     method: 'GET',
     path: '/api/auth/debug-nik',
