@@ -1,64 +1,53 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const nik = ref('');
-const password = ref('');
+const router = useRouter()
+const nik = ref('')
+const password = ref('')
 
 const navigateToRegister = () => {
-  router.push('/register');
-};
+  router.push('/register')
+}
 
 const handleLogin = () => {
   // TODO: Implement login functionality
-  console.log('Login attempt with:', { nik: nik.value, password: password.value });
+  console.log('Login attempt with:', { nik: nik.value, password: password.value })
   // Navigate to home after login
-  router.push('/home');
-};
+  router.push('/news')
+}
 
 const handleResetPassword = () => {
   // TODO: Implement password reset functionality
-  console.log('Password reset requested');
-};
+  console.log('Password reset requested')
+}
 </script>
 
 <template>
   <div class="login-container">
     <div class="login-card">
       <h1 class="login-title">Login as Patient</h1>
-      
+
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="nik">NIK</label>
-          <input 
-            id="nik"
-            v-model="nik"
-            type="text" 
-            class="form-control" 
-            required
-          />
+          <input id="nik" v-model="nik" type="text" class="form-control" required />
         </div>
-        
+
         <div class="form-group">
           <label for="password">Password</label>
-          <input 
-            id="password"
-            v-model="password"
-            type="password" 
-            class="form-control" 
-            required
-          />        </div>
-        
+          <input id="password" v-model="password" type="password" class="form-control" required />
+        </div>
+
         <button type="submit" class="btn-primary">Login</button>
-        
+
         <div class="links">
           <p class="text-center">
-            Don't have an account? 
+            Don't have an account?
             <a href="#" @click.prevent="navigateToRegister" class="text-link">Register</a>
           </p>
           <p class="text-center">
-            Can't remember your password? 
+            Can't remember your password?
             <a href="#" @click.prevent="handleResetPassword" class="text-link">Reset Password</a>
           </p>
         </div>
