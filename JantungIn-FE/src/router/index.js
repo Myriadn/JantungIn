@@ -31,6 +31,11 @@ const routes = [
     name: 'history',
     component: HistoryPage,
   },
+  {
+    path: '/account',
+    name: 'account',
+    component: () => import('@/Page/AccountPage.vue'),
+  },
 ]
 
 const router = createRouter({
