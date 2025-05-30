@@ -47,6 +47,33 @@ const decryptNIK = (encryptedNIK) => {
       keyStr = keyStr.substring(0, 32);
     }
 
+    const key = Buffer.from(keyStr, 'utf-8');
+    const textParts = encryptedNIK.split(':');
+    
+    if (textParts.length !== 2) {
+      console.error(`Invalid split parts in encrypted NIK: ${textParts.length} parts`);
+      return null;
+    }
+    
+    const iv = Buffer.from(textParts[0], 'hex');
+    const encryptedText = Buffer.from(textParts[1], 'hex');
+    
+    if (!iv || iv.length !== 16) {
+      console.error(`Invalid IV length: ${iv ? iv.length : 'null'}`);
+      return null;
+    }
+    
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    
+    return decrypted.toString();
+  } catch (error) {
+    console.error('Decryption error:', error);
+    return null;
+  }
+};
+
     console.log(
       `Using key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`
     );
@@ -58,28 +85,17 @@ const decryptNIK = (encryptedNIK) => {
       `IV part length: ${textParts[0].length}, Encrypted part length: ${textParts[1]?.length || 0}`
     );
 
-    if (textParts.length !== 2) {
-      console.error(`Invalid split parts in encrypted NIK: ${textParts.length} parts`);
-      return null;
-    }
-
     const iv = Buffer.from(textParts[0], 'hex');
     const encryptedText = Buffer.from(textParts[1], 'hex');
 
-    if (!iv || iv.length !== 16) {
-      console.error(`Invalid IV length: ${iv ? iv.length : 'null'}`);
-      return null;
-    }
-
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    decrypted += decipher.final('utf8');
 
-    const decryptedString = decrypted.toString();
-    console.log(`Successfully decrypted to: ${decryptedString}`);
-    return decryptedString;
+    console.log(`Successfully decrypted to: ${decrypted}`);
+    return decrypted;
   } catch (error) {
-    console.error('Decryption error:', error);
+    console.error(`Decryption error:`, error);
     return null;
   }
 };
@@ -155,49 +171,24 @@ const User = sequelize.define(
   }
 );
 
-// Getter dan setter untuk NIK (virtual field) dengan improved error handling
+// Getter dan setter untuk NIK (virtual field)
 User.prototype.getNIK = function () {
   try {
     if (this.nik_encrypted) {
       console.log(`Attempting to decrypt NIK for user ${this.id} with role ${this.role}`);
       console.log(`Encrypted NIK value: ${this.nik_encrypted}`);
-
-      // Handle special case: the test NIK 1234567891012342
-      if (process.env.NODE_ENV !== 'production') {
-        // Khusus untuk mode development/testing, bisa kembalikan NIK default untuk testing
-        const testNik = '1234567891012342';
-        console.log(`TEST MODE: Considering returning test NIK ${testNik}`);
-
-        // Actually decrypt and compare
-        const decrypted = decryptNIK(this.nik_encrypted);
-
-        if (decrypted) {
-          console.log(`Successfully decrypted NIK for user ${this.id}: ${decrypted}`);
-          return decrypted;
-        } else {
-          console.error(`Failed to decrypt NIK for user ${this.id}, null returned`);
-
-          // Only in non-production, consider returning test value for specific users
-          if (['user', 'pasien'].includes(this.role)) {
-            console.log(`TEST MODE: Returning test NIK for user ${this.id}`);
-            return testNik;
-          }
-          return null;
-        }
-      }
-
-      // Regular decryption path
+      
       const decrypted = decryptNIK(this.nik_encrypted);
-
+      
       if (!decrypted) {
         console.error(`Failed to decrypt NIK for user ${this.id}, null returned`);
         return null;
       }
-
+      
       console.log(`Successfully decrypted NIK for user ${this.id}: ${decrypted}`);
       return decrypted;
     }
-
+    
     console.log(`User ${this.id} has no encrypted NIK`);
     return null;
   } catch (error) {

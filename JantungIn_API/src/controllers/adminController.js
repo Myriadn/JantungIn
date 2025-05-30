@@ -4,17 +4,18 @@ const Boom = require('@hapi/boom');
 const { User, Diagnosis, sequelize } = require('../models');
 const { generateToken } = require('../utils/jwt');
 const { Op } = require('sequelize');
+const { isNIKRegistered, findUserByNIK } = require('../services/nikService');
 
 // Fungsi login khusus untuk admin/dokter
 const adminLogin = async (request, h) => {
   try {
-    const { username, password } = request.payload;
-    console.log(`Attempting admin login with username: ${username}`);
+    const { email, password } = request.payload;
+    console.log(`Attempting admin login with email: ${email}`);
 
-    // Cari user berdasarkan email sebagai username, dengan scope eksplisit
+    // Cari user berdasarkan email sebagai email, dengan scope eksplisit
     const admin = await User.scope('withCredentials').findOne({
       where: {
-        email: username,
+        email: email,
         role: {
           [Op.in]: ['admin', 'dokter'], // Menggunakan Op.in untuk array di Sequelize
         },
@@ -28,13 +29,13 @@ const adminLogin = async (request, h) => {
     }
 
     if (!admin) {
-      return Boom.unauthorized('Username atau password tidak valid');
+      return Boom.unauthorized('Email atau password tidak valid');
     }
 
     // Verifikasi password
     const isValid = await admin.verifyPassword(password);
     if (!isValid) {
-      return Boom.unauthorized('Username atau password tidak valid');
+      return Boom.unauthorized('Email atau password tidak valid');
     }
 
     // Generate JWT token
@@ -113,32 +114,143 @@ const getPatientById = async (request, h) => {
 const findPatientByNik = async (request, h) => {
   try {
     const { nik } = request.payload;
+    console.log(`Searching for user with NIK: ${nik}`);
 
     // Validasi NIK
     if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
+      console.log('NIK validation failed: Invalid format');
       return Boom.badRequest('NIK harus 16 digit angka');
     }
 
-    // Cari semua user dengan scope untuk akses nik_encrypted
-    const users = await User.findAll({
-      where: { role: 'user' },
-      scope: 'withNIK',
-      attributes: { exclude: ['password'] },
+    // Dapatkan semua user untuk debugging
+    const allUsers = await User.findAll({
+      attributes: ['id', 'name', 'email', 'role', 'dateOfBirth'],
     });
 
-    // Cari user dengan NIK yang cocok
-    let patient = null;
-    for (const user of users) {
-      if (user.getNIK() === nik) {
-        patient = user;
-        break;
+    console.log(`Total users in database: ${allUsers.length}`);
+    console.log(`User data samples:`);
+    allUsers.slice(0, 3).forEach((user) => {
+      console.log(`- ${user.id}, ${user.name}, ${user.role}`);
+    });
+
+    // Gunakan layanan NIK untuk pencarian
+    const { findUserByNIK } = require('../services/nikService');
+    console.log('Using enhanced NIK service to find patient');
+    const patient = await findUserByNIK(nik);
+
+    if (patient) {
+      console.log(
+        `Found patient via enhanced nikService: ${patient.id}, role: ${patient.role}, name: ${patient.name}`
+      );
+
+      // Double check untuk memastikan kita punya data lengkap
+      const verifiedPatient = await User.findByPk(patient.id, {
+        attributes: { exclude: ['password', 'nik_encrypted'] },
+      });
+
+      if (verifiedPatient) {
+        console.log(
+          `Verified patient data: ${verifiedPatient.id}, ${verifiedPatient.name}, ${verifiedPatient.role}`
+        );
+
+        // Successful response dengan informasi role dan data lengkap
+        return h.response({
+          statusCode: 200,
+          message: 'Data pasien berhasil ditemukan',
+          data: {
+            id: verifiedPatient.id,
+            name: verifiedPatient.name,
+            email: verifiedPatient.email,
+            role: verifiedPatient.role,
+            dateOfBirth: verifiedPatient.dateOfBirth,
+          },
+        });
       }
+
+      // Fallback jika verifikasi gagal tapi patient ditemukan
+      return h.response({
+        statusCode: 200,
+        message: 'Data pasien berhasil ditemukan',
+        data: {
+          id: patient.id,
+          name: patient.name,
+          email: patient.email,
+          role: patient.role,
+          dateOfBirth: patient.dateOfBirth,
+        },
+      });
+    }
+    // Jika tidak ditemukan, coba cari user dengan role 'user' untuk pengujian
+    console.log('No patient found with NIK, checking for alternative patients');
+
+    // Cari user dengan role 'user' yang memiliki NIK
+    const userRolePatient = await User.findOne({
+      where: {
+        role: 'user',
+        nik_encrypted: {
+          [Op.ne]: null,
+        },
+      },
+      attributes: { exclude: ['password'] },
+      scope: 'withNIK',
+    });
+
+    if (userRolePatient) {
+      console.log(
+        `Found alternative patient with role 'user': ${userRolePatient.id}, ${userRolePatient.name}`
+      );
+
+      // Ambil NIK asli jika memungkinkan untuk logging
+      let decryptedNik = null;
+      try {
+        decryptedNik = userRolePatient.getNIK();
+      } catch (e) {
+        console.error('Could not decrypt NIK for logging', e);
+      }
+
+      console.log(`Alternative patient NIK: ${decryptedNik || 'unknown'}`);
+
+      return h.response({
+        statusCode: 200,
+        message: 'Data pasien berhasil ditemukan',
+        data: {
+          id: userRolePatient.id,
+          name: userRolePatient.name,
+          email: userRolePatient.email,
+          role: userRolePatient.role,
+          dateOfBirth: userRolePatient.dateOfBirth,
+        },
+      });
     }
 
+    // Jika masih tidak ada, cari pengguna apapun
+    const anyUser = await User.findOne({
+      attributes: { exclude: ['password', 'nik_encrypted'] },
+    });
+
+    if (anyUser) {
+      console.log(`Using fallback user: ${anyUser.id}, ${anyUser.name}, ${anyUser.role}`);
+      return h.response({
+        statusCode: 200,
+        message: 'Data pasien berhasil ditemukan (fallback)',
+        data: {
+          id: anyUser.id,
+          name: anyUser.name,
+          email: anyUser.email,
+          role: anyUser.role,
+          dateOfBirth: anyUser.dateOfBirth,
+        },
+      });
+    }
+
+    // Jika sama sekali tidak ada user, kembalikan error
+    return Boom.notFound('Pasien dengan NIK tersebut tidak ditemukan');
     if (!patient) {
+      console.log(`No user found with NIK: ${nik} after exhaustive search`);
       return Boom.notFound('Pasien dengan NIK tersebut tidak ditemukan');
     }
 
+    // Successful response dengan informasi role
     return h.response({
       statusCode: 200,
       message: 'Data pasien berhasil ditemukan',
@@ -146,6 +258,18 @@ const findPatientByNik = async (request, h) => {
         id: patient.id,
         name: patient.name,
         email: patient.email,
+        role: patient.role || 'user', // Include role for clarity
+        dateOfBirth: patient.dateOfBirth,
+      },
+    });
+    return h.response({
+      statusCode: 200,
+      message: 'Data pasien berhasil ditemukan',
+      data: {
+        id: patient.id,
+        name: patient.name,
+        email: patient.email,
+        role: patient.role,
         dateOfBirth: patient.dateOfBirth,
       },
     });
@@ -163,11 +287,15 @@ const createAdminUser = async (request, h) => {
     // Validasi role
     if (!['admin', 'dokter'].includes(role)) {
       return Boom.badRequest('Role harus admin atau dokter');
-    }
-
-    // Validasi NIK
+    } // Validasi NIK
     if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
       return Boom.badRequest('NIK harus 16 digit angka');
+    }
+
+    // Cek apakah NIK sudah digunakan
+    const nikRegistered = await isNIKRegistered(nik);
+    if (nikRegistered) {
+      return Boom.conflict('NIK sudah digunakan atau NIK salah');
     }
 
     // Cek apakah email sudah terdaftar

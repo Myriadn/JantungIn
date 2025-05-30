@@ -71,4 +71,20 @@ module.exports = [
       },
     },
   },
+  {
+    method: 'GET',
+    path: '/api/admin/diagnosis/patient/{patientId}',
+    options: {
+      auth: 'jwt',
+      validate: {
+        params: Joi.object({
+          patientId: Joi.string().uuid().required(),
+        }),
+      },
+      handler: diagnosisController.getPatientDiagnoses,
+      app: {
+        requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melihat diagnosis pasien
+      },
+    },
+  },
 ];

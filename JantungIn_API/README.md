@@ -14,15 +14,14 @@ JantungIn API is a RESTful backend service for the JantungIn cardiovascular risk
 
 - Node.js
 - Hapi.js framework
-- MySQL/PostgreSQL (for development/testing)
-- AWS DynamoDB (for production)
+- PostgreSQL (for Database)
 - JWT for authentication
 
 ## Prerequisites
 
 - Node.js v14+ and npm
-- MySQL or PostgreSQL (for local development)
-- AWS account with DynamoDB access (for production)
+- PostgreSQL (for local development)
+- AWS Instances (for production)
 
 ## Installation
 

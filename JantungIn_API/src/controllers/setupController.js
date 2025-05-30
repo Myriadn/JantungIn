@@ -2,6 +2,7 @@
 
 const Boom = require('@hapi/boom');
 const { User } = require('../models');
+const { isNIKRegistered } = require('../services/nikService');
 
 // Fungsi untuk memeriksa admin yang sudah ada
 const checkAdminAccount = async (request, h) => {
@@ -49,9 +50,14 @@ const setupAdmin = async (request, h) => {
     if (!name || !email || !password || !nik) {
       return Boom.badRequest('Name, email, password, and NIK are required');
     }
-
     if (nik.length !== 16 || !/^\d+$/.test(nik)) {
       return Boom.badRequest('NIK must be 16 digits');
+    }
+
+    // Cek apakah NIK sudah digunakan
+    const nikRegistered = await isNIKRegistered(nik);
+    if (nikRegistered) {
+      return Boom.conflict('NIK sudah digunakan atau NIK salah');
     }
 
     // Enkripsi NIK

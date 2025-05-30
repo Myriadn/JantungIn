@@ -1,7 +1,7 @@
 'use strict';
 
 const Boom = require('@hapi/boom');
-const { Diagnosis } = require('../models');
+const { Diagnosis, User } = require('../models');
 const { predictCardiovascularDisease } = require('../services/predictionService');
 
 const createDiagnosis = async (request, h) => {
@@ -133,9 +133,44 @@ const getAllDiagnoses = async (request, h) => {
   }
 };
 
+// Mendapatkan diagnosis pasien berdasarkan patientId (khusus admin/dokter)
+const getPatientDiagnoses = async (request, h) => {
+  try {
+    const { role } = request.auth.credentials;
+    const { patientId } = request.params;
+
+    // Memastikan yang mengakses adalah admin/dokter
+    if (role !== 'admin' && role !== 'dokter') {
+      return Boom.forbidden('Hanya admin/dokter yang dapat mengakses riwayat diagnosa pasien');
+    }
+
+    // Cek apakah pasien ada
+    const patient = await User.findByPk(patientId);
+    if (!patient) {
+      return Boom.notFound('Pasien tidak ditemukan');
+    }
+
+    // Dapatkan semua diagnosa pasien
+    const diagnoses = await Diagnosis.findAll({
+      where: { userId: patientId },
+      order: [['createdAt', 'DESC']],
+    });
+
+    return h.response({
+      statusCode: 200,
+      message: 'Diagnoses for patient retrieved successfully',
+      data: diagnoses,
+    });
+  } catch (error) {
+    console.error('Error retrieving patient diagnoses:', error);
+    return Boom.badImplementation('Error retrieving patient diagnoses');
+  }
+};
+
 module.exports = {
   createDiagnosis,
   getDiagnosisById,
   getUserDiagnoses,
   getAllDiagnoses,
+  getPatientDiagnoses,
 };

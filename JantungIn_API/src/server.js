@@ -13,6 +13,9 @@ const { useDynamoDB, initializeDatabase } = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const diagnosisRoutes = require('./routes/diagnosisRoutes');
 
+// Import prediction service
+const { loadScalerInfo } = require('./services/predictionService');
+
 // Import seed utility
 const { createInitialAdmin } = require('./utils/seed');
 
@@ -120,9 +123,17 @@ const init = async () => {
   await initializeDatabase();
 
   console.log(`Database connection established successfully.`);
-
   // Create initial admin account if not exists
   await createInitialAdmin();
+  // Preload ML model
+  try {
+    console.log('Preloading heart disease prediction model...');
+    await loadScalerInfo();
+    console.log('Heart disease prediction model loaded successfully.');
+  } catch (error) {
+    console.error('Warning: Failed to preload ML model:', error.message);
+    console.log('Will attempt to load model on first prediction request.');
+  }
 
   await server.start();
   console.log(`Server running on ${server.info.uri}`);
