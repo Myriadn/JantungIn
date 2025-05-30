@@ -3,6 +3,7 @@ import Login from '@/Page/auth/Login-user.vue'
 import Register from '@/Page/auth/Register-user.vue'
 import LandingPage from '@/Page/LandingPage.vue'
 import NewsPage from '@/Page/NewsPage.vue'
+import HistoryPage from '@/Page/HistoryPage.vue'
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/news',
     name: 'news',
     component: NewsPage,
+  },
+  {
+    path: '/history',
+    name: 'history',
+    component: HistoryPage,
   },
 ]
 
