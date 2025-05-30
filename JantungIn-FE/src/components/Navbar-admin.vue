@@ -7,10 +7,10 @@ defineOptions({
 })
 
 const menuItems = ref([
-  { name: 'Home', path: '/home' },
-  { name: 'News', path: '/news' },
-  { name: 'Diagnose', path: '/diagnose' },
-  { name: 'History', path: '/history' },
+  { name: 'Home', path: '/home-admin' },
+  { name: 'News', path: '/news-admin' },
+  { name: 'Diagnose', path: '/diagnose-admin' },
+  { name: 'History', path: '/history-admin' },
 ])
 
 // State untuk menu mobile
@@ -19,11 +19,6 @@ const showMobileMenu = ref(false)
 // Using vue-router for navigation
 const route = useRoute()
 const router = useRouter()
-
-const logout = () => {
-  // Perform logout logic here
-  router.push('/');  // Redirect to login page
-}
 </script>
 
 <template>
@@ -35,11 +30,8 @@ const logout = () => {
         <!-- Logo & Brand Section (Kiri) -->
         <div class="flex items-center gap-2">
           <div class="relative group">
-            <div
-              class="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur-sm opacity-75 group-hover:opacity-100 transition duration-300"
-            ></div>
             <div class="relative bg-white rounded-full p-1.5">
-              <img src="@/assets/logo.png" class="h-9 w-9" alt="JantungIn Logo" />
+              <img src="@/assets/logo.png" class="h-7 w-7" alt="JantungIn Logo" />
             </div>
           </div>
           <div>
@@ -93,7 +85,8 @@ const logout = () => {
           <div class="flex items-center">
             <div class="relative group">
               <button
-                class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md"
+                @click="router.push('/account-admin')"
+                class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md cursor-pointer"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -111,14 +104,6 @@ const logout = () => {
                 </svg>
                 <span class="font-medium">Account</span>
               </button>
-              <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
-                <button 
-                  @click="logout" 
-                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100"
-                >
-                  Logout
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -163,12 +148,6 @@ nav a::after {
 
 nav a:hover::after {
   width: 100%;
-}
-
-/* Gradient bottom border untuk header */
-header {
-  border-bottom: 4px solid;
-  border-image: linear-gradient(to right, #6366f1, #a855f7, #ec4899) 1;
 }
 
 /* Fix untuk UI yang lebih konsisten */

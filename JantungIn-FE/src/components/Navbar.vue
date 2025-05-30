@@ -29,7 +29,7 @@ const router = useRouter()
         <div class="flex items-center gap-2">
           <div class="relative group">
             <div class="relative bg-white rounded-full p-1.5">
-              <img src="@/assets/logo.png" class="h-9 w-9" alt="JantungIn Logo" />
+              <img src="@/assets/logo.png" class="h-7 w-7" alt="JantungIn Logo" />
             </div>
           </div>
           <div>
