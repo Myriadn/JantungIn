@@ -51,12 +51,12 @@ const routes = [
   },
   {
     path: '/home-admin',
-    name: 'home',
+    name: 'homeAdmin',
     component: HomeAdminPage,
   },
   {
     path: '/diagnose-admin',
-    name: 'diagnose',
+    name: 'diagnoseAdmin',
     component: DiagnoseAdminPage,
   },
   {

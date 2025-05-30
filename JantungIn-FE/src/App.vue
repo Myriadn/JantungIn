@@ -10,8 +10,8 @@ const route = useRoute()
 const isAdminPage = computed(() => {
   // Admin route names - keep this list in sync with router/index.js
   const adminRouteNames = [
-    'home', // HomeAdminPage
-    'diagnose', // DiagnoseAdminPage
+    'homeAdmin', // HomeAdminPage
+    'diagnoseAdmin', // DiagnoseAdminPage
     'historyAdmin', // HistoryAdminPage
     'newsAdmin', // NewsAdminPage
     'resultAdmin', // ResultAdminPage
