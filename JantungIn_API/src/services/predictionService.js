@@ -31,7 +31,6 @@ const predictCardiovascularDisease = async (data) => {
   // Faktor kolesterol
   if (data.serumCholesterol > 240) riskScore += 15;
   else if (data.serumCholesterol > 200) riskScore += 5;
-
   // Tentukan risk level
   let cardiovascularRisk;
   if (riskScore < 30) cardiovascularRisk = 'Low';
@@ -41,9 +40,13 @@ const predictCardiovascularDisease = async (data) => {
   // Normalisasi score menjadi persentase (0-100)
   const resultPercentage = Math.min(100, Math.round((riskScore * 100) / 80));
 
+  // Tentukan prediksi berdasarkan cardiovascularRisk
+  const prediction = cardiovascularRisk === 'Low' ? 'Tidak Berisiko' : 'Berisiko';
+
   return {
     resultPercentage,
     cardiovascularRisk,
+    prediction,
   };
 };
 

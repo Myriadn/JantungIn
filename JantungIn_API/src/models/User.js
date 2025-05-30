@@ -166,7 +166,14 @@ User.decryptNIK = decryptNIK;
 User.prototype.verifyPassword = async function (password) {
   try {
     console.log(`Verifying password for user ${this.id}`);
-    console.log(`Stored password hash: ${this.password.substring(0, 10)}...`);
+
+    // Periksa apakah password ada
+    if (!this.password) {
+      console.error(`Password field is missing for user ${this.id}`);
+      return false;
+    }
+
+    console.log(`Stored password hash length: ${this.password.length}`);
     const result = await bcrypt.compare(password, this.password);
     console.log(`Password verification result: ${result}`);
     return result;

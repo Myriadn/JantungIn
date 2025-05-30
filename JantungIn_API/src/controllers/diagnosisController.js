@@ -21,10 +21,8 @@ const createDiagnosis = async (request, h) => {
     } else if (patientId && patientId !== creatorId) {
       // User biasa mencoba diagnosa orang lain
       return Boom.forbidden('Anda tidak memiliki izin untuk mendiagnosa pasien lain');
-    }
-
-    // Prediksi penyakit jantung dari service
-    const { resultPercentage, cardiovascularRisk } =
+    } // Prediksi penyakit jantung dari service
+    const { resultPercentage, cardiovascularRisk, prediction } =
       await predictCardiovascularDisease(diagnosisData);
 
     // Simpan data diagnosis dan hasil prediksi
@@ -34,6 +32,7 @@ const createDiagnosis = async (request, h) => {
       ...diagnosisData,
       resultPercentage,
       cardiovascularRisk,
+      prediction,
     });
 
     return h

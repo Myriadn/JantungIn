@@ -1,0 +1,1602 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JantungIn API Documentation</title>
+    <style>
+      :root {
+        --primary-color: #e63946;
+        --secondary-color: #1d3557;
+        --light-color: #f1faee;
+        --dark-color: #2b2d42;
+        --accent-color: #457b9d;
+        --border-color: #ddd;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f9fa;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+      }
+
+      header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      nav {
+        background-color: var(--secondary-color);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      nav ul {
+        display: flex;
+        list-style: none;
+        flex-wrap: wrap;
+      }
+
+      nav ul li {
+        margin-right: 1.5rem;
+      }
+
+      nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: color 0.3s;
+      }
+
+      nav ul li a:hover {
+        color: var(--light-color);
+      }
+
+      section {
+        margin-bottom: 3rem;
+      }
+
+      h2 {
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+      }
+
+      h3 {
+        color: var(--secondary-color);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        margin-bottom: 1rem;
+      }
+
+      .endpoint {
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .endpoint-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .method {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+        margin-right: 1rem;
+        min-width: 80px;
+        text-align: center;
+      }
+
+      .get {
+        background-color: #61affe;
+      }
+
+      .post {
+        background-color: #49cc90;
+      }
+
+      .put {
+        background-color: #fca130;
+      }
+
+      .delete {
+        background-color: #f93e3e;
+      }
+
+      .path {
+        font-family: monospace;
+        font-size: 1.1rem;
+        word-break: break-all;
+      }
+
+      .description {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      .params-title,
+      .body-title,
+      .response-title {
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+      }
+
+      table th,
+      table td {
+        padding: 0.75rem;
+        text-align: left;
+        border: 1px solid var(--border-color);
+      }
+
+      table th {
+        background-color: #f5f5f5;
+      }
+
+      pre {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      code {
+        font-family: 'Courier New', Courier, monospace;
+        background-color: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .auth-required {
+        background-color: #ffccbc;
+        color: #d84315;
+      }
+
+      .admin-only {
+        background-color: #bbdefb;
+        color: #1565c0;
+      }
+
+      .localhost-only {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+      }
+
+      .note {
+        background-color: #fff9c4;
+        border-left: 4px solid #fbc02d;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      footer {
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 2rem 0;
+        margin-top: 3rem;
+      }
+
+      footer a {
+        color: var(--light-color);
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+
+        nav ul li {
+          margin-right: 1rem;
+        }
+
+        .endpoint-title {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .method {
+          margin-bottom: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>JantungIn API Documentation</h1>
+        <p>RESTful API untuk layanan prediksi risiko penyakit kardiovaskular</p>
+      </div>
+    </header>
+
+    <nav>
+      <div class="container">
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#authentication">Authentication</a></li>
+          <li><a href="#user-endpoints">User Endpoints</a></li>
+          <li><a href="#admin-endpoints">Admin Endpoints</a></li>
+          <li><a href="#diagnosis-endpoints">Diagnosis Endpoints</a></li>
+          <li><a href="#setup-endpoints">Setup Endpoints</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>
+          JantungIn API adalah layanan backend untuk aplikasi JantungIn yang menyediakan fungsi
+          prediksi risiko penyakit kardiovaskular. API ini mendukung otentikasi pengguna, manajemen
+          data pasien, dan prediksi risiko kardiovaskular.
+        </p>
+
+        <h3>Fitur Utama</h3>
+        <ul>
+          <li>Otentikasi pengguna (registrasi, login, manajemen profil)</li>
+          <li>Prediksi risiko penyakit kardiovaskular</li>
+          <li>Pelacakan riwayat diagnosis</li>
+          <li>RESTful API dengan endpoint terstandarisasi</li>
+          <li>Dukungan untuk database MySQL/PostgreSQL dan AWS DynamoDB</li>
+        </ul>
+
+        <h3>Base URL</h3>
+        <p>Semua URL dalam dokumentasi ini relatif terhadap:</p>
+        <pre><code>http://localhost:3000</code></pre>
+        <p>Untuk lingkungan produksi, ganti dengan domain produksi Anda.</p>
+
+        <h3>Autentikasi</h3>
+        <p>
+          JantungIn API menggunakan JSON Web Tokens (JWT) untuk autentikasi. Token harus disertakan
+          dalam header Authorization untuk semua endpoint yang memerlukan autentikasi:
+        </p>
+        <pre><code>Authorization: Bearer [token]</code></pre>
+
+        <h3>Format Respons</h3>
+        <p>Semua respons API menggunakan format JSON berikut:</p>
+        <pre><code>{
+  "statusCode": 200, // Kode status HTTP
+  "message": "Success message",
+  "data": {
+    // Data yang dikembalikan, jika ada
+  }
+}</code></pre>
+
+        <h3>Kode Status</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Kode</th>
+              <th>Deskripsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>200</td>
+              <td>OK - Permintaan berhasil</td>
+            </tr>
+            <tr>
+              <td>201</td>
+              <td>Created - Resource berhasil dibuat</td>
+            </tr>
+            <tr>
+              <td>400</td>
+              <td>Bad Request - Kesalahan dalam permintaan</td>
+            </tr>
+            <tr>
+              <td>401</td>
+              <td>Unauthorized - Autentikasi diperlukan</td>
+            </tr>
+            <tr>
+              <td>403</td>
+              <td>Forbidden - Tidak memiliki izin yang cukup</td>
+            </tr>
+            <tr>
+              <td>404</td>
+              <td>Not Found - Resource tidak ditemukan</td>
+            </tr>
+            <tr>
+              <td>409</td>
+              <td>Conflict - Konflik dengan status resource saat ini</td>
+            </tr>
+            <tr>
+              <td>500</td>
+              <td>Internal Server Error - Kesalahan pada server</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="authentication">
+        <h2>Authentication</h2>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/auth/register</span>
+          </div>
+          <div class="description">Mendaftarkan pengguna baru (user/pasien).</div>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>name</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nama lengkap pengguna</td>
+              </tr>
+              <tr>
+                <td>email</td>
+                <td>string</td>
+                <td>Tidak</td>
+                <td>Alamat email pengguna</td>
+              </tr>
+              <tr>
+                <td>nik</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nomor Induk Kependudukan (16 digit)</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Kata sandi (minimal 6 karakter)</td>
+              </tr>
+              <tr>
+                <td>dateOfBirth</td>
+                <td>string (ISO 8601)</td>
+                <td>Tidak</td>
+                <td>Tanggal lahir (format: YYYY-MM-DD)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (201 Created):</div>
+          <pre><code>{
+  "statusCode": 201,
+  "message": "User registered successfully",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pengguna",
+    "email": "user@example.com",
+    "role": "user",
+    "token": "jwt-token"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/auth/login</span>
+          </div>
+          <div class="description">Login menggunakan NIK dan password.</div>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>nik</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nomor Induk Kependudukan (16 digit)</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Kata sandi</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Login berhasil",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pengguna",
+    "email": "user@example.com",
+    "role": "user",
+    "token": "jwt-token"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/auth/login-email</span>
+          </div>
+          <div class="description">Login alternatif menggunakan email dan password.</div>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>email</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Alamat email pengguna</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Kata sandi</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Login berhasil",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pengguna",
+    "email": "user@example.com",
+    "role": "user",
+    "token": "jwt-token"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/auth/profile</span>
+          </div>
+          <div class="description">Mendapatkan profil pengguna yang sedang login.</div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Profile retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pengguna",
+    "email": "user@example.com",
+    "role": "user",
+    "dateOfBirth": "1990-01-01",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method put">PUT</span>
+            <span class="path">/api/auth/profile</span>
+          </div>
+          <div class="description">Memperbarui profil pengguna.</div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>name</td>
+                <td>string</td>
+                <td>Tidak</td>
+                <td>Nama lengkap pengguna</td>
+              </tr>
+              <tr>
+                <td>dateOfBirth</td>
+                <td>string (ISO 8601)</td>
+                <td>Tidak</td>
+                <td>Tanggal lahir (format: YYYY-MM-DD)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Baru",
+    "email": "user@example.com",
+    "dateOfBirth": "1990-01-01"
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <section id="user-endpoints">
+        <h2>User Endpoints</h2>
+
+        <div class="note">
+          <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT.
+          Pengguna dengan role "user" hanya dapat mengakses data mereka sendiri.
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/diagnosis/history</span>
+          </div>
+          <div class="description">Mendapatkan riwayat diagnosis pengguna.</div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Diagnoses retrieved successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "age": 50,
+      "sex": "Male",
+      "chestPainType": "Typical angina",
+      "restingEcgResults": "Normal",
+      "fastingBloodSugar": 120,
+      "restingBloodPressure": 140,
+      "maximumHeartRate": 160,
+      "exerciseInducedAngina": "Yes",
+      "stSegment": "Flat",
+      "majorVessels": 2,
+      "thalassemia": "Fixed Defect",
+      "serumCholesterol": 250,
+      "stDepression": 1.5,
+      "resultPercentage": 75.5,
+      "cardiovascularRisk": "High",
+      "prediction": "Berisiko",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/diagnosis/{id}</span>
+          </div>
+          <div class="description">Mendapatkan detail diagnosis berdasarkan ID.</div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>ID diagnosis</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Diagnosis retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "age": 50,
+    "sex": "Male",
+    "chestPainType": "Typical angina",
+    "restingEcgResults": "Normal",
+    "fastingBloodSugar": 120,
+    "restingBloodPressure": 140,
+    "maximumHeartRate": 160,
+    "exerciseInducedAngina": "Yes",
+    "stSegment": "Flat",
+    "majorVessels": 2,
+    "thalassemia": "Fixed Defect",
+    "serumCholesterol": 250,
+    "stDepression": 1.5,
+    "resultPercentage": 75.5,
+    "cardiovascularRisk": "High",
+    "prediction": "Berisiko",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <section id="admin-endpoints">
+        <h2>Admin Endpoints</h2>
+
+        <div class="note">
+          <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT dengan
+          role "admin" atau "dokter". Beberapa endpoint hanya dapat diakses dari localhost untuk
+          keamanan tambahan.
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/admin/login</span>
+          </div>
+          <div class="description">Login khusus untuk admin/dokter.</div>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>username</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Email admin/dokter</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Kata sandi</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Login berhasil",
+  "data": {
+    "id": "uuid",
+    "name": "Admin",
+    "email": "admin@jantungin.com",
+    "role": "admin",
+    "token": "jwt-token"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/profile</span>
+          </div>
+          <div class="description">Mendapatkan profil admin/dokter yang sedang login.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Profil admin berhasil diambil",
+  "data": {
+    "id": "uuid",
+    "name": "Admin",
+    "email": "admin@jantungin.com",
+    "role": "admin",
+    "dateOfBirth": "1990-01-01",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/admin/change-password</span>
+          </div>
+          <div class="description">Mengganti password admin/dokter yang sedang login.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>currentPassword</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Password saat ini</td>
+              </tr>
+              <tr>
+                <td>newPassword</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Password baru (minimal 6 karakter)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Password berhasil diubah"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/patients</span>
+          </div>
+          <div class="description">Mendapatkan semua data pasien (user).</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Data pasien berhasil diambil",
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Nama Pasien",
+      "email": "pasien@example.com",
+      "role": "user",
+      "dateOfBirth": "1990-01-01",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/patients/{id}</span>
+          </div>
+          <div class="description">Mendapatkan data pasien berdasarkan ID.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>ID pasien</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Data pasien berhasil diambil",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pasien",
+    "email": "pasien@example.com",
+    "role": "user",
+    "dateOfBirth": "1990-01-01",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/admin/patients/find</span>
+          </div>
+          <div class="description">Mencari pasien berdasarkan NIK.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>nik</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nomor Induk Kependudukan (16 digit)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Data pasien berhasil ditemukan",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Pasien",
+    "email": "pasien@example.com",
+    "dateOfBirth": "1990-01-01"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/admins</span>
+          </div>
+          <div class="description">Mendapatkan semua data admin/dokter.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Data admin/dokter berhasil diambil",
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Admin",
+      "email": "admin@jantungin.com",
+      "role": "admin",
+      "dateOfBirth": "1990-01-01",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/admin/admins</span>
+          </div>
+          <div class="description">Membuat user admin/dokter baru.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>name</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nama lengkap</td>
+              </tr>
+              <tr>
+                <td>email</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Alamat email</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Kata sandi</td>
+              </tr>
+              <tr>
+                <td>role</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Role: "admin" atau "dokter"</td>
+              </tr>
+              <tr>
+                <td>nik</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nomor Induk Kependudukan (16 digit)</td>
+              </tr>
+              <tr>
+                <td>dateOfBirth</td>
+                <td>string (ISO 8601)</td>
+                <td>Tidak</td>
+                <td>Tanggal lahir (format: YYYY-MM-DD)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (201 Created):</div>
+          <pre><code>{
+  "statusCode": 201,
+  "message": "Admin berhasil dibuat",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Admin",
+    "email": "admin@example.com",
+    "role": "admin"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method put">PUT</span>
+            <span class="path">/api/admin/users/{id}</span>
+          </div>
+          <div class="description">Mengubah data user.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>ID user</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>name</td>
+                <td>string</td>
+                <td>Tidak</td>
+                <td>Nama lengkap</td>
+              </tr>
+              <tr>
+                <td>email</td>
+                <td>string</td>
+                <td>Tidak</td>
+                <td>Alamat email</td>
+              </tr>
+              <tr>
+                <td>role</td>
+                <td>string</td>
+                <td>Tidak</td>
+                <td>Role: "user", "admin", atau "dokter"</td>
+              </tr>
+              <tr>
+                <td>dateOfBirth</td>
+                <td>string (ISO 8601)</td>
+                <td>Tidak</td>
+                <td>Tanggal lahir (format: YYYY-MM-DD)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "User berhasil diperbarui",
+  "data": {
+    "id": "uuid",
+    "name": "Nama Baru",
+    "email": "email.baru@example.com",
+    "role": "dokter",
+    "dateOfBirth": "1991-02-02"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method delete">DELETE</span>
+            <span class="path">/api/admin/users/{id}</span>
+          </div>
+          <div class="description">Menghapus user.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>ID user</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "User berhasil dihapus"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/admin/users/{id}/reset-password</span>
+          </div>
+          <div class="description">Reset password user.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>ID user</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>newPassword</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Password baru (minimal 6 karakter)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Password user berhasil direset"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/statistics/diagnosis</span>
+          </div>
+          <div class="description">Mendapatkan statistik diagnosa.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Statistik diagnosa berhasil diambil",
+  "data": {
+    "totalDiagnosis": 100,
+    "lastWeekDiagnosis": 15,
+    "predictionDistribution": [
+      {
+        "prediction": "Berisiko",
+        "count": 70
+      },
+      {
+        "prediction": "Tidak Berisiko",
+        "count": 30
+      }
+    ]
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/dashboard</span>
+          </div>
+          <div class="description">Mendapatkan data dashboard admin.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Data dashboard berhasil diambil",
+  "data": {
+    "users": {
+      "total": 150,
+      "newLastWeek": 12,
+      "byRole": [
+        {
+          "role": "user",
+          "count": 140
+        },
+        {
+          "role": "admin",
+          "count": 5
+        },
+        {
+          "role": "dokter",
+          "count": 5
+        }
+      ]
+    },
+    "diagnoses": {
+      "total": 100,
+      "newLastWeek": 15,
+      "byPrediction": [
+        {
+          "prediction": "Berisiko",
+          "count": 70
+        },
+        {
+          "prediction": "Tidak Berisiko",
+          "count": 30
+        }
+      ],
+      "byRisk": [
+        {
+          "cardiovascularRisk": "Low",
+          "count": 30
+        },
+        {
+          "cardiovascularRisk": "Medium",
+          "count": 40
+        },
+        {
+          "cardiovascularRisk": "High",
+          "count": 30
+        }
+      ]
+    }
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <section id="diagnosis-endpoints">
+        <h2>Diagnosis Endpoints</h2>
+
+        <div class="note">
+          <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT.
+          Pembuatan diagnosis baru hanya dapat dilakukan oleh admin atau dokter.
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/diagnosis</span>
+          </div>
+          <div class="description">Membuat diagnosis baru untuk pasien.</div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>patientId</td>
+                <td>string (UUID)</td>
+                <td>Tidak</td>
+                <td>ID pasien (jika tidak diisi, menggunakan ID user yang sedang login)</td>
+              </tr>
+              <tr>
+                <td>age</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Usia pasien</td>
+              </tr>
+              <tr>
+                <td>sex</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Jenis kelamin (Male/Female)</td>
+              </tr>
+              <tr>
+                <td>chestPainType</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Tipe nyeri dada</td>
+              </tr>
+              <tr>
+                <td>restingEcgResults</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Hasil ECG saat istirahat</td>
+              </tr>
+              <tr>
+                <td>fastingBloodSugar</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Kadar gula darah puasa</td>
+              </tr>
+              <tr>
+                <td>restingBloodPressure</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Tekanan darah saat istirahat</td>
+              </tr>
+              <tr>
+                <td>maximumHeartRate</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Detak jantung maksimum</td>
+              </tr>
+              <tr>
+                <td>exerciseInducedAngina</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Angina yang dipicu oleh olahraga (Yes/No)</td>
+              </tr>
+              <tr>
+                <td>stSegment</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Segmen ST</td>
+              </tr>
+              <tr>
+                <td>majorVessels</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Jumlah pembuluh darah utama (0-3)</td>
+              </tr>
+              <tr>
+                <td>thalassemia</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Jenis thalassemia</td>
+              </tr>
+              <tr>
+                <td>serumCholesterol</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Kadar kolesterol serum</td>
+              </tr>
+              <tr>
+                <td>stDepression</td>
+                <td>number</td>
+                <td>Ya</td>
+                <td>Depresi segmen ST</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (201 Created):</div>
+          <pre><code>{
+  "statusCode": 201,
+  "message": "Diagnosis created successfully",
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "age": 50,
+    "sex": "Male",
+    "chestPainType": "Typical angina",
+    "restingEcgResults": "Normal",
+    "fastingBloodSugar": 120,
+    "restingBloodPressure": 140,
+    "maximumHeartRate": 160,
+    "exerciseInducedAngina": "Yes",
+    "stSegment": "Flat",
+    "majorVessels": 2,
+    "thalassemia": "Fixed Defect",
+    "serumCholesterol": 250,
+    "stDepression": 1.5,
+    "resultPercentage": 75.5,
+    "cardiovascularRisk": "High",
+    "prediction": "Berisiko",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/diagnosis/all</span>
+          </div>
+          <div class="description">
+            Mendapatkan semua data diagnosis (hanya untuk admin/dokter).
+          </div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "All diagnoses retrieved successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "age": 50,
+      "sex": "Male",
+      "chestPainType": "Typical angina",
+      "restingEcgResults": "Normal",
+      "fastingBloodSugar": 120,
+      "restingBloodPressure": 140,
+      "maximumHeartRate": 160,
+      "exerciseInducedAngina": "Yes",
+      "stSegment": "Flat",
+      "majorVessels": 2,
+      "thalassemia": "Fixed Defect",
+      "serumCholesterol": 250,
+      "stDepression": 1.5,
+      "resultPercentage": 75.5,
+      "cardiovascularRisk": "High",
+      "prediction": "Berisiko",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+      </section>
+
+      <section id="setup-endpoints">
+        <h2>Setup Endpoints</h2>
+
+        <div class="note">
+          <strong>Catatan:</strong> Endpoint di bagian ini hanya dapat diakses dari localhost dan
+          hanya digunakan untuk setup awal aplikasi.
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="path">/api/setup/admin</span>
+          </div>
+          <div class="description">Setup akun admin pertama.</div>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="body-title">Request Body:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>name</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Nama admin</td>
+              </tr>
+              <tr>
+                <td>email</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Email admin</td>
+              </tr>
+              <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>Password admin</td>
+              </tr>
+              <tr>
+                <td>nik</td>
+                <td>string</td>
+                <td>Ya</td>
+                <td>NIK admin (16 digit)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (201 Created):</div>
+          <pre><code>{
+  "statusCode": 201,
+  "message": "Initial admin account created successfully",
+  "data": {
+    "id": "uuid",
+    "name": "Admin JantungIn",
+    "email": "admin@jantungin.com",
+    "role": "admin"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/setup/admin-check</span>
+          </div>
+          <div class="description">Memeriksa akun admin yang sudah ada.</div>
+          <span class="tag localhost-only">Localhost Only</span>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Admin accounts found",
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Admin JantungIn",
+      "email": "admin@jantungin.com",
+      "role": "admin",
+      "createdAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2023 JantungIn API. All rights reserved.</p>
+        <p>API documentation for JantungIn cardiovascular risk assessment application.</p>
+      </div>
+    </footer>
+  </body>
+</html>

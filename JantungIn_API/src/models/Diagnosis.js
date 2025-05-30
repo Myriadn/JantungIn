@@ -87,6 +87,11 @@ const Diagnosis = sequelize.define('Diagnosis', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  prediction: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'Berisiko', // Default value untuk backward compatibility
+  },
 });
 
 // Definisi relasi
