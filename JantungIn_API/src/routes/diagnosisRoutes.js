@@ -11,6 +11,7 @@ module.exports = [
       auth: 'jwt',
       validate: {
         payload: Joi.object({
+          patientId: Joi.string().uuid(), // Opsional, hanya untuk admin/dokter
           age: Joi.number().integer().required(),
           sex: Joi.string().valid('Male', 'Female').required(),
           chestPainType: Joi.string().required(),
@@ -27,6 +28,9 @@ module.exports = [
         }),
       },
       handler: diagnosisController.createDiagnosis,
+      app: {
+        requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melakukan diagnosis
+      },
     },
   },
   {
@@ -47,7 +51,24 @@ module.exports = [
     path: '/api/diagnosis/history',
     options: {
       auth: 'jwt',
+      validate: {
+        query: Joi.object({
+          patientId: Joi.string().uuid(), // Opsional, hanya untuk admin/dokter
+        }).unknown(true),
+      },
       handler: diagnosisController.getUserDiagnoses,
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api/admin/diagnosis/all',
+    options: {
+      auth: 'jwt',
+      handler: diagnosisController.getAllDiagnoses,
+      app: {
+        requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melihat semua diagnosis
+        localhostOnly: true, // Hanya bisa diakses dari localhost
+      },
     },
   },
 ];

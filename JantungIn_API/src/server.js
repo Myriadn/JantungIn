@@ -2,6 +2,8 @@
 
 const Hapi = require('@hapi/hapi');
 const Boom = require('@hapi/boom');
+const Inert = require('@hapi/inert');
+const Path = require('path');
 require('dotenv').config();
 
 // Import models
@@ -10,6 +12,9 @@ const { useDynamoDB, initializeDatabase } = require('./models');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const diagnosisRoutes = require('./routes/diagnosisRoutes');
+
+// Import seed utility
+const { createInitialAdmin } = require('./utils/seed');
 
 // Import middleware/plugins
 const authPlugin = require('./middleware/auth');
@@ -38,9 +43,40 @@ const init = async () => {
       },
     },
   });
-
   // Register plugins
-  await server.register([authPlugin, errorHandler]);
+  await server.register([authPlugin, errorHandler, Inert]);
+
+  // Register routes
+  await server.register([require('./routes/adminRoutes'), require('./routes/setupRoutes')]);
+
+  // Serve static files from public folder with higher priority
+  server.route({
+    method: 'GET',
+    path: '/{param*}',
+    options: {
+      auth: false,
+      handler: {
+        directory: {
+          path: Path.join(__dirname, '../public'),
+          index: ['index.html'],
+          listing: false,
+          defaultExtension: 'html',
+        },
+      },
+    },
+  });
+
+  // Add explicit route for API documentation
+  server.route({
+    method: 'GET',
+    path: '/docs',
+    options: {
+      auth: false,
+    },
+    handler: (request, h) => {
+      return h.redirect('/api-docs.html');
+    },
+  });
 
   // Add routes
   server.route([...authRoutes, ...diagnosisRoutes]);
@@ -49,9 +85,7 @@ const init = async () => {
   console.log('Registered routes:');
   server.table().forEach((route) => {
     console.log(`${route.method}\t${route.path}`);
-  });
-
-  // Add health check route
+  }); // Add health check route
   server.route({
     method: 'GET',
     path: '/health',
@@ -63,18 +97,32 @@ const init = async () => {
     },
   });
 
-  // Default route for non-existent paths
+  // Add api-docs route for direct access
+  server.route({
+    method: 'GET',
+    path: '/api-docs',
+    options: {
+      auth: false,
+    },
+    handler: (request, h) => {
+      return h.redirect('/api-docs.html');
+    },
+  });
+
+  // Default route for non-existent API paths
   server.route({
     method: '*',
-    path: '/{any*}',
+    path: '/api/{any*}',
     handler: () => {
       return Boom.notFound('Endpoint not found');
     },
-  });
-  // Initialize database (either SQL or DynamoDB)
+  }); // Initialize database (either SQL or DynamoDB)
   await initializeDatabase();
 
   console.log(`Database connection established successfully.`);
+
+  // Create initial admin account if not exists
+  await createInitialAdmin();
 
   await server.start();
   console.log(`Server running on ${server.info.uri}`);

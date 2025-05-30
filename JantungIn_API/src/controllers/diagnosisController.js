@@ -1,24 +1,38 @@
 'use strict';
 
 const Boom = require('@hapi/boom');
-const { Diagnosis, useDynamoDB } = require('../models');
+const { Diagnosis } = require('../models');
 const { predictCardiovascularDisease } = require('../services/predictionService');
 
 const createDiagnosis = async (request, h) => {
   try {
-    const { id: userId } = request.auth.credentials;
-    const diagnosisData = request.payload;
+    const { id: creatorId, role } = request.auth.credentials;
+    const { patientId, ...diagnosisData } = request.payload;
 
-    // Prediksi penyakit jantung dari service
-    const { resultPercentage, cardiovascularRisk } =
+    // Tentukan userId berdasarkan peran
+    // Jika admin/dokter, gunakan patientId dari payload
+    // Jika user biasa, gunakan userId dari token (tidak bisa diagnose orang lain)
+    let userId = creatorId;
+
+    if (role === 'admin' || role === 'dokter') {
+      if (patientId) {
+        userId = patientId;
+      }
+    } else if (patientId && patientId !== creatorId) {
+      // User biasa mencoba diagnosa orang lain
+      return Boom.forbidden('Anda tidak memiliki izin untuk mendiagnosa pasien lain');
+    } // Prediksi penyakit jantung dari service
+    const { resultPercentage, cardiovascularRisk, prediction } =
       await predictCardiovascularDisease(diagnosisData);
 
     // Simpan data diagnosis dan hasil prediksi
     const diagnosis = await Diagnosis.create({
       userId,
+      createdBy: creatorId, // Tambahkan field createdBy untuk tracking siapa yang buat
       ...diagnosisData,
       resultPercentage,
       cardiovascularRisk,
+      prediction,
     });
 
     return h
@@ -27,6 +41,7 @@ const createDiagnosis = async (request, h) => {
         message: 'Diagnosis created successfully',
         data: {
           id: diagnosis.id,
+          userId,
           resultPercentage,
           cardiovascularRisk,
           createdAt: diagnosis.createdAt || new Date().toISOString(),
@@ -42,14 +57,18 @@ const createDiagnosis = async (request, h) => {
 const getDiagnosisById = async (request, h) => {
   try {
     const { id } = request.params;
-    const { id: userId } = request.auth.credentials;
+    const { id: userId, role } = request.auth.credentials;
 
-    const diagnosis = await Diagnosis.findOne({
-      where: {
-        id,
-        userId,
-      },
-    });
+    // Buat query berdasarkan peran
+    const query = { where: { id } };
+
+    // Jika bukan admin/dokter, batasi hanya melihat diagnosis sendiri
+    if (role !== 'admin' && role !== 'dokter') {
+      query.where.userId = userId;
+    }
+
+    const diagnosis = await Diagnosis.findOne(query);
+
     if (!diagnosis) {
       return Boom.notFound('Diagnosis not found');
     }
@@ -67,24 +86,22 @@ const getDiagnosisById = async (request, h) => {
 
 const getUserDiagnoses = async (request, h) => {
   try {
-    const { id: userId } = request.auth.credentials;
+    const { id: userId, role } = request.auth.credentials;
+    const { patientId } = request.query;
 
-    let diagnoses;
-    if (useDynamoDB) {
-      // For DynamoDB
-      diagnoses = await Diagnosis.findAll({
-        where: { userId },
-      });
+    // Buat query berdasarkan peran
+    const query = { order: [['createdAt', 'DESC']] };
 
-      // Sort manually since DynamoDB doesn't support sorting in the query
-      diagnoses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Jika admin/dokter dan ada patientId yang diberikan, lihat diagnosis pasien tersebut
+    if ((role === 'admin' || role === 'dokter') && patientId) {
+      query.where = { userId: patientId };
     } else {
-      // For SQL database with Sequelize
-      diagnoses = await Diagnosis.findAll({
-        where: { userId },
-        order: [['createdAt', 'DESC']],
-      });
+      // Jika user biasa atau admin/dokter tanpa patientId, lihat diagnosis sendiri
+      query.where = { userId };
     }
+
+    // For PostgreSQL with Sequelize
+    const diagnoses = await Diagnosis.findAll(query);
 
     return h.response({
       statusCode: 200,
@@ -97,8 +114,28 @@ const getUserDiagnoses = async (request, h) => {
   }
 };
 
+// Mendapatkan semua diagnosis (hanya untuk admin/dokter)
+const getAllDiagnoses = async (request, h) => {
+  try {
+    // For PostgreSQL with Sequelize
+    const diagnoses = await Diagnosis.findAll({
+      order: [['createdAt', 'DESC']],
+    });
+
+    return h.response({
+      statusCode: 200,
+      message: 'All diagnoses retrieved successfully',
+      data: diagnoses,
+    });
+  } catch (error) {
+    console.error('Error retrieving all diagnoses:', error);
+    return Boom.badImplementation('Error retrieving all diagnoses');
+  }
+};
+
 module.exports = {
   createDiagnosis,
   getDiagnosisById,
   getUserDiagnoses,
+  getAllDiagnoses,
 };

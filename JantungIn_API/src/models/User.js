@@ -1,182 +1,189 @@
 'use strict';
 
 const { DataTypes } = require('sequelize');
-const { sequelize, dynamoDB, useDynamoDB } = require('../config/database');
+const { sequelize } = require('../config/database');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
-let User;
+// Fungsi untuk enkripsi NIK
+const encryptNIK = (nik) => {
+  const algorithm = 'aes-256-cbc';
 
-if (!useDynamoDB) {
-  // Sequelize model definition (for MySQL/PostgreSQL)
-  User = sequelize.define(
-    'User',
-    {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
-        },
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      dateOfBirth: {
-        type: DataTypes.DATEONLY,
-      },
-    },
-    {
-      hooks: {
-        beforeCreate: async (user) => {
-          if (user.password) {
-            user.password = await bcrypt.hash(user.password, 10);
-          }
-        },
-        beforeUpdate: async (user) => {
-          if (user.changed('password')) {
-            user.password = await bcrypt.hash(user.password, 10);
-          }
-        },
-      },
+  // Pastikan kunci memiliki panjang 32 bytes (256 bits) untuk AES-256
+  let keyStr = process.env.ENCRYPTION_KEY || 'fallback_encryption_key_for_development';
+  // Padding kunci jika kurang dari 32 karakter atau memotong jika lebih
+  if (keyStr.length < 32) {
+    keyStr = keyStr.padEnd(32, '0');
+  } else if (keyStr.length > 32) {
+    keyStr = keyStr.substring(0, 32);
+  }
+
+  const key = Buffer.from(keyStr, 'utf-8');
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  let encrypted = cipher.update(nik, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
+};
+
+// Fungsi untuk dekripsi NIK
+const decryptNIK = (encryptedNIK) => {
+  try {
+    console.log(`Attempting to decrypt: ${encryptedNIK}`);
+
+    if (!encryptedNIK || !encryptedNIK.includes(':')) {
+      console.error(`Invalid encrypted NIK format: ${encryptedNIK}`);
+      return null;
     }
-  );
 
-  // Instance method untuk verifikasi password
-  User.prototype.verifyPassword = async function (password) {
-    return bcrypt.compare(password, this.password);
-  };
-} else {
-  // DynamoDB model wrapper
-  User = {
-    // Create a new user
-    create: async function (userData) {
-      const id = uuidv4();
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const algorithm = 'aes-256-cbc';
 
-      const params = {
-        TableName: 'Users',
-        Item: {
-          id,
-          name: userData.name,
-          email: userData.email,
-          password: hashedPassword,
-          dateOfBirth: userData.dateOfBirth,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        ConditionExpression: 'attribute_not_exists(id)',
-      };
+    // Pastikan kunci memiliki panjang 32 bytes (256 bits) untuk AES-256
+    let keyStr = process.env.ENCRYPTION_KEY || 'fallback_encryption_key_for_development';
+    // Padding kunci jika kurang dari 32 karakter atau memotong jika lebih
+    if (keyStr.length < 32) {
+      keyStr = keyStr.padEnd(32, '0');
+    } else if (keyStr.length > 32) {
+      keyStr = keyStr.substring(0, 32);
+    }
 
-      await dynamoDB.put(params).promise();
+    console.log(
+      `Using key (first 5 chars): ${keyStr.substring(0, 5)}... (length: ${keyStr.length})`
+    );
 
-      const user = params.Item;
-      delete user.password;
+    const key = Buffer.from(keyStr, 'utf-8');
+    const textParts = encryptedNIK.split(':');
 
-      return user;
+    console.log(
+      `IV part length: ${textParts[0].length}, Encrypted part length: ${textParts[1]?.length || 0}`
+    );
+
+    const iv = Buffer.from(textParts[0], 'hex');
+    const encryptedText = Buffer.from(textParts[1], 'hex');
+
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted += decipher.final('utf8');
+
+    console.log(`Successfully decrypted to: ${decrypted}`);
+    return decrypted;
+  } catch (error) {
+    console.error(`Decryption error:`, error);
+    return null;
+  }
+};
+
+// Sequelize model definition for PostgreSQL
+const User = sequelize.define(
+  'User',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-
-    // Find a user by their email
-    findOne: async function (options) {
-      if (options.where && options.where.email) {
-        const params = {
-          TableName: 'Users',
-          IndexName: 'EmailIndex',
-          KeyConditionExpression: 'email = :email',
-          ExpressionAttributeValues: {
-            ':email': options.where.email,
-          },
-        };
-
-        const result = await dynamoDB.query(params).promise();
-
-        if (result.Items && result.Items.length > 0) {
-          const user = result.Items[0];
-
-          // Add method to verify password
-          user.verifyPassword = async function (password) {
-            return bcrypt.compare(password, user.password);
-          };
-
-          return user;
-        }
-
-        return null;
-      } else if (options.where && options.where.id) {
-        const params = {
-          TableName: 'Users',
-          Key: {
-            id: options.where.id,
-          },
-        };
-
-        const result = await dynamoDB.get(params).promise();
-
-        if (result.Item) {
-          const user = result.Item;
-
-          // Add method to verify password
-          user.verifyPassword = async function (password) {
-            return bcrypt.compare(password, user.password);
-          };
-
-          return user;
-        }
-
-        return null;
-      }
-
-      throw new Error('Must provide email or id in where clause');
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-
-    // Update a user
-    update: async function (user, options) {
-      const updateExpressions = [];
-      const expressionAttributeNames = {};
-      const expressionAttributeValues = {};
-
-      Object.keys(user).forEach((key) => {
-        if (key !== 'id' && key !== 'email') {
-          // Don't update primary key or email
-          updateExpressions.push(`#${key} = :${key}`);
-          expressionAttributeNames[`#${key}`] = key;
-          expressionAttributeValues[`:${key}`] = user[key];
-        }
-      });
-
-      // Always update the updatedAt timestamp
-      updateExpressions.push('#updatedAt = :updatedAt');
-      expressionAttributeNames['#updatedAt'] = 'updatedAt';
-      expressionAttributeValues[':updatedAt'] = new Date().toISOString();
-
-      const params = {
-        TableName: 'Users',
-        Key: {
-          id: options.where.id,
-        },
-        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: expressionAttributeValues,
-        ReturnValues: 'ALL_NEW',
-      };
-
-      const result = await dynamoDB.update(params).promise();
-
-      return result.Attributes;
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true, // Diubah menjadi opsional, karena login menggunakan NIK
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
-  };
-}
+    nik_encrypted: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    dateOfBirth: {
+      type: DataTypes.DATEONLY,
+    },
+    role: {
+      type: DataTypes.ENUM('user', 'admin', 'dokter'),
+      defaultValue: 'user',
+    },
+  },
+  {
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          console.log(`Hashing password for new user`);
+          const hashedPassword = await bcrypt.hash(user.password, 10);
+          console.log(
+            `Original password length: ${user.password.length}, Hashed password length: ${hashedPassword.length}`
+          );
+          user.password = hashedPassword;
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed('password')) {
+          console.log(`Hashing updated password for user ${user.id}`);
+          user.password = await bcrypt.hash(user.password, 10);
+        }
+      },
+    },
+    defaultScope: {
+      attributes: { exclude: ['nik_encrypted', 'password'] },
+    },
+    scopes: {
+      withNIK: {
+        attributes: { include: ['nik_encrypted'] },
+      },
+      withCredentials: {
+        attributes: { include: ['nik_encrypted', 'password'] },
+      },
+    },
+  }
+);
+
+// Getter dan setter untuk NIK (virtual field)
+User.prototype.getNIK = function () {
+  try {
+    if (this.nik_encrypted) {
+      const decrypted = decryptNIK(this.nik_encrypted);
+      console.log(`Decrypted NIK for user ${this.id}: ${decrypted}`);
+      return decrypted;
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error decrypting NIK for user ${this.id}:`, error);
+    return null;
+  }
+};
+
+User.encryptNIK = encryptNIK;
+User.decryptNIK = decryptNIK;
+
+// Instance method untuk verifikasi password
+User.prototype.verifyPassword = async function (password) {
+  try {
+    console.log(`Verifying password for user ${this.id}`);
+
+    // Periksa apakah password ada
+    if (!this.password) {
+      console.error(`Password field is missing for user ${this.id}`);
+      return false;
+    }
+
+    console.log(`Stored password hash length: ${this.password.length}`);
+    const result = await bcrypt.compare(password, this.password);
+    console.log(`Password verification result: ${result}`);
+    return result;
+  } catch (error) {
+    console.error(`Password verification error for user ${this.id}:`, error);
+    return false;
+  }
+};
+
+// Alias untuk verifikasi password (untuk memastikan kompatibilitas)
 User.prototype.validatePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
