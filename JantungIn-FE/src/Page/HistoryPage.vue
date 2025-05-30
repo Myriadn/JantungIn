@@ -30,7 +30,6 @@ const patientHistory = ref({
 // Sample chart data
 const chartData = ref({
   factorDistribution: [
-    { label: 'Name', value: 8 },
     { label: 'Age', value: 8 },
     { label: 'Sex', value: 7 },
     { label: 'ChestPain', value: 6 },
@@ -40,7 +39,7 @@ const chartData = ref({
     { label: 'ECG', value: 3.5 },
   ],
   riskFactors: [
-    { label: 'High BP', value: 9 },
+    { label: 'High BP', value: 5 },
     { label: 'High Chol', value: 8 },
     { label: 'Smoking', value: 7 },
     { label: 'Obesity', value: 6 },
@@ -63,7 +62,7 @@ const chartData = ref({
         <h1 class="text-white text-3xl font-bold text-center mb-8">Patient Prediction History</h1>
 
         <!-- Patient History Card -->
-        <div class="bg-[#767676] bg-opacity-100 rounded-lg shadow-lg p-6 mb-6">
+        <div class="bg-[#767676] bg-opacity-100 rounded-3xl shadow-lg p-6 mb-6">
           <!-- Header Info -->
           <div class="mb-4">
             <p class="text-white"><strong>NIK: </strong>{{ patientHistory.nik }}</p>
@@ -74,7 +73,7 @@ const chartData = ref({
           </div>
 
           <!-- Form Fields -->
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3">
             <!-- Name -->
             <div class="mb-3">
               <label class="block text-white text-sm mb-1">Name</label>
@@ -96,7 +95,9 @@ const chartData = ref({
                 class="w-full bg-white rounded p-2 text-gray-800"
               />
             </div>
+          </div>
 
+          <div class="grid grid-cols-2 gap-3 mt-4">
             <!-- Sex -->
             <div class="mb-3">
               <label class="block text-white text-sm mb-1">Sex</label>
@@ -232,9 +233,9 @@ const chartData = ref({
 
           <!-- Charts Section -->
           <div class="mt-6">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="flex justify-center">
               <!-- Factor Distribution Chart -->
-              <div class="bg-white rounded-lg p-3">
+              <div class="bg-white rounded-lg p-3 w-full max-w-md mx-auto">
                 <p class="text-center text-sm font-semibold mb-2">Factor Distribution</p>
                 <div class="h-32 flex items-end justify-between">
                   <div
@@ -247,36 +248,27 @@ const chartData = ref({
                   </div>
                 </div>
               </div>
-
-              <!-- Risk Factors Chart -->
-              <div class="bg-white rounded-lg p-3">
-                <p class="text-center text-sm font-semibold mb-2">Risk Factor Distribution</p>
-                <div class="h-32 flex items-end justify-between">
-                  <div
-                    v-for="(item, index) in chartData.riskFactors.slice(0, 7)"
-                    :key="index"
-                    class="flex flex-col items-center"
-                  >
-                    <div class="w-6 bg-blue-500" :style="{ height: item.value * 4 + 'px' }"></div>
-                    <span class="text-xs mt-1">{{ item.label }}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
           <!-- Recommendation Buttons -->
           <div class="flex justify-between mt-6">
-            <button class="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center">
-              <span class="mr-2">🥗</span>
+            <button
+              class="bg-[#989898] text-white px-6 py-3 rounded-3xl flex items-center text-lg font-medium h-20"
+            >
+              <span class="mr-2 text-xl">🥗</span>
               Healthy Diet
             </button>
-            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center">
-              <span class="mr-2">🏃‍♂️</span>
+            <button
+              class="bg-[#989898] text-white px-6 py-3 rounded-3xl flex items-center text-lg font-medium h-20"
+            >
+              <span class="mr-2 text-xl">🏃‍♂️</span>
               Exercise Regularly
             </button>
-            <button class="bg-amber-500 text-white px-4 py-2 rounded-lg flex items-center">
-              <span class="mr-2">💪</span>
+            <button
+              class="bg-[#989898] text-white px-6 py-3 rounded-3xl flex items-center text-lg font-medium h-20"
+            >
+              <span class="mr-2 text-xl">💪</span>
               Exercise Intensity
             </button>
           </div>

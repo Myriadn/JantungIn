@@ -17,11 +17,6 @@ const showMobileMenu = ref(false)
 // Using vue-router for navigation
 const route = useRoute()
 const router = useRouter()
-
-const logout = () => {
-  // Perform logout logic here
-  router.push('/') // Redirect to login page
-}
 </script>
 
 <template>
@@ -88,7 +83,8 @@ const logout = () => {
           <div class="flex items-center">
             <div class="relative group">
               <button
-                class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md"
+                @click="router.push('/account')"
+                class="flex items-center px-3 py-1.5 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md cursor-pointer"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -106,16 +102,6 @@ const logout = () => {
                 </svg>
                 <span class="font-medium">Account</span>
               </button>
-              <div
-                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block"
-              >
-                <button
-                  @click="logout"
-                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100"
-                >
-                  Logout
-                </button>
-              </div>
             </div>
           </div>
         </div>
