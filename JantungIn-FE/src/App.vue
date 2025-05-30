@@ -1,15 +1,49 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
+import NavbarAdmin from '@/components/Navbar-admin.vue'
 import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 
 const route = useRoute()
+
+// Check if the current route corresponds to an admin page
+const isAdminPage = computed(() => {
+  // Admin route names - keep this list in sync with router/index.js
+  const adminRouteNames = [
+    'home', // HomeAdminPage
+    'diagnose', // DiagnoseAdminPage
+    'historyAdmin', // HistoryAdminPage
+    'newsAdmin', // NewsAdminPage
+    'resultAdmin', // ResultAdminPage
+    'accountAdmin', // AccountAdminPage
+  ]
+
+  // Check if current route name is in the admin routes list
+  return adminRouteNames.includes(route.name)
+})
 </script>
 
 <template>
   <div class="flex flex-col min-h-screen">
-    <!-- Only show navbar on pages other than login and register -->
-    <Navbar v-if="route.name !== 'login' && route.name !== 'register'" />
-    <main :class="[route.name !== 'login' && route.name !== 'register' ? 'flex-grow pt-20' : 'flex-grow']">
+    <!-- Show admin navbar for admin pages -->
+    <NavbarAdmin v-if="isAdminPage && route.name !== 'admin'" />
+    <!-- Show regular navbar for user pages -->
+    <Navbar
+      v-if="
+        !isAdminPage &&
+        route.name !== 'login' &&
+        route.name !== 'register' &&
+        route.name !== 'admin'
+      "
+    />
+    <main
+      :class="[
+        isAdminPage ||
+        (route.name !== 'login' && route.name !== 'register' && route.name !== 'admin')
+          ? 'flex-grow pt-20'
+          : 'flex-grow',
+      ]"
+    >
       <router-view />
     </main>
   </div>
