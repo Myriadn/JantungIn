@@ -7,9 +7,9 @@ const { encryptNIK } = require('../models/User');
 const defaultAdmin = {
   name: 'Admin JantungIn',
   email: 'admin@jantungin.com',
-  password: 'admin123',
+  password: 'jantungin123',
   role: 'admin',
-  nik: '1234567890123456',
+  nik: '11111111111111111', // Pastikan NIK ini valid dan belum terdaftar
   dateOfBirth: '1990-01-01',
 };
 
@@ -46,8 +46,7 @@ const createInitialAdmin = async () => {
     console.log(`Name: ${adminUser.name}`);
     console.log(`Email: ${adminUser.email}`);
     console.log(`Role: ${adminUser.role}`);
-    console.log('Email: admin@jantungin.com');
-    console.log('Password: admin123');
+    console.log('Password: jantungin123');
     console.log('Please change this password after first login!');
   } catch (error) {
     console.error('Error creating initial admin account:', error);

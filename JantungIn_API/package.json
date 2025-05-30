@@ -8,10 +8,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,json}\"",
-    "test": "jest",
-    "admin": "node admin-terminal.js",
-    "create-admin": "node create-admin.js",
-    "reset-admin": "node src/scripts/create-admin.js"
+    "test": "jest"
   },
   "jest": {
     "testEnvironment": "node",
