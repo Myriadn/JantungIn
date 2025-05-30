@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JantungIn - Heart Disease Prediction</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-primary-bg min-h-screen font-sans">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-6">
+        <div class="flex items-center text-white font-bold text-2xl">
+          <div class="mr-2 text-3xl">❤️</div>
+          <span>JantungIn</span>
+        </div>
+        <nav class="flex gap-8">
+          <a href="#" class="text-white font-medium relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-white">Home</a>
+          <a href="#" class="text-white font-medium">Diagnose</a>
+          <a href="#" class="text-white font-medium">History</a>
+          <a href="#" class="text-white font-medium">Account</a>
+        </nav>
+      </header>
+      
+      <!-- Main Content -->
+      <div class="py-6">
+        <form id="diagnosis-form" class="max-w-4xl mx-auto space-y-6">
+          <!-- Patient Name -->
+          <div>
+            <label for="patientName" class="block text-sm font-medium text-white mb-1">Patient Name</label>
+            <input type="text" id="patientName" name="patientName" class="w-full p-3 rounded-md">
+          </div>
+          
+          <!-- Age -->
+          <div>
+            <label for="age" class="block text-sm font-medium text-white mb-1">Age</label>
+            <input type="number" id="age" name="age" min="1" max="120" class="w-full p-3 rounded-md">
+          </div>
+          
+          <!-- Sex + Exercise Induced Angina -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="sex" class="block text-sm font-medium text-white mb-1">Sex</label>
+              <div class="relative">
+                <select id="sex" name="sex" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">Female</option>
+                  <option value="1">Male</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label for="exang" class="block text-sm font-medium text-white mb-1">Exercise Induced Angina</label>
+              <div class="relative">
+                <select id="exang" name="exang" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Chest Pain Type + Slope -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="cp" class="block text-sm font-medium text-white mb-1">Chest Pain Type</label>
+              <div class="relative">
+                <select id="cp" name="cp" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">Typical Angina</option>
+                  <option value="1">Atypical Angina</option>
+                  <option value="2">Non-anginal Pain</option>
+                  <option value="3">Asymptomatic</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label for="slope" class="block text-sm font-medium text-white mb-1">Slope of Peak Exercise ST Segment</label>
+              <div class="relative">
+                <select id="slope" name="slope" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">Upsloping</option>
+                  <option value="1">Flat</option>
+                  <option value="2">Downsloping</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Resting ECG + Major Vessels -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="restecg" class="block text-sm font-medium text-white mb-1">Resting ECG Results</label>
+              <div class="relative">
+                <select id="restecg" name="restecg" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">Normal</option>
+                  <option value="1">ST-T Wave Abnormality</option>
+                  <option value="2">Left Ventricular Hypertrophy</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label for="ca" class="block text-sm font-medium text-white mb-1">Number of Major Vessels</label>
+              <div class="relative">
+                <select id="ca" name="ca" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Fasting Blood Sugar + Thalassemia -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="fbs" class="block text-sm font-medium text-white mb-1">Fasting Blood Sugar > 120mg/dl</label>
+              <div class="relative">
+                <select id="fbs" name="fbs" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label for="thal" class="block text-sm font-medium text-white mb-1">Thalassemia</label>
+              <div class="relative">
+                <select id="thal" name="thal" class="w-full p-3 rounded-md appearance-none bg-white pr-10">
+                  <option value="">Select option</option>
+                  <option value="1">Normal</option>
+                  <option value="2">Fixed Defect</option>
+                  <option value="3">Reversible Defect</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Blood Pressure + Cholesterol -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="trestbps" class="block text-sm font-medium text-white mb-1">Resting Blood Pressure (mmHg)</label>
+              <input type="number" id="trestbps" name="trestbps" min="50" max="300" class="w-full p-3 rounded-md">
+            </div>
+            
+            <div>
+              <label for="chol" class="block text-sm font-medium text-white mb-1">Serum Cholesterol (mg/dl)</label>
+              <input type="number" id="chol" name="chol" min="50" max="600" class="w-full p-3 rounded-md">
+            </div>
+          </div>
+          
+          <!-- Heart Rate + ST Depression -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="thalach" class="block text-sm font-medium text-white mb-1">Maximum Heart Rate Achieved</label>
+              <input type="number" id="thalach" name="thalach" min="50" max="250" class="w-full p-3 rounded-md">
+            </div>
+            
+            <div>
+              <label for="oldpeak" class="block text-sm font-medium text-white mb-1">ST Depression</label>
+              <input type="number" id="oldpeak" name="oldpeak" step="0.1" min="0" max="10" class="w-full p-3 rounded-md">
+            </div>
+          </div>
+          
+          <!-- Submit Button -->
+          <div class="flex justify-center mt-8">
+            <button id="predict-btn" type="button" class="bg-white text-primary-dark py-3 px-8 rounded-full font-medium hover:bg-gray-100 transition-colors">
+              Check it now!
+            </button>
+          </div>
+        </form>
+        
+        <!-- Results & Info Section -->
+        <div class="mt-10 max-w-4xl mx-auto space-y-6">
+          <div class="bg-white p-6 rounded-md shadow">
+            <h2 class="text-xl font-bold text-primary-dark mb-4">Prediction Result</h2>
+            <div id="prediction-result" class="flex flex-col items-center justify-center min-h-[100px]">
+              <div class="loader hidden" id="loader"></div>
+              <div id="result-text">Enter patient data and click "Check it now!"</div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-6 rounded-md shadow">
+            <h3 class="text-xl font-bold text-primary-dark mb-4 text-center">Heart Disease Variables Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Age</h4>
+                <p class="text-sm">Patient's age in years</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Sex</h4>
+                <p class="text-sm">Gender of the patient (male or female)</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Chest Pain Type</h4>
+                <p class="text-sm">0: typical angina, 1: atypical angina, 2: non-anginal pain, 3: asymptomatic</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Resting Blood Pressure</h4>
+                <p class="text-sm">Resting blood pressure in mm Hg on admission to the hospital</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Serum Cholesterol</h4>
+                <p class="text-sm">Cholesterol level in mg/dl</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Fasting Blood Sugar</h4>
+                <p class="text-sm">Whether fasting blood sugar > 120 mg/dl (1 = true; 0 = false)</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Resting ECG</h4>
+                <p class="text-sm">0: normal, 1: ST-T wave abnormality, 2: left ventricular hypertrophy</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Maximum Heart Rate</h4>
+                <p class="text-sm">Maximum heart rate achieved during exercise</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Exercise Induced Angina</h4>
+                <p class="text-sm">Whether exercise induced angina (1 = yes; 0 = no)</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">ST Depression</h4>
+                <p class="text-sm">ST depression induced by exercise relative to rest</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Slope of ST Segment</h4>
+                <p class="text-sm">0: upsloping, 1: flat, 2: downsloping</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Number of Major Vessels</h4>
+                <p class="text-sm">Number of major vessels (0-3) colored by fluoroscopy</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <h4 class="font-medium text-primary-dark mb-1">Thalassemia</h4>
+                <p class="text-sm">1: normal, 2: fixed defect, 3: reversible defect</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
