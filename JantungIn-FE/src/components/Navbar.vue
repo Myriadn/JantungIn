@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 defineOptions({
@@ -14,9 +14,11 @@ const menuItems = ref([
 // State untuk menu mobile
 const showMobileMenu = ref(false)
 
+
 // Using vue-router for navigation
 const route = useRoute()
 const router = useRouter()
+
 </script>
 
 <template>

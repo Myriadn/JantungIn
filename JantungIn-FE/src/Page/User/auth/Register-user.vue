@@ -8,7 +8,7 @@ const username = ref('');
 const password = ref('');
 
 const navigateToLogin = () => {
-  router.push('/');
+  router.push('/login');
 };
 
 const handleRegister = () => {
@@ -20,7 +20,7 @@ const handleRegister = () => {
   });
   
   // After successful registration, navigate to login
-  router.push('/');
+  router.push('/login');
 };
 </script>
 

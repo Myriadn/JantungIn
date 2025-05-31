@@ -42,10 +42,6 @@ const handleResetPassword = () => {
             Can't remember your password?
             <a href="#" @click.prevent="handleResetPassword" class="text-link">Reset Password</a>
           </p>
-          <p class="text-center">
-            Not a doctor?
-            <a href="#" @click.prevent="router.push('/')" class="text-link">Login as Patient</a>
-          </p>
         </div>
       </form>
     </div>

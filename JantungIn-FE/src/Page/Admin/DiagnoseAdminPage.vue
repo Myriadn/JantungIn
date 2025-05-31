@@ -175,570 +175,511 @@ const handleSubmit = async () => {
   }
 }
 
-// Helper functions to convert numeric codes to text values for the API
-const getChestPainTypeText = (code) => {
-  switch (parseInt(code)) {
-    case 0:
-      return 'Typical Angina'
-    case 1:
-      return 'Atypical Angina'
-    case 2:
-      return 'Non-anginal Pain'
-    case 3:
-      return 'Asymptomatic'
-    default:
-      return 'Unknown'
-  }
+// Helper functions to map numeric codes back to text values
+function getChestPainTypeText(value) {
+  const option = chestPainTypeOptions.find(opt => opt.value === value.toString())
+  return option ? option.text : 'Unknown'
 }
 
-const getEcgResultsText = (code) => {
-  switch (parseInt(code)) {
-    case 0:
-      return 'Normal'
-    case 1:
-      return 'ST-T Wave Abnormality'
-    case 2:
-      return 'Left Ventricular Hypertrophy'
-    default:
-      return 'Unknown'
-  }
+function getEcgResultsText(value) {
+  const option = restingECGOptions.find(opt => opt.value === value.toString())
+  return option ? option.text : 'Unknown'
 }
 
-const getStSlopeText = (code) => {
-  switch (parseInt(code)) {
-    case 0:
-      return 'Upsloping'
-    case 1:
-      return 'Flat'
-    case 2:
-      return 'Downsloping'
-    default:
-      return 'Unknown'
-  }
+function getStSlopeText(value) {
+  const option = stSlopeOptions.find(opt => opt.value === value.toString())
+  return option ? option.text : 'Unknown'
 }
 
-const getThalassemiaText = (code) => {
-  switch (parseInt(code)) {
-    case 3:
-      return 'Normal'
-    case 6:
-      return 'Fixed Defect'
-    case 7:
-      return 'Reversible Defect'
-    default:
-      return 'Unknown'
-  }
+function getThalassemiaText(value) {
+  const option = thallassemiaOptions.find(opt => opt.value === value.toString())
+  return option ? option.text : 'Unknown'
 }
 
-// Simple validation function
+// Function to validate the form
 const validateForm = () => {
-  const requiredFields = [
-    'age',
-    'sex',
-    'cp',
-    'trestbps',
-    'chol',
-    'fbs',
-    'restecg',
-    'thalach',
-    'exang',
-    'oldpeak',
-    'slope',
-    'ca',
-    'thal',
-  ]
-
-  return requiredFields.every((field) => {
-    const value = diagnosisForm.value[field]
-    return value !== null && value !== undefined && value !== ''
-  })
+  // Basic validation - check if all fields have values
+  return Object.values(diagnosisForm.value).every(val => val !== '')
 }
 
-// Function to navigate to detailed results page
-const viewDetailedResults = () => {
-  router.push({
-    name: 'resultPage',
-    params: {
-      patientName: diagnosisForm.value.patientName,
-      resultPercentage: resultPercentage.value,
-      predictionResult: predictionResult.value,
-    },
-  })
+// Current step for multi-step form
+const currentStep = ref(1)
+const totalSteps = 3
+
+// Function to go to next step
+const nextStep = () => {
+  if (currentStep.value < totalSteps) {
+    currentStep.value++
+    window.scrollTo(0, 0) // Scroll to top for better UX
+  }
+}
+
+// Function to go to previous step
+const prevStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--
+    window.scrollTo(0, 0) // Scroll to top for better UX
+  }
+}
+
+// Function to check if step is complete
+const isStepComplete = (step) => {
+  if (step === 1) {
+    return !!diagnosisForm.value.patientName && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
+  } else if (step === 2) {
+    return !!diagnosisForm.value.cp && !!diagnosisForm.value.trestbps && 
+           !!diagnosisForm.value.chol && !!diagnosisForm.value.fbs && 
+           !!diagnosisForm.value.restecg && !!diagnosisForm.value.thalach
+  } else if (step === 3) {
+    return !!diagnosisForm.value.exang && !!diagnosisForm.value.oldpeak && 
+           !!diagnosisForm.value.slope && !!diagnosisForm.value.ca && 
+           !!diagnosisForm.value.thal
+  }
+  return false
 }
 </script>
 
 <template>
   <div class="diagnose-page">
-    <div
-      class="form-container bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 py-12 px-4"
-    >
-      <div class="container mx-auto max-w-5xl">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- Patient Name -->
-          <div class="form-group">
-            <label for="patientName" class="block text-white text-sm font-medium mb-2"
-              >Patient Name</label
-            >
-            <input
-              type="text"
-              id="patientName"
-              v-model="diagnosisForm.patientName"
-              class="w-full px-4 py-2 rounded-md focus:outline-none"
-              placeholder="Enter patient name"
-            />
-          </div>
+    <!-- Hero Banner with Medical Background -->
+    <section class="relative">
+      <div 
+        class="absolute inset-0 bg-cover bg-center" 
+        style="background-image: url('https://images.unsplash.com/photo-1516549655669-8404794b9c3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); filter: brightness(0.4);"
+      ></div>
+      <div class="relative z-10 py-20 px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Cardiovascular Diagnosis</h1>
+        <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+          Complete the form below to assess cardiovascular health risk factors
+        </p>
+      </div>
+    </section>
 
-          <!-- Age -->
-          <div class="form-group">
-            <label for="age" class="block text-white text-sm font-medium mb-2">Age</label>
-            <input
-              type="number"
-              id="age"
-              v-model="diagnosisForm.age"
-              class="w-full px-4 py-2 rounded-md focus:outline-none"
-              placeholder="Enter age"
-            />
-          </div>
-
-          <!-- Two Column Layout -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Sex -->
-            <div class="form-group">
-              <label for="sex" class="block text-white text-sm font-medium mb-2">Sex</label>
-              <select
-                id="sex"
-                v-model="diagnosisForm.sex"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
+    <!-- Main Content with Form -->
+    <div class="bg-gradient-to-b from-blue-700 to-indigo-900 py-10 px-4 min-h-screen">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- Progress Steps -->
+        <div class="mb-8">
+          <div class="flex justify-between items-center w-full mb-4">
+            <div v-for="step in totalSteps" :key="step" 
+                 class="flex flex-col items-center w-1/3">
+              <div 
+                :class="`h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold border-2 ${
+                  currentStep === step 
+                    ? 'bg-blue-500 text-white border-white' 
+                    : currentStep > step || isStepComplete(step)
+                      ? 'bg-green-500 text-white border-white' 
+                      : 'bg-white/20 text-white/70 border-white/50'
+                }`"
               >
-                <option value="" disabled selected>Select sex</option>
-                <option v-for="option in sexOptions" :key="option.value" :value="option.value">
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Exercise Induced Angina -->
-            <div class="form-group">
-              <label for="exang" class="block text-white text-sm font-medium mb-2"
-                >Exercise Induced Angina</label
-              >
-              <select
-                id="exang"
-                v-model="diagnosisForm.exang"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select option</option>
-                <option v-for="option in yesNoOptions" :key="option.value" :value="option.value">
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Chest Pain Type -->
-            <div class="form-group">
-              <label for="cp" class="block text-white text-sm font-medium mb-2"
-                >Chest Pain Type</label
-              >
-              <select
-                id="cp"
-                v-model="diagnosisForm.cp"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select chest pain type</option>
-                <option
-                  v-for="option in chestPainTypeOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- ST Slope -->
-            <div class="form-group">
-              <label for="slope" class="block text-white text-sm font-medium mb-2"
-                >Slope of Peak Exercise ST Segment</label
-              >
-              <select
-                id="slope"
-                v-model="diagnosisForm.slope"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select ST slope</option>
-                <option v-for="option in stSlopeOptions" :key="option.value" :value="option.value">
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Resting ECG Results -->
-            <div class="form-group">
-              <label for="restecg" class="block text-white text-sm font-medium mb-2"
-                >Resting ECG Results</label
-              >
-              <select
-                id="restecg"
-                v-model="diagnosisForm.restecg"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select ECG results</option>
-                <option
-                  v-for="option in restingECGOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Number of Major Vessels -->
-            <div class="form-group">
-              <label for="ca" class="block text-white text-sm font-medium mb-2"
-                >Number of Major Vessels</label
-              >
-              <select
-                id="ca"
-                v-model="diagnosisForm.ca"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select number</option>
-                <option
-                  v-for="option in numberOfVesselsOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Fasting Blood Sugar -->
-            <div class="form-group">
-              <label for="fbs" class="block text-white text-sm font-medium mb-2"
-                >Fasting Blood Sugar > 120mg/dl</label
-              >
-              <select
-                id="fbs"
-                v-model="diagnosisForm.fbs"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select option</option>
-                <option
-                  v-for="option in fastingBloodSugarOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Thallassemia -->
-            <div class="form-group">
-              <label for="thal" class="block text-white text-sm font-medium mb-2"
-                >Thalassemia</label
-              >
-              <select
-                id="thal"
-                v-model="diagnosisForm.thal"
-                class="w-full px-4 py-2 rounded-md focus:outline-none appearance-none bg-white"
-              >
-                <option value="" disabled selected>Select option</option>
-                <option
-                  v-for="option in thallassemiaOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Resting Blood Pressure -->
-            <div class="form-group">
-              <label for="trestbps" class="block text-white text-sm font-medium mb-2"
-                >Resting Blood Pressure (mm/Hg)</label
-              >
-              <input
-                type="number"
-                id="trestbps"
-                v-model="diagnosisForm.trestbps"
-                class="w-full px-4 py-2 rounded-md focus:outline-none"
-                min="50"
-                max="300"
-                placeholder="Enter blood pressure (mm/Hg)"
-              />
-            </div>
-
-            <!-- Serum Cholesterol -->
-            <div class="form-group">
-              <label for="chol" class="block text-white text-sm font-medium mb-2"
-                >Serum Cholesterol (mg/dl)</label
-              >
-              <input
-                type="number"
-                id="chol"
-                v-model="diagnosisForm.chol"
-                class="w-full px-4 py-2 rounded-md focus:outline-none"
-                min="50"
-                max="600"
-                placeholder="Enter cholesterol (mg/dl)"
-              />
-            </div>
-
-            <!-- Maximum Heart Rate -->
-            <div class="form-group">
-              <label for="thalach" class="block text-white text-sm font-medium mb-2"
-                >Maximum Heart Rate Achieved</label
-              >
-              <input
-                type="number"
-                id="thalach"
-                v-model="diagnosisForm.thalach"
-                class="w-full px-4 py-2 rounded-md focus:outline-none"
-                min="50"
-                max="250"
-                placeholder="Enter maximum heart rate"
-              />
-            </div>
-
-            <!-- ST Depression -->
-            <div class="form-group">
-              <label for="oldpeak" class="block text-white text-sm font-medium mb-2"
-                >ST Depression</label
-              >
-              <input
-                type="number"
-                id="oldpeak"
-                v-model="diagnosisForm.oldpeak"
-                class="w-full px-4 py-2 rounded-md focus:outline-none"
-                step="0.1"
-                min="0"
-                max="10"
-                placeholder="Enter ST depression value"
-              />
+                <span v-if="currentStep > step || isStepComplete(step)">✓</span>
+                <span v-else>{{ step }}</span>
+              </div>
+              <div class="mt-2 text-center text-white text-sm">
+                <span v-if="step === 1">Patient Info</span>
+                <span v-else-if="step === 2">Vital Signs</span>
+                <span v-else-if="step === 3">Cardiac Data</span>
+              </div>
             </div>
           </div>
-          <!-- Submit Button -->
-          <div class="mt-10 text-center">
-            <button
-              type="submit"
-              class="bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 text-white py-3 px-8 rounded-full font-medium hover:bg-blue-600 transition-colors border border-[#002d8d]"
-              :disabled="isLoading"
-            >
-              <span v-if="isLoading">Processing...</span>
-              <span v-else>Check it now!</span>
-            </button>
+          <div class="relative h-2 bg-white/20 rounded-full overflow-hidden">
+            <div 
+              class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-300"
+              :style="`width: ${((currentStep - 1) / (totalSteps - 1)) * 100}%`"
+            ></div>
           </div>
-          <!-- Results Section (shown after submission) -->
-          <div v-if="showResult" class="mt-10 bg-white p-6 rounded-lg shadow-md">
-            <div v-if="isLoading" class="text-center">
-              <div class="spinner mb-4"></div>
-              <p class="text-lg">Analyzing patient data...</p>
-            </div>
+        </div>
 
-            <div v-else class="result-container">
-              <!-- High Risk Result -->
-              <div v-if="predictionResult === 'high'" class="text-center">
-                <div class="flex justify-center items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-12 w-12 text-red-600 mr-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  <h2 class="text-3xl font-bold text-red-600">HIGH RISK</h2>
+        <!-- Form Card -->
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden">
+          <!-- Step 1: Patient Information -->
+          <div v-if="currentStep === 1" class="p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Patient Information</h2>
+            <div class="space-y-5">
+              <div>
+                <label class="block text-white mb-2" for="patientName">Patient Name</label>
+                <input
+                  id="patientName"
+                  v-model="diagnosisForm.patientName"
+                  type="text"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="Enter patient's full name"
+                />
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-white mb-2" for="age">Age (years)</label>
+                  <input
+                    id="age"
+                    v-model="diagnosisForm.age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    placeholder="Enter age"
+                  />
                 </div>
-
-                <div class="mt-4 text-lg">
-                  <p class="text-2xl font-semibold">Risk Score: {{ resultPercentage }}%</p>
-                  <p class="mt-4 mb-1">
-                    {{ diagnosisForm.patientName || 'Patient' }} has a high probability of heart
-                    disease.
-                  </p>
-                  <p class="font-semibold">Recommended Actions:</p>
-                  <ul class="text-left mt-2 max-w-md mx-auto">
-                    <li class="mb-1">• Consult with a cardiologist immediately</li>
-                    <li class="mb-1">• Schedule additional heart tests (ECG, stress test, etc.)</li>
-                    <li class="mb-1">• Monitor blood pressure and heart rate regularly</li>
-                    <li>• Follow a heart-healthy diet and exercise plan</li>
-                  </ul>
+                
+                <div>
+                  <label class="block text-white mb-2" for="sex">Sex</label>
+                  <select
+                    id="sex"
+                    v-model="diagnosisForm.sex"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="" disabled selected>Select gender</option>
+                    <option v-for="option in sexOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
                 </div>
               </div>
-
-              <!-- Medium Risk Result -->
-              <div v-else-if="predictionResult === 'medium'" class="text-center">
-                <div class="flex justify-center items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-12 w-12 text-yellow-500 mr-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  <h2 class="text-3xl font-bold text-yellow-500">MEDIUM RISK</h2>
-                </div>
-
-                <div class="mt-4 text-lg">
-                  <p class="text-2xl font-semibold">Risk Score: {{ resultPercentage }}%</p>
-                  <p class="mt-4 mb-1">
-                    {{ diagnosisForm.patientName || 'Patient' }} has a moderate risk of heart
-                    disease.
-                  </p>
-                  <p class="font-semibold">Recommended Actions:</p>
-                  <ul class="text-left mt-2 max-w-md mx-auto">
-                    <li class="mb-1">• Schedule a follow-up with your healthcare provider</li>
-                    <li class="mb-1">• Consider lifestyle modifications to reduce risk factors</li>
-                    <li class="mb-1">• Monitor blood pressure and cholesterol regularly</li>
-                    <li>• Increase physical activity and maintain a healthy diet</li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Low Risk Result -->
-              <div v-else-if="predictionResult === 'low'" class="text-center">
-                <div class="flex justify-center items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-12 w-12 text-green-600 mr-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <h2 class="text-3xl font-bold text-green-600">LOW RISK</h2>
-                </div>
-
-                <div class="mt-4 text-lg">
-                  <p class="text-2xl font-semibold">Risk Score: {{ resultPercentage }}%</p>
-                  <p class="mt-4 mb-1">
-                    {{ diagnosisForm.patientName || 'Patient' }} has a low probability of heart
-                    disease.
-                  </p>
-                  <p class="font-semibold">Recommended Actions:</p>
-                  <ul class="text-left mt-2 max-w-md mx-auto">
-                    <li class="mb-1">• Continue with regular annual check-ups</li>
-                    <li class="mb-1">• Maintain a healthy lifestyle</li>
-                    <li class="mb-1">• Stay physically active</li>
-                    <li>• Follow a heart-healthy diet</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div
-                class="mt-6 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4"
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+              <button 
+                @click="nextStep" 
+                class="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all duration-200 flex items-center"
+                :disabled="!isStepComplete(1)"
+                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(1)}"
               >
-                <button
-                  @click="viewDetailedResults"
-                  class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full text-sm transition-colors"
+                Next Step
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Step 2: Vital Signs -->
+          <div v-if="currentStep === 2" class="p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Vital Signs & Baseline Measurements</h2>
+            
+            <div class="space-y-5">
+              <div>
+                <label class="block text-white mb-2" for="chestPainType">Chest Pain Type</label>
+                <select
+                  id="chestPainType"
+                  v-model="diagnosisForm.cp"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
-                  See Details
+                  <option value="" disabled selected>Select chest pain type</option>
+                  <option v-for="option in chestPainTypeOptions" :key="option.value" :value="option.value">
+                    {{ option.text }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-white mb-2" for="bloodPressure">Resting Blood Pressure (mm Hg)</label>
+                  <input
+                    id="bloodPressure"
+                    v-model="diagnosisForm.trestbps"
+                    type="number"
+                    min="80"
+                    max="200"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    placeholder="Enter resting BP"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-white mb-2" for="cholesterol">Serum Cholesterol (mg/dl)</label>
+                  <input
+                    id="cholesterol"
+                    v-model="diagnosisForm.chol"
+                    type="number"
+                    min="100"
+                    max="600"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    placeholder="Enter cholesterol level"
+                  />
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-white mb-2" for="fastingBloodSugar">Fasting Blood Sugar</label>
+                  <select
+                    id="fastingBloodSugar"
+                    v-model="diagnosisForm.fbs"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="" disabled selected>Select blood sugar status</option>
+                    <option v-for="option in fastingBloodSugarOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-white mb-2" for="restingEcg">Resting ECG Results</label>
+                  <select
+                    id="restingEcg"
+                    v-model="diagnosisForm.restecg"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="" disabled selected>Select ECG results</option>
+                    <option v-for="option in restingECGOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-white mb-2" for="maxHeartRate">Maximum Heart Rate (bpm)</label>
+                <input
+                  id="maxHeartRate"
+                  v-model="diagnosisForm.thalach"
+                  type="number"
+                  min="60"
+                  max="220"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="Enter maximum heart rate"
+                />
+              </div>
+            </div>
+            
+            <div class="mt-8 flex justify-between">
+              <button 
+                @click="prevStep" 
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all duration-200 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Previous
+              </button>
+              <button 
+                @click="nextStep" 
+                class="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all duration-200 flex items-center"
+                :disabled="!isStepComplete(2)"
+                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(2)}"
+              >
+                Next Step
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Step 3: Cardiac Data -->
+          <div v-if="currentStep === 3" class="p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Additional Cardiac Data</h2>
+            
+            <div class="space-y-5">
+              <div>
+                <label class="block text-white mb-2" for="exerciseAngina">Exercise Induced Angina</label>
+                <select
+                  id="exerciseAngina"
+                  v-model="diagnosisForm.exang"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value="" disabled selected>Select angina status</option>
+                  <option v-for="option in yesNoOptions" :key="option.value" :value="option.value">
+                    {{ option.text }}
+                  </option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-white mb-2" for="stDepression">ST Depression Induced by Exercise</label>
+                <input
+                  id="stDepression"
+                  v-model="diagnosisForm.oldpeak"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="10"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="Enter ST depression value"
+                />
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-white mb-2" for="stSlope">ST Slope</label>
+                  <select
+                    id="stSlope"
+                    v-model="diagnosisForm.slope"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="" disabled selected>Select ST slope</option>
+                    <option v-for="option in stSlopeOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-white mb-2" for="vessels">Number of Major Vessels</label>
+                  <select
+                    id="vessels"
+                    v-model="diagnosisForm.ca"
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="" disabled selected>Select number of vessels</option>
+                    <option v-for="option in numberOfVesselsOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-white mb-2" for="thalassemia">Thalassemia</label>
+                <select
+                  id="thalassemia"
+                  v-model="diagnosisForm.thal"
+                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value="" disabled selected>Select thalassemia status</option>
+                  <option v-for="option in thallassemiaOptions" :key="option.value" :value="option.value">
+                    {{ option.text }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mt-8 flex justify-between">
+              <button 
+                @click="prevStep" 
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all duration-200 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Previous
+              </button>
+              <button 
+                @click="handleSubmit" 
+                class="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-all duration-200 flex items-center"
+                :disabled="!isStepComplete(3)"
+                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(3)}"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Submit Diagnosis
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Result Modal -->
+        <div v-if="showResult" class="mt-10">
+          <div v-if="isLoading" class="text-center py-10">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+            <p class="mt-4 text-white text-lg">Analyzing patient data...</p>
+          </div>
+          
+          <div v-else class="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+            <div class="flex flex-col items-center justify-center text-center">
+              <div 
+                :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl 
+                ${predictionResult === 'high' ? 'bg-red-500' : 
+                  predictionResult === 'moderate' ? 'bg-yellow-500' : 'bg-green-500'} text-white mb-4`">
+                {{ resultPercentage }}%
+              </div>
+              
+              <h2 class="text-3xl font-bold text-white mb-2">
+                {{ predictionResult === 'high' ? 'High Risk' : 
+                   predictionResult === 'moderate' ? 'Moderate Risk' : 'Low Risk' }}
+              </h2>
+              
+              <p class="text-white/80 mb-6">
+                Based on the patient's information and clinical data, the risk of cardiovascular disease is 
+                <strong>{{ resultPercentage }}%</strong>.
+              </p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
+                <button 
+                  @click="router.push('/admin/result')" 
+                  class="px-5 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all"
+                >
+                  View Detailed Report
                 </button>
-
-                <button
-                  @click="showResult = false"
-                  class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-full text-sm transition-colors"
+                <button 
+                  @click="showResult = false; currentStep = 1" 
+                  class="px-5 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all"
                 >
-                  Close Results
+                  Start New Diagnosis
                 </button>
               </div>
             </div>
           </div>
-        </form>
+        </div>
+        
+        <!-- Medical Imagery -->
+        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <img 
+            src="https://images.unsplash.com/photo-1583324113626-70df0f4deaab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital cardiac care" 
+            class="rounded-lg shadow-lg w-full h-32 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital corridor" 
+            class="rounded-lg shadow-lg w-full h-32 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Heart monitoring" 
+            class="rounded-lg shadow-lg w-full h-32 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital reception" 
+            class="rounded-lg shadow-lg w-full h-32 object-cover"
+          />
+        </div>
       </div>
     </div>
+
     <FooterComponent />
   </div>
 </template>
 
 <style scoped>
+/* Custom animations and styles */
 .diagnose-page {
-  font-family: 'Arial', sans-serif;
+  min-height: 100vh;
 }
 
-.form-container {
-  background-color: #4f46e5; /* Indigo-600 */
-  margin-top: -37px; /* Menghilangkan gap kecil antara navbar dan form container */
-}
-
-input,
-select {
-  height: 45px;
-}
-
-button {
-  background-color: #3b82f6; /* Blue-500 */
-}
-
-button:hover {
-  background-color: #2563eb; /* Blue-600 */
-}
-
-.text-primary-dark {
-  color: #3b82f6; /* Blue-600 */
-}
-
-.bg-primary-bg {
-  background-color: #4f46e5; /* Indigo-600 */
-}
-
-.newsletter-title {
-  font-family: 'Times New Roman', Times, serif;
-  font-weight: normal;
-  letter-spacing: 0.5px;
-  color: #333;
-  font-size: 1.75rem;
-}
-
-/* Arrow styling for select boxes */
-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: 2.5rem;
-}
-
-/* Loading spinner animation */
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border-left-color: #3b82f6;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
+/* Animated progress bar */
+@keyframes pulse {
   0% {
-    transform: rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
   }
   100% {
-    transform: rotate(360deg);
+    opacity: 0.7;
   }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Line clamp for truncating text */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+
+/* Dropdown styling to ensure visible text */
+select option {
+  background-color: #fff;
+  color: #333;
 }
 </style>
