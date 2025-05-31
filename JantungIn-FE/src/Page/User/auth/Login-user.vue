@@ -1,23 +1,86 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const nik = ref('')
 const password = ref('')
+const isOfflineMode = ref(false)
+const errorMessage = ref('')
+const offlineCredentials = ref(null)
+
+// Check if we're online
+const checkOnlineStatus = () => {
+  return navigator.onLine
+}
+
+// Load cached credentials if offline
+const tryLoadOfflineCredentials = () => {
+  try {
+    const savedCredentials = localStorage.getItem('jantungin_offline_user')
+    if (savedCredentials) {
+      offlineCredentials.value = JSON.parse(savedCredentials)
+    }
+  } catch (error) {
+    console.error('Error loading offline credentials:', error)
+  }
+}
+
+onMounted(() => {
+  isOfflineMode.value = !checkOnlineStatus()
+  if (isOfflineMode.value) {
+    tryLoadOfflineCredentials()
+  }
+  
+  // Listen for online/offline events
+  window.addEventListener('online', () => { isOfflineMode.value = false })
+  window.addEventListener('offline', () => { isOfflineMode.value = true })
+})
 
 const navigateToRegister = () => {
-  router.push('/register')
+  router.push('/')
 }
 
 const handleLogin = () => {
-  // TODO: Implement login functionality
+  errorMessage.value = ''
+  
+  // Check if offline
+  if (isOfflineMode.value) {
+    // If offline, check against cached credentials
+    if (offlineCredentials.value && 
+        offlineCredentials.value.nik === nik.value && 
+        offlineCredentials.value.password === password.value) {
+      router.push('/news')
+    } else {
+      errorMessage.value = 'Offline login failed. Please check credentials or connect to the internet.'
+    }
+    return
+  }
+  
+  // Online login flow
   console.log('Login attempt with:', { nik: nik.value, password: password.value })
+  
+  // TODO: Implement actual login API call here
+  // For demo, simulate successful login and cache credentials for offline use
+  const userCredentials = {
+    nik: nik.value,
+    password: password.value,
+    username: 'User_' + nik.value.substring(0, 5)
+  }
+  
+  // Store credentials for offline login
+  localStorage.setItem('jantungin_offline_user', JSON.stringify(userCredentials))
+  
   // Navigate to home after login
   router.push('/news')
 }
 
 const handleResetPassword = () => {
+  if (isOfflineMode.value) {
+    errorMessage.value = 'Password reset is not available in offline mode'
+    return
+  }
+  
   // TODO: Implement password reset functionality
   console.log('Password reset requested')
 }
@@ -27,6 +90,19 @@ const handleResetPassword = () => {
   <div class="login-container">
     <div class="login-card">
       <h1 class="login-title">Login as Patient</h1>
+      
+      <!-- Offline Mode Indicator -->
+      <div v-if="isOfflineMode" class="offline-mode-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5 inline">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m-3.536-3.536a5 5 0 010-7.072M13 10.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+        </svg>
+        <span>Offline Mode</span>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
 
       <form @submit.prevent="handleLogin">
         <div class="form-group">
@@ -39,16 +115,18 @@ const handleResetPassword = () => {
           <input id="password" v-model="password" type="password" class="form-control" required />
         </div>
 
-        <button type="submit" class="btn-primary">Login</button>
+        <button type="submit" class="btn-primary">
+          {{ isOfflineMode ? 'Login Offline' : 'Login' }}
+        </button>
 
         <div class="links">
           <p class="text-center">
             Don't have an account?
-            <a href="#" @click.prevent="navigateToRegister" class="text-link">Register</a>
+            <a href="#" @click.prevent="navigateToRegister" class="text-link" :class="{ 'disabled-link': isOfflineMode }">Register</a>
           </p>
           <p class="text-center">
             Can't remember your password?
-            <a href="#" @click.prevent="handleResetPassword" class="text-link">Reset Password</a>
+            <a href="#" @click.prevent="handleResetPassword" class="text-link" :class="{ 'disabled-link': isOfflineMode }">Reset Password</a>
           </p>
         </div>
       </form>
@@ -141,5 +219,35 @@ const handleResetPassword = () => {
 .text-center {
   text-align: center;
   margin-bottom: 0.5rem;
+}
+
+.offline-mode-banner {
+  background-color: #f59e0b;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.error-message {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.disabled-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style>

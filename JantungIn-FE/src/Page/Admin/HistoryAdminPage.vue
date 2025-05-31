@@ -16,6 +16,14 @@ const selectedNik = ref(null)
 const selectedDiagnosis = ref(null)
 const searchQuery = ref('') // New state for search functionality
 
+// Send to Patient functionality
+const showSendDialog = ref(false)
+const sendPatientNik = ref('')
+const sendPatientName = ref('')
+const sendNikError = ref('')
+const sendNameError = ref('')
+const isSending = ref(false)
+
 // Load saved diagnoses from localStorage
 onMounted(() => {
   setTimeout(() => {
@@ -95,649 +103,635 @@ const openPatientFolder = (nik) => {
 }
 
 // Handle diagnosis click
-const openDiagnosis = (diagnosis) => {
+const viewDiagnosis = (diagnosis) => {
   selectedDiagnosis.value = diagnosis
 }
 
-// Handle view details button
-const viewDiagnosisDetails = (diagnosis) => {
-  router.push({
-    name: 'resultPage',
-    params: {
-      patientName: diagnosis.patientName,
-      resultPercentage: diagnosis.resultPercentage,
-      predictionResult: diagnosis.resultText.toLowerCase(),
-    },
-  })
+// Close selected diagnosis view
+const closeDiagnosisView = () => {
+  selectedDiagnosis.value = null
 }
 
-// Clear selection
-const goBack = () => {
-  if (selectedDiagnosis.value) {
-    selectedDiagnosis.value = null
-  } else if (selectedNik.value) {
-    selectedNik.value = null
+// View all diagnoses for a patient
+const viewAllDiagnoses = (nik) => {
+  selectedNik.value = nik
+}
+
+// Handle sending to patient
+const openSendDialog = (nik, name) => {
+  sendPatientNik.value = nik
+  sendPatientName.value = name
+  sendNikError.value = ''
+  sendNameError.value = ''
+  showSendDialog.value = true
+}
+
+// Validate and send to patient
+const sendToPatient = () => {
+  // Reset errors
+  sendNikError.value = ''
+  sendNameError.value = ''
+  
+  // Basic validation
+  let isValid = true
+  if (!sendPatientNik.value) {
+    sendNikError.value = 'Patient identifier is required'
+    isValid = false
+  }
+  if (!sendPatientName.value) {
+    sendNameError.value = 'Patient name is required'
+    isValid = false
+  }
+  
+  if (isValid) {
+    isSending.value = true
+    
+    // Simulate sending
+    setTimeout(() => {
+      isSending.value = false
+      showSendDialog.value = false
+      
+      // Show success toast or notification
+      alert(`Successfully shared with ${sendPatientName.value}`)
+    }, 1500)
   }
 }
 
-// Format risk percentage display
-const formatRiskLabel = (percentage) => {
-  const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'Low Risk'
-  if (numPercentage < 50) return 'Medium Risk'
-  return 'High Risk'
+// Delete patient record
+const deletePatientRecord = (nik) => {
+  if (confirm('Are you sure you want to delete this patient record? This action cannot be undone.')) {
+    try {
+      if (patientDiagnoses.value[nik]) {
+        delete patientDiagnoses.value[nik]
+        
+        // Update localStorage
+        localStorage.setItem('savedDiagnoses', JSON.stringify(patientDiagnoses.value))
+        
+        if (selectedNik.value === nik) {
+          selectedNik.value = null
+          selectedDiagnosis.value = null
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting patient record:', error)
+    }
+  }
+}
+
+// Generate CSV data
+const generateCSV = () => {
+  let csvContent = "data:text/csv;charset=utf-8,"
+  
+  // CSV Headers
+  let headers = [
+    "Patient ID", 
+    "Patient Name", 
+    "Date", 
+    "Risk Percentage", 
+    "Risk Level", 
+    "Age", 
+    "Sex"
+  ]
+  
+  csvContent += headers.join(",") + "\r\n"
+  
+  // CSV Data rows
+  Object.keys(patientDiagnoses.value).forEach(nik => {
+    const diagnoses = patientDiagnoses.value[nik]
+    diagnoses.forEach(diagnosis => {
+      const row = [
+        nik,
+        diagnosis.patientName,
+        new Date(diagnosis.savedAt).toISOString().split('T')[0],
+        diagnosis.resultPercentage,
+        getStatusText(diagnosis.resultPercentage),
+        diagnosis.age,
+        diagnosis.sex
+      ]
+      
+      csvContent += row.join(",") + "\r\n"
+    })
+  })
+  
+  // Trigger download
+  const encodedUri = encodeURI(csvContent)
+  const link = document.createElement("a")
+  link.setAttribute("href", encodedUri)
+  link.setAttribute("download", `cardiac_diagnoses_export_${new Date().toISOString().slice(0,10)}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 </script>
 
 <template>
   <div class="history-page">
-    <!-- Main section with blue background -->
-    <div class="bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 min-h-screen">
-      <div class="max-w-5xl mx-auto py-8 px-4">
-        <!-- Page Title -->
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-white text-3xl font-bold">
-            {{
-              selectedNik && !selectedDiagnosis
-                ? `Patient: ${patientDiagnoses[selectedNik][0].patientName} (NIK: ${selectedNik})`
-                : selectedDiagnosis
-                  ? 'Diagnosis Details'
-                  : 'Patient Records'
-            }}
-          </h1>
+    <!-- Hero Banner with Medical Background -->
+    <section class="relative">
+      <div 
+        class="absolute inset-0 bg-cover bg-center" 
+        style="background-image: url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); filter: brightness(0.4);"
+      ></div>
+      <div class="relative z-10 py-20 px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Patient Diagnosis History</h1>
+        <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+          View and manage patient cardiovascular health records
+        </p>
+      </div>
+    </section>
 
-          <!-- Back button -->
-          <button
-            v-if="selectedNik || selectedDiagnosis"
-            @click="goBack"
-            class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 flex items-center transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
+    <!-- Main Content -->
+    <div class="bg-gradient-to-b from-blue-700 to-indigo-900 py-10 px-4 min-h-screen">
+      <div class="max-w-7xl mx-auto">
+        
+        <!-- Search and Actions Bar -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="relative w-full md:w-1/2">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search patients by name or ID..."
+              class="w-full px-4 py-3 pl-10 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              class="h-5 w-5 text-white/70 absolute left-3 top-3.5"
+              fill="none" 
+              viewBox="0 0 24 24" 
               stroke="currentColor"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Back
-          </button>
-        </div>
-
-        <!-- Search Bar Component - Only shown on main patient list -->
-        <div v-if="!selectedNik && !selectedDiagnosis" class="mb-6">
-          <div class="relative flex items-center">
-            <!-- Search Input with icon -->
-            <div class="relative flex-grow">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Cari berdasarkan nama pasien atau NIK..."
-                class="w-full bg-white/20 backdrop-blur-sm py-3 pl-12 pr-10 rounded-xl text-white placeholder-white/80 focus:outline-none focus:ring-2 focus:ring-white/50"
-              />
-              <button
-                v-if="searchQuery"
-                @click="clearSearch"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-white hover:text-blue-100"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Search Button -->
-            <button
-              @click="searchQuery ? clearSearch() : null"
-              class="ml-3 px-6 py-3 bg-white text-blue-600 font-medium rounded-xl shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5"
+            <button 
+              v-if="searchQuery" 
+              @click="clearSearch" 
+              class="absolute right-3 top-3.5 text-white/70 hover:text-white"
             >
-              <span v-if="searchQuery">Reset</span>
-              <span v-else class="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                Cari
-              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-
-          <!-- Search Results Indicator -->
-          <div v-if="searchQuery" class="mt-3">
-            <div
-              v-if="patientList.length === 0"
-              class="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center"
+          
+          <div class="flex gap-3">
+            <button 
+              @click="generateCSV" 
+              class="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-12 w-12 mx-auto text-white mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              <p class="text-white text-lg font-bold">Tidak ada hasil yang ditemukan</p>
-              <p class="text-white/80 mt-1">
-                Tidak ada pasien yang sesuai dengan pencarian "{{ searchQuery }}"
-              </p>
-            </div>
-            <div
-              v-else
-              class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 inline-block text-white"
+              Export CSV
+            </button>
+            
+            <button 
+              onClick="window.print()" 
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center"
             >
-              <span class="font-medium">{{ patientList.length }}</span> pasien ditemukan untuk
-              pencarian "{{ searchQuery }}"
-            </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print
+            </button>
           </div>
         </div>
-
-        <!-- Loading State -->
-        <div v-if="isLoading" class="bg-white rounded-lg shadow-md p-8 text-center">
-          <div class="animate-pulse flex flex-col items-center">
-            <div class="rounded-full bg-blue-100 h-14 w-14 flex items-center justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-blue-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <p class="text-gray-700 text-lg">Loading patient records...</p>
-          </div>
+        
+        <div v-if="isLoading" class="flex justify-center py-20">
+          <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
         </div>
-
-        <!-- Empty State -->
-        <div
-          v-else-if="Object.keys(patientDiagnoses).length === 0"
-          class="bg-white rounded-lg shadow-md p-8 text-center"
-        >
-          <div class="flex flex-col items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-16 w-16 text-gray-400 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12h6m-6 4h6m-6-8h6M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"
-              />
-            </svg>
-            <h2 class="text-xl font-semibold mb-2">No Records Found</h2>
-            <p class="text-gray-600 mb-4">No diagnosis records have been saved yet.</p>
-            <router-link
-              to="/diagnose-admin"
-              class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+        
+        <div v-else-if="Object.keys(patientDiagnoses).length === 0" class="text-center py-20">
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
+            <img 
+              src="https://images.unsplash.com/photo-1530026404186-ed1f9096d522?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+              alt="Empty medical records" 
+              class="w-32 h-32 object-cover rounded-full mx-auto mb-6"
+            />
+            <h2 class="text-2xl font-bold text-white mb-2">No Patient Records</h2>
+            <p class="text-white/80 mb-6">
+              There are no patient diagnosis records in the system yet. 
+              Create a new diagnosis to start building your patient database.
+            </p>
+            <button 
+              @click="router.push('/admin/diagnose')" 
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all"
             >
               Start New Diagnosis
-            </router-link>
+            </button>
           </div>
         </div>
-
-        <!-- Main Content based on view state -->
-        <div v-else>
-          <!-- View 1: All Patients List -->
-          <div v-if="!selectedNik && !selectedDiagnosis" class="grid grid-cols-1 gap-4">
-            <!-- Patients grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div
-                v-for="patient in patientList"
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Left Column: Patient List -->
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden">
+            <div class="p-4 border-b border-white/20">
+              <h2 class="text-xl font-semibold text-white">
+                Patients 
+                <span v-if="patientList.length" class="text-sm font-normal text-white/60 ml-2">({{ patientList.length }})</span>
+              </h2>
+            </div>
+            
+            <div class="max-h-[70vh] overflow-y-auto">
+              <div v-if="patientList.length === 0" class="p-6 text-center text-white/70">
+                No matching patients found.
+              </div>
+              
+              <div 
+                v-for="patient in patientList" 
                 :key="patient.nik"
                 @click="openPatientFolder(patient.nik)"
-                class="bg-white rounded-lg shadow-md p-4 cursor-pointer transform transition-transform hover:scale-105 hover:shadow-lg"
+                :class="`p-4 border-b border-white/10 cursor-pointer transition-colors hover:bg-white/5 ${selectedNik === patient.nik ? 'bg-white/20' : ''}`"
               >
-                <div class="flex items-center">
-                  <div class="bg-blue-100 p-2 rounded-full mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6 text-blue-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                      />
+                <div class="flex justify-between items-start mb-1">
+                  <h3 class="text-lg font-medium text-white">{{ patient.patientName }}</h3>
+                  <div :class="`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusClass(patient.latestResult)}`">
+                    {{ getStatusText(patient.latestResult) }}
+                  </div>
+                </div>
+                <div class="text-sm text-white/70 mb-1">ID: {{ patient.nik }}</div>
+                <div class="flex justify-between items-center text-xs mt-2">
+                  <div class="text-white/60">
+                    {{ formatDate(patient.latestDate) }}
+                  </div>
+                  <div class="text-white/60">
+                    {{ patient.diagnosesCount }} {{ patient.diagnosesCount > 1 ? 'records' : 'record' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Middle Column: Patient Records -->
+          <div v-if="selectedNik" class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden">
+            <div class="p-4 border-b border-white/20 flex justify-between items-center">
+              <h2 class="text-xl font-semibold text-white">
+                {{ patientDiagnoses[selectedNik][0].patientName }}'s Records
+              </h2>
+              <div class="flex gap-2">
+                <button 
+                  @click="openSendDialog(selectedNik, patientDiagnoses[selectedNik][0].patientName)" 
+                  class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+                  title="Share with patient"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                </button>
+                <button 
+                  @click="deletePatientRecord(selectedNik)" 
+                  class="p-2 text-red-400 hover:text-red-300 hover:bg-white/10 rounded-lg"
+                  title="Delete patient record"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div class="max-h-[70vh] overflow-y-auto">
+              <div 
+                v-for="(diagnosis, index) in patientDiagnoses[selectedNik]" 
+                :key="`${selectedNik}-${index}`"
+                @click="viewDiagnosis(diagnosis)"
+                :class="`p-4 border-b border-white/10 cursor-pointer transition-colors hover:bg-white/5 
+                  ${selectedDiagnosis === diagnosis ? 'bg-white/20' : ''}`"
+              >
+                <div class="flex justify-between items-center mb-2">
+                  <div class="text-sm text-white/70">
+                    {{ formatDate(diagnosis.savedAt) }}
+                  </div>
+                  <div :class="`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusClass(diagnosis.resultPercentage)}`">
+                    {{ getStatusText(diagnosis.resultPercentage) }}
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-2">
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/60 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
+                    <span class="text-white">Risk: {{ diagnosis.resultPercentage }}%</span>
                   </div>
-                  <div class="flex-grow">
-                    <div class="font-medium truncate">{{ patient.patientName }}</div>
-                    <div class="text-xs text-gray-500">NIK: {{ patient.nik }}</div>
-                  </div>
-                </div>
-
-                <div class="flex justify-between mt-3">
-                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {{ patient.diagnosesCount }} Records
-                  </span>
-                  <span class="text-xs"> Latest: {{ formatDate(patient.latestDate) }} </span>
-                </div>
-
-                <div class="mt-3 flex items-center">
-                  <div class="flex-grow h-2 bg-gray-200 rounded-full">
-                    <div
-                      :class="getStatusClass(patient.latestResult)"
-                      class="h-2 rounded-full"
-                      :style="{ width: `${patient.latestResult}%` }"
-                    ></div>
-                  </div>
-                  <span
-                    class="text-xs ml-2 font-medium"
-                    :class="{
-                      'text-green-600': patient.latestResult < 20,
-                      'text-yellow-600': patient.latestResult >= 20 && patient.latestResult < 50,
-                      'text-red-600': patient.latestResult >= 50,
-                    }"
-                    >{{ patient.latestResult }}%</span
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- View 2: Single Patient Diagnosis List -->
-          <div v-else-if="selectedNik && !selectedDiagnosis">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-4">
-              <div class="flex items-center mb-4">
-                <div
-                  class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 text-blue-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+          
+          <!-- Right Column: Selected Diagnosis Details -->
+          <div v-if="selectedDiagnosis" class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden">
+            <div class="p-4 border-b border-white/20 flex justify-between items-center">
+              <h2 class="text-xl font-semibold text-white">
+                Diagnosis Details
+              </h2>
+              <button @click="closeDiagnosisView" class="text-white/70 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div class="p-5">
+              <!-- Risk Indicator -->
+              <div class="mb-6 flex flex-col items-center">
+                <div :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl font-bold text-white 
+                  ${getStatusClass(selectedDiagnosis.resultPercentage)}`">
+                  {{ selectedDiagnosis.resultPercentage }}%
                 </div>
-                <div>
-                  <h2 class="text-xl font-semibold">
-                    {{ patientDiagnoses[selectedNik][0].patientName }}
-                  </h2>
-                  <p class="text-sm text-gray-500">
-                    NIK: {{ selectedNik }} • {{ patientDiagnoses[selectedNik].length }} Records
+                <div class="mt-2 text-center">
+                  <h3 class="text-lg font-semibold text-white">
+                    {{ getStatusText(selectedDiagnosis.resultPercentage) }}
+                  </h3>
+                  <p class="text-white/70 text-sm">
+                    Diagnosis Date: {{ formatDate(selectedDiagnosis.savedAt) }}
                   </p>
                 </div>
               </div>
-
-              <!-- Timeline of diagnosis records -->
-              <div class="mt-6">
-                <div
-                  v-for="(diagnosis, index) in [...patientDiagnoses[selectedNik]].sort(
-                    (a, b) => new Date(b.savedAt) - new Date(a.savedAt),
-                  )"
-                  :key="index"
-                  class="mb-4 last:mb-0"
-                >
-                  <div class="flex items-start border-l-2 border-blue-200 pl-4 pb-6 relative">
-                    <!-- Timeline dot -->
-                    <div
-                      :class="getStatusClass(diagnosis.resultPercentage)"
-                      class="absolute -left-[9px] h-4 w-4 rounded-full"
-                    ></div>
-
-                    <!-- Diagnosis card -->
-                    <div
-                      @click="openDiagnosis(diagnosis)"
-                      class="bg-gray-50 rounded-lg p-4 w-full cursor-pointer hover:bg-blue-50 transition-colors"
-                    >
-                      <div class="flex justify-between items-center">
-                        <div class="text-sm text-gray-500">{{ formatDate(diagnosis.savedAt) }}</div>
-                        <div
-                          :class="{
-                            'bg-green-100 text-green-800': diagnosis.resultPercentage < 20,
-                            'bg-yellow-100 text-yellow-800':
-                              diagnosis.resultPercentage >= 20 && diagnosis.resultPercentage < 50,
-                            'bg-red-100 text-red-800': diagnosis.resultPercentage >= 50,
-                          }"
-                          class="px-2 py-1 rounded-full text-xs font-medium"
-                        >
-                          {{ getStatusText(diagnosis.resultPercentage) }} -
-                          {{ diagnosis.resultPercentage }}%
-                        </div>
-                      </div>
-                      <div class="mt-2">
-                        <div class="font-semibold">Heart Disease Risk Assessment</div>
-                        <p class="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {{ formatRiskLabel(diagnosis.resultPercentage) }} of heart disease
-                          detected. Key factors: {{ diagnosis.age }} years, {{ diagnosis.sex }}, BP:
-                          {{ diagnosis.restingBP }} mmHg.
-                        </p>
-                      </div>
-
-                      <div class="flex justify-between items-center mt-3">
-                        <div class="flex items-center text-blue-600 text-sm">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          View Details
-                        </div>
-                        <button
-                          @click.stop="viewDiagnosisDetails(diagnosis)"
-                          class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
-                        >
-                          Full Report
-                        </button>
-                      </div>
-                    </div>
+              
+              <!-- Patient Information Section -->
+              <div class="mb-6">
+                <h3 class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2">
+                  Patient Information
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-white/70 text-sm">Name</p>
+                    <p class="text-white">{{ selectedDiagnosis.patientName }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Age</p>
+                    <p class="text-white">{{ selectedDiagnosis.age }} years</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Sex</p>
+                    <p class="text-white">{{ selectedDiagnosis.sex }}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- View 3: Individual Diagnosis Detail View -->
-          <div v-else-if="selectedDiagnosis" class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              
+              <!-- Clinical Data Section -->
+              <div class="mb-6">
+                <h3 class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2">
+                  Clinical Assessment
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-white/70 text-sm">Chest Pain Type</p>
+                    <p class="text-white">{{ selectedDiagnosis.chestPainType }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Resting BP</p>
+                    <p class="text-white">{{ selectedDiagnosis.restingBloodPressure }} mm Hg</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Cholesterol</p>
+                    <p class="text-white">{{ selectedDiagnosis.serumCholesterol }} mg/dl</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Blood Sugar</p>
+                    <p class="text-white">{{ selectedDiagnosis.fastingBloodSugar }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">ECG Results</p>
+                    <p class="text-white">{{ selectedDiagnosis.restingEcgResults }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Max Heart Rate</p>
+                    <p class="text-white">{{ selectedDiagnosis.maxHeartRate }} bpm</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Additional Data Section -->
               <div>
-                <h2 class="text-xl font-semibold mb-1">Diagnosis Report</h2>
-                <p class="text-gray-500">{{ formatDate(selectedDiagnosis.savedAt) }}</p>
+                <h3 class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2">
+                  Additional Data
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-white/70 text-sm">Exercise Angina</p>
+                    <p class="text-white">{{ selectedDiagnosis.exerciseInducedAngina }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">ST Depression</p>
+                    <p class="text-white">{{ selectedDiagnosis.stDepression }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">ST Slope</p>
+                    <p class="text-white">{{ selectedDiagnosis.stSlope }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Major Vessels</p>
+                    <p class="text-white">{{ selectedDiagnosis.numberOfMajorVessels }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/70 text-sm">Thalassemia</p>
+                    <p class="text-white">{{ selectedDiagnosis.thalassemia }}</p>
+                  </div>
+                </div>
               </div>
-              <div
-                :class="{
-                  'bg-green-100 text-green-800': selectedDiagnosis.resultPercentage < 20,
-                  'bg-yellow-100 text-yellow-800':
-                    selectedDiagnosis.resultPercentage >= 20 &&
-                    selectedDiagnosis.resultPercentage < 50,
-                  'bg-red-100 text-red-800': selectedDiagnosis.resultPercentage >= 50,
-                }"
-                class="px-3 py-1.5 rounded-full text-sm font-medium mt-2 md:mt-0"
-              >
-                {{ getStatusText(selectedDiagnosis.resultPercentage) }} -
-                {{ selectedDiagnosis.resultPercentage }}%
-              </div>
-            </div>
-
-            <!-- Risk assessment card -->
-            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div class="flex items-center mb-4">
-                <div
-                  :class="{
-                    'bg-green-100 text-green-700': selectedDiagnosis.resultPercentage < 20,
-                    'bg-yellow-100 text-yellow-700':
-                      selectedDiagnosis.resultPercentage >= 20 &&
-                      selectedDiagnosis.resultPercentage < 50,
-                    'bg-red-100 text-red-700': selectedDiagnosis.resultPercentage >= 50,
-                  }"
-                  class="p-2 rounded-full mr-3"
+              
+              <!-- Action Buttons -->
+              <div class="mt-8 flex justify-between">
+                <button 
+                  @click="router.push('/admin/result')" 
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                </div>
-                <div>
-                  <h3 class="font-medium text-lg">Risk Assessment</h3>
-                  <p class="text-sm text-gray-600">
-                    Based on medical parameters and predictive analysis
-                  </p>
-                </div>
-              </div>
-
-              <div class="mt-1">
-                <div class="h-4 bg-gray-200 rounded-full">
-                  <div
-                    :class="getStatusClass(selectedDiagnosis.resultPercentage)"
-                    class="h-4 rounded-full"
-                    :style="{ width: `${selectedDiagnosis.resultPercentage}%` }"
-                  ></div>
-                </div>
-                <div class="flex justify-between text-xs mt-1">
-                  <span>Low Risk</span>
-                  <span>Medium Risk</span>
-                  <span>High Risk</span>
-                </div>
-              </div>
-
-              <div class="mt-4 pt-4 border-t border-gray-200">
-                <h4 class="font-medium mb-2">Risk Interpretation:</h4>
-                <p v-if="selectedDiagnosis.resultPercentage < 20" class="text-sm text-gray-700">
-                  Low risk of cardiovascular disease. Continue maintaining healthy lifestyle and
-                  regular check-ups.
-                </p>
-                <p
-                  v-else-if="selectedDiagnosis.resultPercentage < 50"
-                  class="text-sm text-gray-700"
+                  View Full Report
+                </button>
+                <button 
+                  @click="openSendDialog(selectedNik, selectedDiagnosis.patientName)" 
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center"
                 >
-                  Moderate risk of cardiovascular disease. Consider lifestyle modifications and
-                  consult with healthcare provider.
-                </p>
-                <p v-else class="text-sm text-gray-700">
-                  High risk of cardiovascular disease. Immediate consultation with cardiologist
-                  recommended.
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  Send to Patient
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Middle Column (No Selection) -->
+          <div v-if="!selectedNik && Object.keys(patientDiagnoses).length > 0" class="md:col-span-2">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden h-full flex items-center justify-center p-10">
+              <div class="text-center max-w-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                  alt="Select patient" 
+                  class="w-32 h-32 object-cover rounded-full mx-auto mb-6"
+                />
+                <h2 class="text-2xl font-bold text-white mb-2">Select a Patient</h2>
+                <p class="text-white/80 mb-6">
+                  Select a patient from the list on the left to view their diagnosis history and details.
                 </p>
               </div>
             </div>
-
-            <!-- Patient data grid -->
-            <div class="mb-6">
-              <h3 class="font-semibold mb-3">Patient Data</h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Age</div>
-                  <div>{{ selectedDiagnosis.age }} years</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Sex</div>
-                  <div>{{ selectedDiagnosis.sex }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Chest Pain Type</div>
-                  <div>{{ selectedDiagnosis.chestPainType }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Resting BP</div>
-                  <div>{{ selectedDiagnosis.restingBP }} mmHg</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Cholesterol</div>
-                  <div>{{ selectedDiagnosis.cholesterol }} mg/dl</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Fasting Blood Sugar</div>
-                  <div>{{ selectedDiagnosis.fastingBS > 120 ? '> 120 mg/dl' : '≤ 120 mg/dl' }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Resting ECG</div>
-                  <div>{{ selectedDiagnosis.restingECG }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Max Heart Rate</div>
-                  <div>{{ selectedDiagnosis.maxHR }} bpm</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Exercise Angina</div>
-                  <div>{{ selectedDiagnosis.exerciseAngina }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">Old Peak</div>
-                  <div>{{ selectedDiagnosis.oldpeak }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">ST Slope</div>
-                  <div>{{ selectedDiagnosis.stSlope }}</div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="text-xs text-gray-500">CA</div>
-                  <div>{{ selectedDiagnosis.caCount }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-center mt-8">
-              <button
-                @click="viewDiagnosisDetails(selectedDiagnosis)"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg mr-4 flex items-center transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
+          </div>
+        </div>
+        
+        <!-- Share with Patient Modal -->
+        <div v-if="showSendDialog" class="fixed inset-0 flex items-center justify-center z-50 bg-black/70">
+          <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-800">Share with Patient</h2>
+              <button @click="showSendDialog = false" class="text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                View Full Report
               </button>
-              <button
-                class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-5 py-2 rounded-lg flex items-center transition-colors"
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-medium mb-2" for="sendPatientNik">
+                Patient ID/NIK
+              </label>
+              <input
+                id="sendPatientNik"
+                v-model="sendPatientNik"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter patient ID"
+                :disabled="isSending"
+              />
+              <p v-if="sendNikError" class="text-red-500 text-xs mt-1">{{ sendNikError }}</p>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-gray-700 text-sm font-medium mb-2" for="sendPatientName">
+                Patient Name
+              </label>
+              <input
+                id="sendPatientName"
+                v-model="sendPatientName"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter patient name"
+                :disabled="isSending"
+              />
+              <p v-if="sendNameError" class="text-red-500 text-xs mt-1">{{ sendNameError }}</p>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+              <button 
+                @click="showSendDialog = false"
+                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                :disabled="isSending"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                  />
+                Cancel
+              </button>
+              <button 
+                @click="sendToPatient"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                :disabled="isSending"
+              >
+                <svg v-if="isSending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Print Diagnosis
+                <span>{{ isSending ? 'Sending...' : 'Share' }}</span>
               </button>
             </div>
           </div>
+        </div>
+        
+        <!-- Medical Images Section -->
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <img 
+            src="https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital corridor" 
+            class="rounded-lg shadow-lg w-full h-40 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1516549655669-8404794b9c3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital room" 
+            class="rounded-lg shadow-lg w-full h-40 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Medical equipment" 
+            class="rounded-lg shadow-lg w-full h-40 object-cover"
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1578991624414-276ef23908e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            alt="Hospital staff" 
+            class="rounded-lg shadow-lg w-full h-40 object-cover"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Footer Component -->
     <FooterComponent />
   </div>
 </template>
 
 <style scoped>
+/* Custom animations and styles */
 .history-page {
-  margin-top: -1rem;
+  min-height: 100vh;
 }
 
-.progress-circle {
-  transition: stroke-dashoffset 1s ease;
+/* Animated elements */
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
 }
 
-/* Timeline styling */
-.border-l-2 {
-  position: relative;
+.animate-pulse {
+  animation: pulse 2s infinite ease-in-out;
 }
 
-.border-l-2::before {
-  content: '';
-  position: absolute;
-  height: calc(100% - 10px);
-  width: 2px;
-  background-color: #e2e8f0;
-  left: -2px;
-  z-index: 0;
+/* Line clamp for truncating text */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
 }
 
-.border-l-2:last-child::before {
-  display: none;
+/* Dropdown styling to ensure visible text */
+select option {
+  background-color: #fff;
+  color: #333;
+}
+
+/* Print styles */
+@media print {
+  .bg-gradient-to-b, .bg-white\/10, .backdrop-blur-sm, .bg-cover, .relative {
+    background: white !important;
+    color: black !important;
+    filter: none !important;
+  }
+  
+  .text-white, .text-white\/70, .text-white\/80, .text-blue-100 {
+    color: #111 !important;
+  }
+  
+  button, .fixed, section.relative, [class*="hover:"] {
+    display: none !important;
+  }
+  
+  .max-h-\[70vh\] {
+    max-height: none !important;
+  }
+  
+  .shadow-xl {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
 }
 </style>

@@ -16,13 +16,13 @@ import HistoryPage from '@/Page/User/HistoryPage.vue'
 const routes = [
   {
     path: '/',
-    name: 'login',
-    component: Login,
-  },
-  {
-    path: '/register',
     name: 'register',
     component: Register,
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
   },
   {
     path: '/home',
