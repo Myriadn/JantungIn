@@ -245,7 +245,7 @@ const isStepComplete = (step) => {
     <section class="relative">
       <div 
         class="absolute inset-0 bg-cover bg-center" 
-        style="background-image: url('https://images.unsplash.com/photo-1516549655669-8404794b9c3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); filter: brightness(0.4);"
+        style="background-image: url('/images/picu.jpg'); filter: brightness(0.4);"
       ></div>
       <div class="relative z-10 py-20 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Cardiovascular Diagnosis</h1>
@@ -599,7 +599,7 @@ const isStepComplete = (step) => {
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
                 <button 
-                  @click="router.push('/admin/result')" 
+                  @click="router.push('/result-admin')" 
                   class="px-5 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all"
                 >
                   View Detailed Report

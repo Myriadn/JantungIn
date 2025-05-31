@@ -41,7 +41,7 @@ const newsItems = ref([
     <section class="relative">
       <!-- Background with overlay and subtle animation -->
       <div class="absolute inset-0">
-        <div class="absolute inset-0 bg-cover bg-center hero-bg" style="background-image: url('/images/heart3.jpg'); filter: brightness(0.4);"></div>
+        <div class="absolute inset-0 bg-cover bg-center hero-bg" style="background-image: url('/images/king.jpg'); filter: brightness(0.4);"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-indigo-800/50 to-blue-800/60"></div>
         
         <!-- Animated dots pattern overlay -->
@@ -170,60 +170,6 @@ const newsItems = ref([
               </div>
             </div>
           </article>
-        </div>
-        
-        <!-- Add News Button (for admin) - Enhanced -->
-        <div class="mt-14 text-center">
-          <button class="add-article-btn">
-            <span class="add-icon-wrapper">
-              <svg xmlns="http://www.w3.org/2000/svg" class="add-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </span>
-            <span>Add New Article</span>
-          </button>
-        </div>
-
-        <!-- Hospital Facilities Section -->
-        <div class="mt-20 mb-8">
-          <div class="text-center mb-8">
-            <h2 class="text-2xl md:text-3xl font-bold text-white">Our Hospital Facilities</h2>
-            <p class="text-blue-200 mt-2 max-w-2xl mx-auto">Cutting-edge medical equipment and facilities for cardiovascular care</p>
-          </div>
-          
-          <div class="hospital-facilities grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="facility-card">
-  
-              <div class="facility-content">
-                <h3>Modern Healthcare</h3>
-                <p>State-of-the-art medical facilities</p>
-              </div>
-            </div>
-            
-            <div class="facility-card">
-              
-              <div class="facility-content">
-                <h3>Cardiac Center</h3>
-                <p>Specialized cardiac care facility</p>
-              </div>
-            </div>
-            
-            <div class="facility-card">
-           
-              <div class="facility-content">
-                <h3>Diagnostics</h3>
-                <p>Advanced diagnostic equipment</p>
-              </div>
-            </div>
-            
-            <div class="facility-card">
-             
-              <div class="facility-content">
-                <h3>Patient Care</h3>
-                <p>Compassionate healthcare services</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -430,54 +376,5 @@ article:hover {
 .news-card {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-/* Hospital facilities */
-.facility-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1rem;
-  height: 240px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.facility-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.facility-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: all 0.5s ease;
-}
-
-.facility-card:hover .facility-image {
-  transform: scale(1.08);
-}
-
-.facility-content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  color: white;
-  transform: translateY(0);
-  transition: all 0.3s ease;
-}
-
-.facility-content h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.2rem;
-}
-
-.facility-content p {
-  font-size: 0.9rem;
-  opacity: 0.8;
 }
 </style>

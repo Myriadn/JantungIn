@@ -274,25 +274,9 @@ const generateCSV = () => {
           </div>
           
           <div class="flex gap-3">
-            <button 
-              @click="generateCSV" 
-              class="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export CSV
-            </button>
+          
             
-            <button 
-              onClick="window.print()" 
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print
-            </button>
+         
           </div>
         </div>
         
@@ -313,7 +297,7 @@ const generateCSV = () => {
               Create a new diagnosis to start building your patient database.
             </p>
             <button 
-              @click="router.push('/admin/diagnose')" 
+              @click="router.push('/diagnose-admin')" 
               class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all"
             >
               Start New Diagnosis
@@ -537,7 +521,7 @@ const generateCSV = () => {
               <!-- Action Buttons -->
               <div class="mt-8 flex justify-between">
                 <button 
-                  @click="router.push('/admin/result')" 
+                  @click="router.push('/result-admin')" 
                   class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -649,8 +633,8 @@ const generateCSV = () => {
             class="rounded-lg shadow-lg w-full h-40 object-cover"
           />
           <img 
-            src="https://images.unsplash.com/photo-1516549655669-8404794b9c3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-            alt="Hospital room" 
+            src="/images/hostipal.jpg" 
+            alt="Hospital" 
             class="rounded-lg shadow-lg w-full h-40 object-cover"
           />
           <img 
@@ -659,7 +643,7 @@ const generateCSV = () => {
             class="rounded-lg shadow-lg w-full h-40 object-cover"
           />
           <img 
-            src="https://images.unsplash.com/photo-1578991624414-276ef23908e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+            src="/images/ike.jpg"
             alt="Hospital staff" 
             class="rounded-lg shadow-lg w-full h-40 object-cover"
           />
