@@ -3,8 +3,8 @@ import FooterComponent from '@/components/Footer-component.vue'
 import { ref, onMounted } from 'vue'
 
 // Import gambar untuk mencegah error Vite
-const hospital1 = '/images/hospital1.jpg'
-const hospital2 = '/images/heart1.jpg' // Diganti karena hospital2.jpg tidak tersedia
+const hospital1 = '/images/OIP.jpg'
+const hospital2 = '/images/ui.jpg' // Diganti karena hospital2.jpg tidak tersedia
 const hospital3 = '/images/heart2.jpg' // Diganti karena hospital3.jpg tidak tersedia
 const hospital4 = '/images/heart3.jpg' // Diganti karena hospital4.jpg tidak tersedia
 
@@ -53,10 +53,10 @@ onMounted(() => {
       <div class="container mx-auto relative z-20 py-20 pt-28 px-6">
         <div class="max-w-3xl">
           <div class="inline-block px-3 py-1 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4">
-            Admin Dashboard v1.0
+            Doctor Dashboard 
           </div>
           <h1 class="text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight">
-            JantungIn <span class="text-gradient">Admin Panel</span>
+            JantungIn <span class="text-gradient">Y0uk</span>
           </h1>
           <p class="text-xl mb-8 text-blue-100 max-w-2xl leading-relaxed">
             Advanced cardiovascular risk assessment and patient management platform powered by AI technology
@@ -223,34 +223,16 @@ onMounted(() => {
           
           <p class="quote-author">dr. Siti Nurmala, Sp.JP, FIHA - Cardiac Care Specialist</p>
           
-          <!-- Hospital Images - Enhanced Gallery -->
-          <div class="hospital-gallery-container mt-8">
-            <h3 class="text-xl font-bold text-center mb-4 text-white">Our Facilities</h3>
-            <div class="hospital-gallery grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-2">
-              <div class="hospital-image">
-                <img :src="hospital1" alt="Modern Hospital Lobby" class="rounded-xl shadow-lg hospital-gallery-img" />
-                <div class="hospital-image-caption">
-                  <span>Modern Lobby</span>
-                </div>
-              </div>
-              <div class="hospital-image">
-                <img :src="hospital2" alt="Advanced Cardiology Center" class="rounded-xl shadow-lg hospital-gallery-img" />
-                <div class="hospital-image-caption">
-                  <span>Cardiology Center</span>
-                </div>
-              </div>
-              <div class="hospital-image">
-                <img :src="hospital3" alt="Diagnostic Equipment" class="rounded-xl shadow-lg hospital-gallery-img" />
-                <div class="hospital-image-caption">
-                  <span>Diagnostic Center</span>
-                </div>
-              </div>
-              <div class="hospital-image">
-                <img :src="hospital4" alt="Patient Care" class="rounded-xl shadow-lg hospital-gallery-img" />
-                <div class="hospital-image-caption">
-                  <span>Patient Care</span>
-                </div>
-              </div>
+          <!-- Hospital Gallery Images -->
+          <div class="hospital-gallery grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 max-w-4xl mx-auto">
+            <div class="hospital-image">
+              <img :src="hospital1" alt="Hospital Facility 1" class="hospital-gallery-img" />
+              <div class="hospital-image-caption">Lobby Fasilitas</div>
+            </div>
+            
+            <div class="hospital-image">
+              <img :src="hospital2" alt="Hospital Facility 2" class="hospital-gallery-img" />
+              <div class="hospital-image-caption">Pusat Perawatan Jantung</div>
             </div>
           </div>
         </div>
@@ -273,13 +255,13 @@ onMounted(() => {
 }
 
 .hospital-bg {
-  background-image: url('/images/hospital1.jpg');
+  background-image: url('/images/azwin.jpg');
   filter: blur(1px);
   transform: scale(1.03);
 }
 
 .hospital-bg-2 {
-  background-image: url('/images/heart1.jpg');
+  background-image: url('/images/picu.jpg');
   filter: blur(1px);
   transform: scale(1.03);
   opacity: 0;
