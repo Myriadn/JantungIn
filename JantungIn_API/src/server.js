@@ -1,5 +1,6 @@
 'use strict';
 
+// ini biar trigger aja
 const Hapi = require('@hapi/hapi');
 const Boom = require('@hapi/boom');
 const Inert = require('@hapi/inert');
