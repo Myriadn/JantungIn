@@ -16,6 +16,8 @@ const sequelize = new Sequelize(DATABASE_URL, {
       require: true,
       rejectUnauthorized: false,
     },
+    // Add this line to force IPv4
+    family: 4,
   },
   pool: {
     max: 5,
