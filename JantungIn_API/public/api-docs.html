@@ -291,19 +291,30 @@
           data pasien, dan prediksi risiko kardiovaskular.
         </p>
 
+        <h3>Tech Stack</h3>
+        <ul>
+          <li><strong>Server:</strong> Node.js dengan Hapi.js framework</li>
+          <li><strong>Database:</strong> PostgreSQL dengan Sequelize ORM</li>
+          <li><strong>Authentication:</strong> JSON Web Tokens (JWT)</li>
+          <li>
+            <strong>ML Model:</strong> TensorFlow.js untuk prediksi risiko penyakit kardiovaskular
+          </li>
+          <li><strong>Deployment:</strong> Railway.app, container-ready dengan Docker</li>
+        </ul>
+
         <h3>Fitur Utama</h3>
         <ul>
           <li>Otentikasi pengguna (registrasi, login, manajemen profil)</li>
-          <li>Prediksi risiko penyakit kardiovaskular</li>
-          <li>Pelacakan riwayat diagnosis</li>
-          <li>RESTful API dengan endpoint terstandarisasi</li>
-          <li>Dukungan untuk database MySQL/PostgreSQL dan AWS DynamoDB</li>
+          <li>Prediksi risiko penyakit kardiovaskular menggunakan model machine learning</li>
+          <li>Pelacakan riwayat diagnosis untuk pasien</li>
+          <li>RESTful API dengan endpoint terstandarisasi dan dokumentasi lengkap</li>
+          <li>Database PostgreSQL untuk penyimpanan data yang handal dan scalable</li>
+          <li>Sistem role-based access control (admin, dokter, user)</li>
         </ul>
-
         <h3>Base URL</h3>
         <p>Semua URL dalam dokumentasi ini relatif terhadap:</p>
-        <pre><code>http://localhost:3000</code></pre>
-        <p>Untuk lingkungan produksi, ganti dengan domain produksi Anda.</p>
+        <pre><code>https://jantungin-api-production.up.railway.app</code></pre>
+        <p>Untuk development lokal, gunakan <code>http://localhost:3000</code></p>
 
         <h3>Autentikasi</h3>
         <p>
@@ -717,7 +728,7 @@
             <span class="path">/api/admin/login</span>
           </div>
           <div class="description">Login khusus untuk admin/dokter.</div>
-          <!-- <span class="tag localhost-only">Localhost Only</span> -->
+          <span class="tag auth-required">Auth Required</span>
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -767,7 +778,6 @@
           <div class="description">Mendapatkan profil admin/dokter yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1310,7 +1320,6 @@
 }</code></pre>
         </div>
       </section>
-
       <section id="diagnosis-endpoints">
         <h2>Diagnosis Endpoints</h2>
 
@@ -1433,6 +1442,51 @@
   "data": {
     "id": "uuid",
     "userId": "uuid",
+    "resultPercentage": 75.5,
+    "cardiovascularRisk": "High",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/diagnosis/{id}</span>
+          </div>
+          <div class="description">
+            Mendapatkan detail diagnosis berdasarkan ID. User biasa hanya dapat melihat diagnosis
+            milik sendiri.
+          </div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>string (UUID)</td>
+                <td>Ya</td>
+                <td>ID diagnosis yang ingin ditampilkan</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Diagnosis retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
     "age": 50,
     "sex": "Male",
     "chestPainType": "Typical angina",
@@ -1458,6 +1512,68 @@
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
+            <span class="path">/api/diagnosis/history</span>
+          </div>
+          <div class="description">
+            Mendapatkan riwayat diagnosis user yang sedang login. Admin/dokter dapat melihat riwayat
+            diagnosis pasien dengan menyediakan patientId.
+          </div>
+          <span class="tag auth-required">Auth Required</span>
+
+          <div class="params-title">Query Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>patientId</td>
+                <td>string (UUID)</td>
+                <td>Tidak</td>
+                <td>ID pasien (hanya untuk admin/dokter)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Diagnoses retrieved successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "age": 50,
+      "sex": "Male",
+      "chestPainType": "Typical angina",
+      "restingEcgResults": "Normal",
+      "fastingBloodSugar": 120,
+      "restingBloodPressure": 140,
+      "maximumHeartRate": 160,
+      "exerciseInducedAngina": "Yes",
+      "stSegment": "Flat",
+      "majorVessels": 2,
+      "thalassemia": "Fixed Defect",
+      "serumCholesterol": 250,
+      "stDepression": 1.5,
+      "resultPercentage": 75.5,
+      "cardiovascularRisk": "High",
+      "prediction": "Berisiko",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
             <span class="path">/api/admin/diagnosis/all</span>
           </div>
           <div class="description">
@@ -1465,7 +1581,6 @@
           </div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1497,23 +1612,84 @@
   ]
 }</code></pre>
         </div>
-      </section>
 
+        <div class="endpoint">
+          <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="path">/api/admin/diagnosis/patient/{patientId}</span>
+          </div>
+          <div class="description">
+            Mendapatkan riwayat diagnosis untuk pasien tertentu (hanya untuk admin/dokter).
+          </div>
+          <span class="tag auth-required">Auth Required</span>
+          <span class="tag admin-only">Admin/Dokter Only</span>
+
+          <div class="params-title">Path Parameters:</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>patientId</td>
+                <td>string (UUID)</td>
+                <td>Ya</td>
+                <td>ID pasien yang riwayat diagnosisnya ingin ditampilkan</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="response-title">Response (200 OK):</div>
+          <pre><code>{
+  "statusCode": 200,
+  "message": "Diagnoses for patient retrieved successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "age": 50,
+      "sex": "Male",
+      "chestPainType": "Typical angina",
+      "restingEcgResults": "Normal",
+      "fastingBloodSugar": 120,
+      "restingBloodPressure": 140,
+      "maximumHeartRate": 160,
+      "exerciseInducedAngina": "Yes",
+      "stSegment": "Flat",
+      "majorVessels": 2,
+      "thalassemia": "Fixed Defect",
+      "serumCholesterol": 250,
+      "stDepression": 1.5,
+      "resultPercentage": 75.5,
+      "cardiovascularRisk": "High",
+      "prediction": "Berisiko",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+        </div>
+      </section>
       <section id="setup-endpoints">
         <h2>Setup Endpoints</h2>
 
         <div class="note">
           <strong>Catatan:</strong> Endpoint di bagian ini hanya dapat diakses dari localhost dan
-          hanya digunakan untuk setup awal aplikasi.
+          hanya digunakan untuk setup awal aplikasi. Perlindungan keamanan diterapkan untuk mencegah
+          akses dari luar.
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
             <span class="path">/api/setup/admin</span>
           </div>
           <div class="description">Setup akun admin pertama.</div>
-          <!-- <span class="tag localhost-only">Localhost Only</span> -->
+          <span class="tag localhost-only">Localhost Only</span>
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -1572,7 +1748,7 @@
             <span class="path">/api/setup/admin-check</span>
           </div>
           <div class="description">Memeriksa akun admin yang sudah ada.</div>
-          <!-- <span class="tag localhost-only">Localhost Only</span> -->
+          <span class="tag localhost-only">Localhost Only</span>
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1591,10 +1767,9 @@
         </div>
       </section>
     </div>
-
     <footer>
       <div class="container">
-        <p>&copy; 2023 JantungIn API. All rights reserved.</p>
+        <p>&copy; 2025 JantungIn API. All rights reserved.</p>
         <p>API documentation for JantungIn cardiovascular risk assessment application.</p>
       </div>
     </footer>

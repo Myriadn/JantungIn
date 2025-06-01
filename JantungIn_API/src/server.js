@@ -50,10 +50,9 @@ const init = async () => {
     },
   }); // Register plugins
   await server.register([authPlugin, errorHandler, Inert]);
-
   // Apply security headers for production
   if (process.env.NODE_ENV === 'production') {
-    securityHeaders(server);
+    await securityHeaders(server);
   }
 
   // Apply rate limiting for sensitive routes

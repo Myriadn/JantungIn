@@ -1,41 +1,51 @@
-const helmet = require('helmet');
+// Security headers middleware for Hapi.js
+const securityHeaders = async (server) => {
+  // Register security headers as extension points
+  server.ext('onPreResponse', (request, h) => {
+    const response = request.response;
+    if (!response.isBoom) {
+      // Set security headers for non-error responses
+      response.header('X-Content-Type-Options', 'nosniff');
+      response.header('X-Frame-Options', 'DENY');
+      response.header('X-XSS-Protection', '1; mode=block');
+      response.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-// Security headers middleware using helmet
-const securityHeaders = (server) => {
-  // Apply Helmet's security headers
-  server.use(helmet());
+      // Content Security Policy
+      const cspHeader =
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: blob:; " +
+        "connect-src 'self' " +
+        (process.env.ALLOWED_ORIGINS || '') +
+        '; ' +
+        "font-src 'self'; " +
+        "object-src 'none'; " +
+        "media-src 'self'; " +
+        "frame-src 'none'";
 
-  // Additional Content Security Policy settings
-  server.use(
-    helmet.contentSecurityPolicy({
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"], // Modify as needed for your app
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
-        connectSrc: ["'self'", process.env.ALLOWED_ORIGINS?.split(',') || []],
-        fontSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
-      },
-    })
-  );
+      response.header('Content-Security-Policy', cspHeader);
+    }
+    return h.continue;
+  });
 
   // Force HTTPS in production
   if (process.env.NODE_ENV === 'production') {
-    server.use((req, res, next) => {
-      if (req.headers['x-forwarded-proto'] !== 'https') {
-        // Check if request is from Railway's proxy
-        if (req.headers['x-forwarded-for']) {
-          return res.redirect(`https://${req.headers.host}${req.url}`);
-        }
+    server.ext('onRequest', (request, h) => {
+      // Check if we're behind a proxy (like Railway)
+      const forwardedProto = request.headers['x-forwarded-proto'];
+      if (forwardedProto && forwardedProto !== 'https' && request.headers['x-forwarded-for']) {
+        const host = request.headers.host;
+        const url = request.url.path;
+        return h.redirect(`https://${host}${url}`).takeover();
       }
-      next();
+      return h.continue;
     });
   }
 
   return server;
 };
+
+module.exports = securityHeaders;
 
 module.exports = securityHeaders;

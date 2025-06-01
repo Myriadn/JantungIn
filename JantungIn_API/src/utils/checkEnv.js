@@ -16,10 +16,16 @@ const productionOnlyVars = [
 const missingVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
 // Check for production-only vars if in production
-const missingProdVars =
-  process.env.NODE_ENV === 'production'
-    ? productionOnlyVars.filter((envVar) => !process.env[envVar])
-    : [];
+let missingProdVars = [];
+if (process.env.NODE_ENV === 'production') {
+  // If DATABASE_URL is present, we don't need the individual DB vars
+  if (process.env.DATABASE_URL) {
+    console.log('DATABASE_URL found, using that for database connection');
+  } else {
+    // If DATABASE_URL is not present, check for individual DB vars
+    missingProdVars = productionOnlyVars.filter((envVar) => !process.env[envVar]);
+  }
+}
 
 // Combine missing vars
 const allMissingVars = [...missingVars, ...missingProdVars];
