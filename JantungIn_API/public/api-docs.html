@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="logo.png" />
+    <link rel="shortcut icon" href="logo.png" />
     <title>JantungIn API Documentation</title>
     <style>
       :root {
@@ -704,11 +706,9 @@
 
       <section id="admin-endpoints">
         <h2>Admin Endpoints</h2>
-
         <div class="note">
           <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT dengan
-          role "admin" atau "dokter". Beberapa endpoint hanya dapat diakses dari localhost untuk
-          keamanan tambahan.
+          role "admin" atau "dokter".
         </div>
 
         <div class="endpoint">
@@ -717,7 +717,7 @@
             <span class="path">/api/admin/login</span>
           </div>
           <div class="description">Login khusus untuk admin/dokter.</div>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- <span class="tag localhost-only">Localhost Only</span> -->
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -767,7 +767,7 @@
           <div class="description">Mendapatkan profil admin/dokter yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -793,7 +793,7 @@
           <div class="description">Mengganti password admin/dokter yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -836,7 +836,7 @@
           <div class="description">Mendapatkan semua data pasien (user).</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -864,7 +864,7 @@
           <div class="description">Mendapatkan data pasien berdasarkan ID.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="params-title">Path Parameters:</div>
           <table>
@@ -908,7 +908,7 @@
           <div class="description">Mencari pasien berdasarkan NIK.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -951,7 +951,7 @@
           <div class="description">Mendapatkan semua data admin/dokter.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -979,7 +979,7 @@
           <div class="description">Membuat user admin/dokter baru.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -1052,7 +1052,7 @@
           <div class="description">Mengubah data user.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="params-title">Path Parameters:</div>
           <table>
@@ -1132,7 +1132,7 @@
           <div class="description">Menghapus user.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="params-title">Path Parameters:</div>
           <table>
@@ -1167,7 +1167,7 @@
           <div class="description">Reset password user.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="params-title">Path Parameters:</div>
           <table>
@@ -1222,7 +1222,7 @@
           <div class="description">Mendapatkan statistik diagnosa.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1253,7 +1253,7 @@
           <div class="description">Mendapatkan data dashboard admin.</div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1465,7 +1465,7 @@
           </div>
           <span class="tag auth-required">Auth Required</span>
           <span class="tag admin-only">Admin/Dokter Only</span>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- Localhost restriction removed -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{
@@ -1513,7 +1513,7 @@
             <span class="path">/api/setup/admin</span>
           </div>
           <div class="description">Setup akun admin pertama.</div>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- <span class="tag localhost-only">Localhost Only</span> -->
 
           <div class="body-title">Request Body:</div>
           <table>
@@ -1572,7 +1572,7 @@
             <span class="path">/api/setup/admin-check</span>
           </div>
           <div class="description">Memeriksa akun admin yang sudah ada.</div>
-          <span class="tag localhost-only">Localhost Only</span>
+          <!-- <span class="tag localhost-only">Localhost Only</span> -->
 
           <div class="response-title">Response (200 OK):</div>
           <pre><code>{

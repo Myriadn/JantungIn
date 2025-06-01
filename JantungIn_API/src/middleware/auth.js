@@ -48,9 +48,7 @@ const authPlugin = {
         },
       };
     }); // Daftarkan strategy auth dengan scheme jwt
-    server.auth.strategy('jwt', 'jwt');
-
-    // Middleware untuk memeriksa akses berdasarkan role
+    server.auth.strategy('jwt', 'jwt'); // Middleware untuk memeriksa akses berdasarkan role
     server.ext('onPreHandler', (request, h) => {
       const route = request.route;
 
@@ -63,15 +61,43 @@ const authPlugin = {
         if (!userRole || !requiredRoles.includes(userRole)) {
           throw Boom.forbidden('Akses ditolak. Anda tidak memiliki hak akses yang cukup.');
         }
+
+        // Additional security for admin/doctor roles in production
+        if (
+          process.env.NODE_ENV === 'production' &&
+          (userRole === 'admin' || userRole === 'doctor')
+        ) {
+          // Check for sensitive operations
+          const sensitiveOperations = ['DELETE', 'PUT', 'POST'];
+          if (sensitiveOperations.includes(request.method.toUpperCase())) {
+            // Implement additional security measures like checking for specific headers or session data
+            // For example, checking if a recent auth confirmation was done
+            const lastAuthTime = request.auth.credentials.lastAuthTime || 0;
+            const currentTime = Date.now();
+
+            // If the last auth was more than 30 minutes ago, require re-authentication for sensitive operations
+            if (currentTime - lastAuthTime > 30 * 60 * 1000) {
+              throw Boom.unauthorized(
+                'Session timeout for sensitive operation. Please re-authenticate.'
+              );
+            }
+          }
+        }
       }
 
-      // Jika route hanya bisa diakses dari localhost
-      if (route.settings.app && route.settings.app.localhostOnly) {
+      // Jika route hanya bisa diakses dari localhost (only in development)
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        route.settings.app &&
+        route.settings.app.localhostOnly
+      ) {
         const clientIp = request.info.remoteAddress;
         const allowedIPs = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 
         if (!allowedIPs.includes(clientIp)) {
-          throw Boom.forbidden('Akses ditolak. Route ini hanya bisa diakses dari localhost.');
+          throw Boom.forbidden(
+            'Akses ditolak. Route ini hanya bisa diakses dari localhost dalam mode development.'
+          );
         }
       }
 

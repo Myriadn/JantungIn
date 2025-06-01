@@ -16,7 +16,7 @@ module.exports = {
           tags: ['api', 'admin'],
           description: 'Login khusus admin/dokter',
           app: {
-            localhostOnly: true, // Hanya bisa diakses dari localhost
+            // localhostOnly: true, // Hanya bisa diakses dari localhost & Production later
           },
         },
       },
@@ -31,7 +31,7 @@ module.exports = {
           description: 'Mendapatkan semua data pasien',
           app: {
             requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa akses
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -45,7 +45,7 @@ module.exports = {
           description: 'Mendapatkan data pasien berdasarkan ID',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -59,7 +59,7 @@ module.exports = {
           description: 'Mencari pasien berdasarkan NIK',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -75,7 +75,7 @@ module.exports = {
           description: 'Mendapatkan semua data admin/dokter',
           app: {
             requiredRoles: ['admin'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -89,7 +89,7 @@ module.exports = {
           description: 'Membuat user admin/dokter baru',
           app: {
             requiredRoles: ['admin'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -105,7 +105,7 @@ module.exports = {
           description: 'Mengubah data user',
           app: {
             requiredRoles: ['admin'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -119,7 +119,7 @@ module.exports = {
           description: 'Menghapus user',
           app: {
             requiredRoles: ['admin'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -133,7 +133,7 @@ module.exports = {
           description: 'Reset password user',
           app: {
             requiredRoles: ['admin'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -148,7 +148,7 @@ module.exports = {
           description: 'Mendapatkan statistik diagnosa',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -163,7 +163,7 @@ module.exports = {
           description: 'Mendapatkan data dashboard admin',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -178,7 +178,7 @@ module.exports = {
           description: 'Mendapatkan profil admin yang sedang login',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -194,7 +194,7 @@ module.exports = {
           description: 'Mengganti password admin yang sedang login',
           app: {
             requiredRoles: ['admin', 'dokter'],
-            localhostOnly: true,
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },

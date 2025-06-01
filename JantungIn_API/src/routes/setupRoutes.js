@@ -16,7 +16,7 @@ module.exports = {
           tags: ['api', 'setup'],
           description: 'Setup the initial admin account',
           app: {
-            localhostOnly: true, // Hanya bisa diakses dari localhost
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
@@ -29,7 +29,7 @@ module.exports = {
           tags: ['api', 'setup'],
           description: 'Check existing admin accounts',
           app: {
-            localhostOnly: true, // Hanya bisa diakses dari localhost
+            // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },
       },
