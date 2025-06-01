@@ -1,17 +1,27 @@
 # Use Node.js LTS version
-FROM node:16-alpine
+FROM node:18-alpine
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy package files for efficient caching
+# Install dependencies first for better caching
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies with clean install for production
 RUN npm ci --only=production
+
+# Create directory for logs
+RUN mkdir -p logs && chmod 777 logs
 
 # Copy the rest of the application
 COPY . .
+
+# Create a non-root user and switch to it
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 && \
+    chown -R nodeuser:nodejs /app
+
+USER nodeuser
 
 # Set environment variables
 ENV NODE_ENV=production

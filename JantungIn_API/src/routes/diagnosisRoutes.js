@@ -67,7 +67,7 @@ module.exports = [
       handler: diagnosisController.getAllDiagnoses,
       app: {
         requiredRoles: ['admin', 'dokter'], // Hanya admin/dokter yang bisa melihat semua diagnosis
-        localhostOnly: true, // Hanya bisa diakses dari localhost
+        // localhostOnly: true, // Dinonaktifkan untuk presentasi
       },
     },
   },

@@ -22,14 +22,17 @@ const { createInitialAdmin } = require('./utils/seed');
 // Import middleware/plugins
 const authPlugin = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
+const securityHeaders = require('./middleware/securityHeaders');
+const { authLimiter, createRateLimiter } = require('./middleware/rateLimiter');
 
 const init = async () => {
   const server = Hapi.server({
     port: process.env.PORT || 3000,
-    host: process.env.HOST || 'localhost',
+    host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
     routes: {
       cors: {
-        origin: ['*'],
+        origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['*'],
+        credentials: true,
       },
       validate: {
         failAction: async (request, h, err) => {
@@ -45,9 +48,27 @@ const init = async () => {
         },
       },
     },
-  });
-  // Register plugins
+  }); // Register plugins
   await server.register([authPlugin, errorHandler, Inert]);
+
+  // Apply security headers for production
+  if (process.env.NODE_ENV === 'production') {
+    securityHeaders(server);
+  }
+
+  // Apply rate limiting for sensitive routes
+  server.ext('onPreAuth', (request, h) => {
+    // Apply auth rate limiter to login/register routes
+    if (
+      (request.path.includes('/api/auth/login') || request.path.includes('/api/auth/register')) &&
+      request.method.toLowerCase() === 'post'
+    ) {
+      return authLimiter(request, h);
+    }
+
+    // Apply general rate limiter to all routes
+    return createRateLimiter()(request, h);
+  });
 
   // Register routes
   await server.register([require('./routes/adminRoutes'), require('./routes/setupRoutes')]);
