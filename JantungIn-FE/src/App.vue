@@ -2,12 +2,17 @@
 import Navbar from '@/components/Navbar.vue'
 import NavbarAdmin from '@/components/Navbar-admin.vue'
 import OfflinePage from '@/components/OfflinePage.vue'
+import InstallPWA from '@/components/InstallPWA.vue'
+import RefreshApp from '@/components/RefreshApp.vue'
+import PWAStatus from '@/components/PWAStatus.vue'
+import AdPopupComponent from '@/components/AdPopupComponent.vue'
 import { useRoute } from 'vue-router'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const route = useRoute()
 const isOnline = ref(navigator.onLine)
 const offlineAlert = ref(false)
+const installPwa = ref(null)
 
 // Check if the current route corresponds to an admin page
 const isAdminPage = computed(() => {
@@ -70,30 +75,36 @@ onUnmounted(() => {
     </header>
 
     <!-- Offline Alert -->
-    <div 
-      v-if="offlineAlert" 
+    <div
+      v-if="offlineAlert"
       class="bg-yellow-500 text-white text-center py-2 px-4 fixed top-16 left-0 right-0 z-50 transition-all duration-300"
     >
       You're currently offline. Some features may be limited.
     </div>
 
     <!-- Dynamic Content Area -->
-    <main
-      :class="[
-        isAdminPage ||
-        (route.name !== 'login' && route.name !== 'register' && route.name !== 'admin')
-          ? 'flex-grow pt-16'
-          : 'flex-grow',
-      ]"
-    >
-      <router-view v-if="isOnline" />
-      <OfflinePage v-else />
+    <main class="flex-grow">
+      <!-- Display offline page when offline -->
+      <OfflinePage v-if="!isOnline" />
+
+      <!-- Display normal content when online with page transition -->
+      <transition name="page" mode="out-in" v-else>
+        <router-view />
+      </transition>
     </main>
 
     <!-- Static Shell Content (Footer) -->
-    <footer class="bg-blue-600 text-white text-xs py-2 text-center mt-auto" v-if="isOnline && route.name !== 'login' && route.name !== 'register' && route.name !== 'admin'">
-      JantungIn &copy; 2025 - Heart Health Monitoring App
+    <footer>
+      <!-- Footer content if needed -->
     </footer>
+
+    <!-- PWA Components -->
+    <InstallPWA ref="installPwa" />
+    <RefreshApp />
+    <PWAStatus />
+
+    <!-- Ad Popup Component -->
+    <AdPopupComponent />
   </div>
 </template>
 
@@ -109,5 +120,21 @@ body,
 #app {
   display: flex;
   flex-direction: column;
+}
+
+/* Ensure pages have proper spacing from navbar */
+main {
+  min-height: calc(100vh - 4rem); /* 4rem = 64px (height of navbar) */
+}
+
+/* Page transition animations */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
 }
 </style>

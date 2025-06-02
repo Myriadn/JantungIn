@@ -8,10 +8,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(), 
+    vue(),
     vueDevTools(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      strategies: 'generateSW',  // Changed from 'injectManifest' to 'generateSW' for automatic SW generation
+      devOptions: {
+        enabled: true  // Enable PWA in development for testing
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
         runtimeCaching: [
@@ -22,15 +27,27 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
               },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/api\.jantungin\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
-          },
-        ]
+          }
+        ],
       },
+      manifestFilename: 'manifest.webmanifest',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'JantungIn - Heart Health Monitoring',
@@ -43,22 +60,22 @@ export default defineConfig({
           {
             src: '/images/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/images/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/images/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    })
+          },
+          {
+            src: '/images/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+    }),
   ],
   resolve: {
     alias: {

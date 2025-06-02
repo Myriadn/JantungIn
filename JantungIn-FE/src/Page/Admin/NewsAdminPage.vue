@@ -36,87 +36,161 @@ const newsItems = ref([
 </script>
 
 <template>
-  <div class="news-page">
+  <div class="news-page mt-16">
+    <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background - Enhanced Modern -->
     <section class="relative">
       <!-- Background with overlay and subtle animation -->
       <div class="absolute inset-0">
-        <div class="absolute inset-0 bg-cover bg-center hero-bg" style="background-image: url('/images/king.jpg'); filter: brightness(0.4);"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-indigo-800/50 to-blue-800/60"></div>
-        
+        <div
+          class="absolute inset-0 bg-cover bg-center hero-bg"
+          style="background-image: url('/images/king.jpg'); filter: brightness(0.4)"
+        ></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-indigo-800/50 to-blue-800/60"
+        ></div>
+
         <!-- Animated dots pattern overlay -->
         <div class="absolute inset-0 bg-dot-pattern opacity-10"></div>
       </div>
-      
+
       <div class="relative z-10 py-28 px-4 text-center">
-        <div class="inline-block px-3 py-1 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4">
+        <div
+          class="inline-block px-3 py-1 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4"
+        >
           Latest Updates
         </div>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
           Healthcare <span class="text-gradient">News & Updates</span>
         </h1>
         <p class="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-          Stay informed about the latest cardiovascular research, medical advancements, and hospital news
+          Stay informed about the latest cardiovascular research, medical advancements, and hospital
+          news
         </p>
-        
+
         <!-- Search bar -->
         <div class="max-w-xl mx-auto mt-8">
           <div class="relative">
-            <input 
-              type="text" 
-              placeholder="Search news articles..." 
+            <input
+              type="text"
+              placeholder="Search news articles..."
               class="w-full px-5 py-3 pl-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-4 top-3.5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 absolute left-4 top-3.5 text-white/70"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           </div>
         </div>
       </div>
-      
-      <!-- Modern wave divider -->
-      <div class="wave-divider"></div>
     </section>
 
     <!-- News Content Section - Enhanced Modern Design -->
-    <div class="bg-gradient-to-b from-blue-600 via-indigo-700 to-indigo-900 px-0 relative overflow-hidden">
+    <div
+      class="bg-gradient-to-b from-blue-600 via-indigo-700 to-indigo-900 px-0 relative overflow-hidden"
+    >
       <!-- Floating elements for modern background -->
       <div class="absolute inset-0 z-0">
         <div class="floating-shape shape-1"></div>
         <div class="floating-shape shape-2"></div>
         <div class="floating-shape shape-3"></div>
       </div>
-      
+
       <div class="max-w-6xl mx-auto py-14 px-4 relative z-10">
         <!-- Categories Filter - Enhanced -->
         <div class="flex flex-wrap gap-3 mb-12 justify-center">
           <button class="category-btn active">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              />
             </svg>
             All News
           </button>
           <button class="category-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
             </svg>
             Cardiology
           </button>
           <button class="category-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+              />
             </svg>
             Research
           </button>
           <button class="category-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
             </svg>
             Hospital Updates
           </button>
           <button class="category-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
             </svg>
             Resources
           </button>
@@ -130,20 +204,29 @@ const newsItems = ref([
             class="news-card bg-white/80 backdrop-blur-md rounded-xl overflow-hidden transform transition-all hover:scale-[1.02]"
           >
             <div class="relative">
-              <img
-                :src="item.image"
-                :alt="item.title"
-                class="w-full h-52 object-cover"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+              <img :src="item.image" :alt="item.title" class="w-full h-52 object-cover" />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"
+              >
                 <!-- Category Tag -->
                 <div class="absolute top-4 left-4">
                   <span class="category-tag">CARDIOVASCULAR</span>
                 </div>
                 <!-- Date -->
                 <div class="absolute bottom-4 left-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-yellow-400 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                   <div class="text-white/90 text-sm font-medium">{{ item.date }}</div>
                 </div>
@@ -153,17 +236,35 @@ const newsItems = ref([
               <h2 class="text-xl font-bold mb-3 text-gray-800">{{ item.title }}</h2>
               <p class="text-gray-600 line-clamp-3">{{ item.content }}</p>
               <div class="mt-6 flex justify-between items-center">
-                <button
-                  class="read-more-btn flex items-center group"
-                >
+                <button class="read-more-btn flex items-center group">
                   <span>Read More</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                 </button>
                 <div class="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500/70 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-blue-500/70 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <span class="text-sm text-gray-500 font-medium">5 min read</span>
                 </div>
@@ -210,7 +311,9 @@ article {
 }
 
 article:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Modern UI Components */
@@ -296,12 +399,16 @@ article:hover {
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -4px rgba(37, 99, 235, 0.4);
+  box-shadow:
+    0 10px 15px -3px rgba(37, 99, 235, 0.3),
+    0 4px 6px -4px rgba(37, 99, 235, 0.4);
 }
 
 .add-article-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 20px -3px rgba(37, 99, 235, 0.4), 0 8px 8px -4px rgba(37, 99, 235, 0.2);
+  box-shadow:
+    0 15px 20px -3px rgba(37, 99, 235, 0.4),
+    0 8px 8px -4px rgba(37, 99, 235, 0.2);
 }
 
 .add-icon-wrapper {

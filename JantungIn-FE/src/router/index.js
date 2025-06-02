@@ -16,13 +16,13 @@ import HistoryPage from '@/Page/User/HistoryPage.vue'
 const routes = [
   {
     path: '/',
-    name: 'register',
-    component: Register,
-  },
-  {
-    path: '/login',
     name: 'login',
     component: Login,
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: Register,
   },
   {
     path: '/home',
@@ -84,6 +84,14 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Return to saved position if available (when using browser back/forward buttons)
+    if (savedPosition) {
+      return savedPosition
+    }
+    // Scroll to top for all other navigation
+    return { top: 0 }
+  },
 })
 
 export default router

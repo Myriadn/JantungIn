@@ -42,14 +42,16 @@ const goToHistory = () => {
 const healthData = ref([
   { icon: 'heart', label: 'Heart Rate', value: '72 bpm', trend: 'stable' },
   { icon: 'pressure', label: 'Blood Pressure', value: '120/80', trend: 'improved' },
-  { icon: 'activity', label: 'Activity', value: '6.2k steps', trend: 'decreased' }
+  { icon: 'activity', label: 'Activity', value: '6.2k steps', trend: 'decreased' },
 ])
 </script>
 
 <template>
   <div class="account-page">
     <!-- Main section with gradient background -->
-    <div class="relative bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 min-h-screen overflow-hidden">
+    <div
+      class="relative bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 min-h-screen overflow-hidden"
+    >
       <!-- Floating elements for modern background -->
       <div class="absolute inset-0 z-0">
         <div class="floating-shape shape-1"></div>
@@ -60,10 +62,14 @@ const healthData = ref([
       <div class="container max-w-5xl mx-auto py-12 px-4 relative z-10">
         <!-- Page header with welcome message -->
         <div class="mb-8 text-center">
-          <div class="inline-block px-4 py-2 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4">
+          <div
+            class="inline-block px-4 py-2 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4"
+          >
             User Profile
           </div>
-          <h1 class="text-4xl font-bold text-white mb-2 tracking-tight">Welcome, {{ user.name }}</h1>
+          <h1 class="text-4xl font-bold text-white mb-2 tracking-tight">
+            Welcome, {{ user.name }}
+          </h1>
           <p class="text-blue-100/80">Manage your account and view your health information</p>
         </div>
 
@@ -71,10 +77,14 @@ const healthData = ref([
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Left column: Profile card -->
           <div class="lg:col-span-1">
-            <div class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden transform hover:translate-y-[-5px] transition-all duration-300">
+            <div
+              class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden transform hover:translate-y-[-5px] transition-all duration-300"
+            >
               <!-- Profile header -->
               <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90"></div>
+                <div
+                  class="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90"
+                ></div>
                 <div class="relative z-10 p-6 text-center">
                   <div class="inline-block bg-white rounded-full p-4 mb-3 shadow-lg">
                     <svg
@@ -93,7 +103,9 @@ const healthData = ref([
                     </svg>
                   </div>
                   <h2 class="text-2xl font-bold text-white mb-1">{{ user.name }}</h2>
-                  <p class="text-blue-100 text-sm">Member since {{ user.lastLogin.split(',')[0] }}</p>
+                  <p class="text-blue-100 text-sm">
+                    Member since {{ user.lastLogin.split(',')[0] }}
+                  </p>
                 </div>
 
                 <!-- Profile completion indicator -->
@@ -103,8 +115,8 @@ const healthData = ref([
                     <span class="text-xs font-bold">{{ user.profileCompleted }}%</span>
                   </div>
                   <div class="mt-2 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                    <div 
-                      class="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full" 
+                    <div
+                      class="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full"
                       :style="{ width: user.profileCompleted + '%' }"
                     ></div>
                   </div>
@@ -114,18 +126,33 @@ const healthData = ref([
               <!-- Profile details -->
               <div class="p-6">
                 <div class="space-y-4">
-                  <div class="health-status-card bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
+                  <div
+                    class="health-status-card bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100"
+                  >
                     <div class="flex justify-between items-center mb-2">
                       <h3 class="font-medium text-gray-700">Health Status</h3>
                       <span class="health-badge">{{ user.healthStatus }}</span>
                     </div>
-                    <p class="text-sm text-gray-500">Your health data is regularly monitored by our system</p>
+                    <p class="text-sm text-gray-500">
+                      Your health data is regularly monitored by our system
+                    </p>
                   </div>
 
                   <div>
                     <label class="flex items-center text-gray-700 text-sm font-medium mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
                       </svg>
                       Full Name
                     </label>
@@ -134,8 +161,19 @@ const healthData = ref([
 
                   <div>
                     <label class="flex items-center text-gray-700 text-sm font-medium mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                        />
                       </svg>
                       NIK
                     </label>
@@ -144,8 +182,19 @@ const healthData = ref([
 
                   <div>
                     <label class="flex items-center text-gray-700 text-sm font-medium mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
                       </svg>
                       Email
                     </label>
@@ -154,8 +203,19 @@ const healthData = ref([
 
                   <div>
                     <label class="flex items-center text-gray-700 text-sm font-medium mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                       Last Login
                     </label>
@@ -169,8 +229,19 @@ const healthData = ref([
                     @click="logout"
                     class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-5 rounded-md transition-all duration-200 flex items-center justify-center"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
                     </svg>
                     Logout
                   </button>
@@ -182,11 +253,24 @@ const healthData = ref([
           <!-- Right column: Health overview and quick actions -->
           <div class="lg:col-span-2">
             <!-- Health snapshot card -->
-            <div class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden mb-6 transform hover:translate-y-[-5px] transition-all duration-300">
+            <div
+              class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden mb-6 transform hover:translate-y-[-5px] transition-all duration-300"
+            >
               <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5">
                 <h3 class="text-xl font-bold text-white flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                   Health Snapshot
                 </h3>
@@ -196,14 +280,50 @@ const healthData = ref([
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div v-for="(item, index) in healthData" :key="index" class="health-data-card">
                     <div class="health-data-icon" :class="'icon-' + item.icon">
-                      <svg v-if="item.icon === 'heart'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      <svg
+                        v-if="item.icon === 'heart'"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        />
                       </svg>
-                      <svg v-if="item.icon === 'pressure'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      <svg
+                        v-if="item.icon === 'pressure'"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        />
                       </svg>
-                      <svg v-if="item.icon === 'activity'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      <svg
+                        v-if="item.icon === 'activity'"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        />
                       </svg>
                     </div>
                     <div class="mt-2">
@@ -212,21 +332,67 @@ const healthData = ref([
                     </div>
                     <div class="mt-2 flex items-center">
                       <span class="trend-indicator" :class="'trend-' + item.trend">
-                        <svg v-if="item.trend === 'improved'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        <svg
+                          v-if="item.trend === 'improved'"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 10l7-7m0 0l7 7m-7-7v18"
+                          />
                         </svg>
-                        <svg v-if="item.trend === 'decreased'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        <svg
+                          v-if="item.trend === 'decreased'"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                          />
                         </svg>
-                        <svg v-if="item.trend === 'stable'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                        <svg
+                          v-if="item.trend === 'stable'"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 12h14"
+                          />
                         </svg>
                       </span>
-                      <span class="text-xs ml-1" :class="{
-                        'text-green-600': item.trend === 'improved',
-                        'text-red-600': item.trend === 'decreased',
-                        'text-gray-500': item.trend === 'stable'
-                      }">{{ item.trend === 'improved' ? 'Improved' : item.trend === 'decreased' ? 'Decreased' : 'Stable' }}</span>
+                      <span
+                        class="text-xs ml-1"
+                        :class="{
+                          'text-green-600': item.trend === 'improved',
+                          'text-red-600': item.trend === 'decreased',
+                          'text-gray-500': item.trend === 'stable',
+                        }"
+                        >{{
+                          item.trend === 'improved'
+                            ? 'Improved'
+                            : item.trend === 'decreased'
+                              ? 'Decreased'
+                              : 'Stable'
+                        }}</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -234,15 +400,22 @@ const healthData = ref([
                 <div class="mt-6">
                   <button @click="goToHistory" class="view-history-btn">
                     View Complete Health History
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
                     </svg>
                   </button>
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
       </div>
@@ -456,7 +629,7 @@ const healthData = ref([
   .health-data-card {
     padding: 1rem;
   }
-  
+
   .action-card {
     padding: 1rem;
   }

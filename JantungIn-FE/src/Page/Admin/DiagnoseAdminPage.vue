@@ -177,29 +177,29 @@ const handleSubmit = async () => {
 
 // Helper functions to map numeric codes back to text values
 function getChestPainTypeText(value) {
-  const option = chestPainTypeOptions.find(opt => opt.value === value.toString())
+  const option = chestPainTypeOptions.find((opt) => opt.value === value.toString())
   return option ? option.text : 'Unknown'
 }
 
 function getEcgResultsText(value) {
-  const option = restingECGOptions.find(opt => opt.value === value.toString())
+  const option = restingECGOptions.find((opt) => opt.value === value.toString())
   return option ? option.text : 'Unknown'
 }
 
 function getStSlopeText(value) {
-  const option = stSlopeOptions.find(opt => opt.value === value.toString())
+  const option = stSlopeOptions.find((opt) => opt.value === value.toString())
   return option ? option.text : 'Unknown'
 }
 
 function getThalassemiaText(value) {
-  const option = thallassemiaOptions.find(opt => opt.value === value.toString())
+  const option = thallassemiaOptions.find((opt) => opt.value === value.toString())
   return option ? option.text : 'Unknown'
 }
 
 // Function to validate the form
 const validateForm = () => {
   // Basic validation - check if all fields have values
-  return Object.values(diagnosisForm.value).every(val => val !== '')
+  return Object.values(diagnosisForm.value).every((val) => val !== '')
 }
 
 // Current step for multi-step form
@@ -225,27 +225,39 @@ const prevStep = () => {
 // Function to check if step is complete
 const isStepComplete = (step) => {
   if (step === 1) {
-    return !!diagnosisForm.value.patientName && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
+    return (
+      !!diagnosisForm.value.patientName && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
+    )
   } else if (step === 2) {
-    return !!diagnosisForm.value.cp && !!diagnosisForm.value.trestbps && 
-           !!diagnosisForm.value.chol && !!diagnosisForm.value.fbs && 
-           !!diagnosisForm.value.restecg && !!diagnosisForm.value.thalach
+    return (
+      !!diagnosisForm.value.cp &&
+      !!diagnosisForm.value.trestbps &&
+      !!diagnosisForm.value.chol &&
+      !!diagnosisForm.value.fbs &&
+      !!diagnosisForm.value.restecg &&
+      !!diagnosisForm.value.thalach
+    )
   } else if (step === 3) {
-    return !!diagnosisForm.value.exang && !!diagnosisForm.value.oldpeak && 
-           !!diagnosisForm.value.slope && !!diagnosisForm.value.ca && 
-           !!diagnosisForm.value.thal
+    return (
+      !!diagnosisForm.value.exang &&
+      !!diagnosisForm.value.oldpeak &&
+      !!diagnosisForm.value.slope &&
+      !!diagnosisForm.value.ca &&
+      !!diagnosisForm.value.thal
+    )
   }
   return false
 }
 </script>
 
 <template>
-  <div class="diagnose-page">
+  <div class="diagnose-page mt-16">
+    <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background -->
     <section class="relative">
-      <div 
-        class="absolute inset-0 bg-cover bg-center" 
-        style="background-image: url('/images/picu.jpg'); filter: brightness(0.4);"
+      <div
+        class="absolute inset-0 bg-cover bg-center"
+        style="background-image: url('/images/picu.jpg'); filter: brightness(0.4)"
       ></div>
       <div class="relative z-10 py-20 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Cardiovascular Diagnosis</h1>
@@ -258,18 +270,16 @@ const isStepComplete = (step) => {
     <!-- Main Content with Form -->
     <div class="bg-gradient-to-b from-blue-700 to-indigo-900 py-10 px-4 min-h-screen">
       <div class="max-w-4xl mx-auto">
-        
         <!-- Progress Steps -->
         <div class="mb-8">
           <div class="flex justify-between items-center w-full mb-4">
-            <div v-for="step in totalSteps" :key="step" 
-                 class="flex flex-col items-center w-1/3">
-              <div 
+            <div v-for="step in totalSteps" :key="step" class="flex flex-col items-center w-1/3">
+              <div
                 :class="`h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold border-2 ${
-                  currentStep === step 
-                    ? 'bg-blue-500 text-white border-white' 
+                  currentStep === step
+                    ? 'bg-blue-500 text-white border-white'
                     : currentStep > step || isStepComplete(step)
-                      ? 'bg-green-500 text-white border-white' 
+                      ? 'bg-green-500 text-white border-white'
                       : 'bg-white/20 text-white/70 border-white/50'
                 }`"
               >
@@ -284,7 +294,7 @@ const isStepComplete = (step) => {
             </div>
           </div>
           <div class="relative h-2 bg-white/20 rounded-full overflow-hidden">
-            <div 
+            <div
               class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-300"
               :style="`width: ${((currentStep - 1) / (totalSteps - 1)) * 100}%`"
             ></div>
@@ -307,7 +317,7 @@ const isStepComplete = (step) => {
                   placeholder="Enter patient's full name"
                 />
               </div>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-white mb-2" for="age">Age (years)</label>
@@ -321,7 +331,7 @@ const isStepComplete = (step) => {
                     placeholder="Enter age"
                   />
                 </div>
-                
+
                 <div>
                   <label class="block text-white mb-2" for="sex">Sex</label>
                   <select
@@ -337,26 +347,35 @@ const isStepComplete = (step) => {
                 </div>
               </div>
             </div>
-            
+
             <div class="mt-8 flex justify-end">
-              <button 
-                @click="nextStep" 
+              <button
+                @click="nextStep"
                 class="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all duration-200 flex items-center"
                 :disabled="!isStepComplete(1)"
-                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(1)}"
+                :class="{ 'opacity-50 cursor-not-allowed': !isStepComplete(1) }"
               >
                 Next Step
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 ml-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
           </div>
-          
+
           <!-- Step 2: Vital Signs -->
           <div v-if="currentStep === 2" class="p-6 md:p-8">
             <h2 class="text-2xl font-bold text-white mb-6">Vital Signs & Baseline Measurements</h2>
-            
+
             <div class="space-y-5">
               <div>
                 <label class="block text-white mb-2" for="chestPainType">Chest Pain Type</label>
@@ -366,15 +385,21 @@ const isStepComplete = (step) => {
                   class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
                   <option value="" disabled selected>Select chest pain type</option>
-                  <option v-for="option in chestPainTypeOptions" :key="option.value" :value="option.value">
+                  <option
+                    v-for="option in chestPainTypeOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
                     {{ option.text }}
                   </option>
                 </select>
               </div>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-white mb-2" for="bloodPressure">Resting Blood Pressure (mm Hg)</label>
+                  <label class="block text-white mb-2" for="bloodPressure"
+                    >Resting Blood Pressure (mm Hg)</label
+                  >
                   <input
                     id="bloodPressure"
                     v-model="diagnosisForm.trestbps"
@@ -385,9 +410,11 @@ const isStepComplete = (step) => {
                     placeholder="Enter resting BP"
                   />
                 </div>
-                
+
                 <div>
-                  <label class="block text-white mb-2" for="cholesterol">Serum Cholesterol (mg/dl)</label>
+                  <label class="block text-white mb-2" for="cholesterol"
+                    >Serum Cholesterol (mg/dl)</label
+                  >
                   <input
                     id="cholesterol"
                     v-model="diagnosisForm.chol"
@@ -399,22 +426,28 @@ const isStepComplete = (step) => {
                   />
                 </div>
               </div>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-white mb-2" for="fastingBloodSugar">Fasting Blood Sugar</label>
+                  <label class="block text-white mb-2" for="fastingBloodSugar"
+                    >Fasting Blood Sugar</label
+                  >
                   <select
                     id="fastingBloodSugar"
                     v-model="diagnosisForm.fbs"
                     class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     <option value="" disabled selected>Select blood sugar status</option>
-                    <option v-for="option in fastingBloodSugarOptions" :key="option.value" :value="option.value">
+                    <option
+                      v-for="option in fastingBloodSugarOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
                       {{ option.text }}
                     </option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label class="block text-white mb-2" for="restingEcg">Resting ECG Results</label>
                   <select
@@ -423,15 +456,21 @@ const isStepComplete = (step) => {
                     class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     <option value="" disabled selected>Select ECG results</option>
-                    <option v-for="option in restingECGOptions" :key="option.value" :value="option.value">
+                    <option
+                      v-for="option in restingECGOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
                       {{ option.text }}
                     </option>
                   </select>
                 </div>
               </div>
-              
+
               <div>
-                <label class="block text-white mb-2" for="maxHeartRate">Maximum Heart Rate (bpm)</label>
+                <label class="block text-white mb-2" for="maxHeartRate"
+                  >Maximum Heart Rate (bpm)</label
+                >
                 <input
                   id="maxHeartRate"
                   v-model="diagnosisForm.thalach"
@@ -443,38 +482,58 @@ const isStepComplete = (step) => {
                 />
               </div>
             </div>
-            
+
             <div class="mt-8 flex justify-between">
-              <button 
-                @click="prevStep" 
+              <button
+                @click="prevStep"
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all duration-200 flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
                 Previous
               </button>
-              <button 
-                @click="nextStep" 
+              <button
+                @click="nextStep"
                 class="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all duration-200 flex items-center"
                 :disabled="!isStepComplete(2)"
-                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(2)}"
+                :class="{ 'opacity-50 cursor-not-allowed': !isStepComplete(2) }"
               >
                 Next Step
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 ml-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
           </div>
-          
+
           <!-- Step 3: Cardiac Data -->
           <div v-if="currentStep === 3" class="p-6 md:p-8">
             <h2 class="text-2xl font-bold text-white mb-6">Additional Cardiac Data</h2>
-            
+
             <div class="space-y-5">
               <div>
-                <label class="block text-white mb-2" for="exerciseAngina">Exercise Induced Angina</label>
+                <label class="block text-white mb-2" for="exerciseAngina"
+                  >Exercise Induced Angina</label
+                >
                 <select
                   id="exerciseAngina"
                   v-model="diagnosisForm.exang"
@@ -486,9 +545,11 @@ const isStepComplete = (step) => {
                   </option>
                 </select>
               </div>
-              
+
               <div>
-                <label class="block text-white mb-2" for="stDepression">ST Depression Induced by Exercise</label>
+                <label class="block text-white mb-2" for="stDepression"
+                  >ST Depression Induced by Exercise</label
+                >
                 <input
                   id="stDepression"
                   v-model="diagnosisForm.oldpeak"
@@ -500,7 +561,7 @@ const isStepComplete = (step) => {
                   placeholder="Enter ST depression value"
                 />
               </div>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-white mb-2" for="stSlope">ST Slope</label>
@@ -510,12 +571,16 @@ const isStepComplete = (step) => {
                     class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     <option value="" disabled selected>Select ST slope</option>
-                    <option v-for="option in stSlopeOptions" :key="option.value" :value="option.value">
+                    <option
+                      v-for="option in stSlopeOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
                       {{ option.text }}
                     </option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label class="block text-white mb-2" for="vessels">Number of Major Vessels</label>
                   <select
@@ -524,13 +589,17 @@ const isStepComplete = (step) => {
                     class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     <option value="" disabled selected>Select number of vessels</option>
-                    <option v-for="option in numberOfVesselsOptions" :key="option.value" :value="option.value">
+                    <option
+                      v-for="option in numberOfVesselsOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
                       {{ option.text }}
                     </option>
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label class="block text-white mb-2" for="thalassemia">Thalassemia</label>
                 <select
@@ -539,73 +608,114 @@ const isStepComplete = (step) => {
                   class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
                   <option value="" disabled selected>Select thalassemia status</option>
-                  <option v-for="option in thallassemiaOptions" :key="option.value" :value="option.value">
+                  <option
+                    v-for="option in thallassemiaOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
                     {{ option.text }}
                   </option>
                 </select>
               </div>
             </div>
-            
+
             <div class="mt-8 flex justify-between">
-              <button 
-                @click="prevStep" 
+              <button
+                @click="prevStep"
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all duration-200 flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
                 Previous
               </button>
-              <button 
-                @click="handleSubmit" 
+              <button
+                @click="handleSubmit"
                 class="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-all duration-200 flex items-center"
                 :disabled="!isStepComplete(3)"
-                :class="{'opacity-50 cursor-not-allowed': !isStepComplete(3)}"
+                :class="{ 'opacity-50 cursor-not-allowed': !isStepComplete(3) }"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 Submit Diagnosis
               </button>
             </div>
           </div>
         </div>
-        
+
         <!-- Result Modal -->
         <div v-if="showResult" class="mt-10">
           <div v-if="isLoading" class="text-center py-10">
-            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+            <div
+              class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"
+            ></div>
             <p class="mt-4 text-white text-lg">Analyzing patient data...</p>
           </div>
-          
-          <div v-else class="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+
+          <div
+            v-else
+            class="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden p-6 md:p-8"
+          >
             <div class="flex flex-col items-center justify-center text-center">
-              <div 
-                :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl 
-                ${predictionResult === 'high' ? 'bg-red-500' : 
-                  predictionResult === 'moderate' ? 'bg-yellow-500' : 'bg-green-500'} text-white mb-4`">
+              <div
+                :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl
+                ${
+                  predictionResult === 'high'
+                    ? 'bg-red-500'
+                    : predictionResult === 'moderate'
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                } text-white mb-4`"
+              >
                 {{ resultPercentage }}%
               </div>
-              
+
               <h2 class="text-3xl font-bold text-white mb-2">
-                {{ predictionResult === 'high' ? 'High Risk' : 
-                   predictionResult === 'moderate' ? 'Moderate Risk' : 'Low Risk' }}
+                {{
+                  predictionResult === 'high'
+                    ? 'High Risk'
+                    : predictionResult === 'moderate'
+                      ? 'Moderate Risk'
+                      : 'Low Risk'
+                }}
               </h2>
-              
+
               <p class="text-white/80 mb-6">
-                Based on the patient's information and clinical data, the risk of cardiovascular disease is 
+                Based on the patient's information and clinical data, the risk of cardiovascular
+                disease is
                 <strong>{{ resultPercentage }}%</strong>.
               </p>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
-                <button 
-                  @click="router.push('/result-admin')" 
+                <button
+                  @click="router.push('/result-admin')"
                   class="px-5 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all"
                 >
                   View Detailed Report
                 </button>
-                <button 
-                  @click="showResult = false; currentStep = 1" 
+                <button
+                  @click="((showResult = false), (currentStep = 1))"
                   class="px-5 py-3 bg-gray-500 text-white rounded-lg shadow-lg hover:bg-gray-600 transition-all"
                 >
                   Start New Diagnosis
@@ -614,27 +724,27 @@ const isStepComplete = (step) => {
             </div>
           </div>
         </div>
-        
+
         <!-- Medical Imagery -->
         <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <img 
-            src="https://images.unsplash.com/photo-1583324113626-70df0f4deaab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-            alt="Hospital cardiac care" 
+          <img
+            src="https://images.unsplash.com/photo-1583324113626-70df0f4deaab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            alt="Hospital cardiac care"
             class="rounded-lg shadow-lg w-full h-32 object-cover"
           />
-          <img 
-            src="https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-            alt="Hospital corridor" 
+          <img
+            src="https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            alt="Hospital corridor"
             class="rounded-lg shadow-lg w-full h-32 object-cover"
           />
-          <img 
-            src="https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-            alt="Heart monitoring" 
+          <img
+            src="https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            alt="Heart monitoring"
             class="rounded-lg shadow-lg w-full h-32 object-cover"
           />
-          <img 
-            src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-            alt="Hospital reception" 
+          <img
+            src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            alt="Hospital reception"
             class="rounded-lg shadow-lg w-full h-32 object-cover"
           />
         </div>
@@ -673,7 +783,7 @@ const isStepComplete = (step) => {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
-  -webkit-box-orient: vertical;  
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
