@@ -1,13 +1,16 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
+import LazyImage from '@/components/LazyImage.vue'
 
 defineOptions({
   name: 'AccountPage',
 })
 
 const router = useRouter()
+const fileInput = ref(null)
+const userPhotoUrl = ref(null)
 
 // User information (mock data)
 const user = ref({
@@ -25,6 +28,99 @@ const user = ref({
   })(),
   healthStatus: 'Good',
   profileCompleted: 85,
+})
+
+// Notification system
+const showNotification = ref(false)
+const notificationMessage = ref('')
+const notificationType = ref('success') // 'success', 'error', 'info'
+
+// Function to toggle photo options menu
+const showPhotoOptions = ref(false)
+
+const togglePhotoOptions = () => {
+  showPhotoOptions.value = !showPhotoOptions.value
+}
+
+// Function to open file input dialog
+const triggerFileInput = () => {
+  fileInput.value.click()
+  showPhotoOptions.value = false
+}
+
+// Function to remove profile photo
+const removePhoto = () => {
+  userPhotoUrl.value = null
+  localStorage.removeItem('userPhotoUrl')
+  
+  showNotification.value = true
+  notificationMessage.value = 'Foto profil telah dihapus'
+  notificationType.value = 'info'
+  setTimeout(() => {
+    showNotification.value = false
+  }, 3000)
+  
+  showPhotoOptions.value = false
+}
+
+// Handle file upload
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (file && file.type.match('image.*')) {
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification.value = true
+      notificationMessage.value = 'File terlalu besar. Maksimal ukuran 5MB.'
+      notificationType.value = 'error'
+      setTimeout(() => {
+        showNotification.value = false
+      }, 3000)
+      return
+    }
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      userPhotoUrl.value = e.target.result
+      // In a real application, you would upload this to a server
+      // and store the URL or reference in the user's profile
+      
+      // Update profile completion
+      if (user.value.profileCompleted < 100) {
+        user.value.profileCompleted += 5
+        if (user.value.profileCompleted > 100) {
+          user.value.profileCompleted = 100
+        }
+      }
+      
+      // Save to localStorage for persistence between page loads
+      localStorage.setItem('userPhotoUrl', userPhotoUrl.value)
+      
+      // Show success notification
+      showNotification.value = true
+      notificationMessage.value = 'Foto profil berhasil diperbarui!'
+      notificationType.value = 'success'
+      setTimeout(() => {
+        showNotification.value = false
+      }, 3000)
+    }
+    reader.readAsDataURL(file)
+  } else if (file) {
+    // Wrong file type
+    showNotification.value = true
+    notificationMessage.value = 'Format file tidak didukung. Gunakan file gambar.'
+    notificationType.value = 'error'
+    setTimeout(() => {
+      showNotification.value = false
+    }, 3000)
+  }
+}
+
+// Load profile photo from localStorage if available
+onMounted(() => {
+  const savedPhotoUrl = localStorage.getItem('userPhotoUrl')
+  if (savedPhotoUrl) {
+    userPhotoUrl.value = savedPhotoUrl
+  }
 })
 
 // Logout function
@@ -48,6 +144,42 @@ const healthData = ref([
 
 <template>
   <div class="account-page">
+    <!-- Notification component -->
+    <div 
+      v-if="showNotification" 
+      class="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 opacity-100"
+      :class="{
+        'bg-green-100 border-l-4 border-green-500 text-green-700': notificationType === 'success',
+        'bg-red-100 border-l-4 border-red-500 text-red-700': notificationType === 'error',
+        'bg-blue-100 border-l-4 border-blue-500 text-blue-700': notificationType === 'info'
+      }"
+    >
+      <div class="flex items-center">
+        <!-- Success icon -->
+        <div v-if="notificationType === 'success'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        
+        <!-- Error icon -->
+        <div v-if="notificationType === 'error'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        
+        <!-- Info icon -->
+        <div v-if="notificationType === 'info'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        
+        <p class="font-medium">{{ notificationMessage }}</p>
+      </div>
+    </div>
+    
     <!-- Main section with gradient background -->
     <div
       class="relative bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 min-h-screen overflow-hidden"
@@ -86,21 +218,74 @@ const healthData = ref([
                   class="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90"
                 ></div>
                 <div class="relative z-10 p-6 text-center">
-                  <div class="inline-block bg-white rounded-full p-4 mb-3 shadow-lg">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-14 w-14 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <!-- Profile photo with upload overlay -->
+                  <div class="relative inline-block mb-3">
+                    <div v-if="userPhotoUrl" class="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto">
+                      <img :src="userPhotoUrl" alt="Profile Photo" class="h-full w-full object-cover" />
+                    </div>
+                    <div v-else class="h-24 w-24 flex items-center justify-center bg-white rounded-full p-4 border-4 border-white shadow-lg mx-auto">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-14 w-14 text-blue-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    
+                    <!-- Upload overlay and input -->
+                    <div 
+                      class="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 p-1.5 rounded-full cursor-pointer border-2 border-white shadow-md transition-all duration-200 group"
+                      @click="togglePhotoOptions"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input 
+                        type="file" 
+                        ref="fileInput" 
+                        accept="image/*" 
+                        class="hidden" 
+                        @change="handleFileUpload"
                       />
-                    </svg>
+                    </div>
+                    
+                    <!-- Photo options menu -->
+                    <div 
+                      v-if="showPhotoOptions" 
+                      class="absolute bottom-8 right-0 bg-white rounded-md shadow-lg overflow-hidden z-20 min-w-[180px]"
+                    >
+                      <div class="py-1">
+                        <button 
+                          @click="triggerFileInput" 
+                          class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Upload Foto
+                        </button>
+                        
+                        <button 
+                          v-if="userPhotoUrl"
+                          @click="removePhoto" 
+                          class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Hapus Foto
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <h2 class="text-2xl font-bold text-white mb-1">{{ user.name }}</h2>
                   <p class="text-blue-100 text-sm">
@@ -622,6 +807,60 @@ const healthData = ref([
   background: linear-gradient(90deg, #2563eb, #4338ca);
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.25);
+}
+
+/* Profile photo styles */
+.profile-photo-container {
+  position: relative;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.profile-photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 9999px;
+}
+
+.upload-icon-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Notification animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Responsive adjustments */

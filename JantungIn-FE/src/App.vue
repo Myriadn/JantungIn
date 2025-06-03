@@ -8,11 +8,17 @@ import PWAStatus from '@/components/PWAStatus.vue'
 import AdPopupComponent from '@/components/AdPopupComponent.vue'
 import { useRoute } from 'vue-router'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { preloadCriticalImages } from '@/utils/lazyLoadUtils'
 
 const route = useRoute()
 const isOnline = ref(navigator.onLine)
 const offlineAlert = ref(false)
 const installPwa = ref(null)
+
+// Preload critical images for performance
+preloadCriticalImages([
+  // Add paths to critical images here
+])
 
 // Check if the current route corresponds to an admin page
 const isAdminPage = computed(() => {
@@ -48,6 +54,15 @@ const handleOffline = () => {
 onMounted(() => {
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
+  
+  // Preload critical images for better performance
+  preloadCriticalImages([
+    '/images/loading-placeholder.svg',
+    '/images/error-placeholder.svg',
+    '/src/assets/images/diagnose-hero.jpg',
+    '/src/assets/images/history-hero.jpg',
+    '/images/heart1.jpg'
+  ])
 })
 
 onUnmounted(() => {
@@ -88,8 +103,10 @@ onUnmounted(() => {
       <OfflinePage v-if="!isOnline" />
 
       <!-- Display normal content when online with page transition -->
-      <transition name="page" mode="out-in" v-else>
-        <router-view />
+      <transition :name="route.meta.transition || 'fade'" mode="out-in" v-else>
+        <router-view v-slot="{ Component }">
+          <component :is="Component" />
+        </router-view>
       </transition>
     </main>
 
@@ -128,13 +145,39 @@ main {
 }
 
 /* Page transition animations */
-.page-enter-active,
-.page-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
 
-.page-enter-from,
-.page-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
+}
+
+/* Slide transitions */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Lazy loading styles */
+.lazy-load {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.lazy-load.loaded {
+  opacity: 1;
 }
 </style>

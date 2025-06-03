@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
+import LazyBackground from '@/components/LazyBackground.vue'
+import LazyImage from '@/components/LazyImage.vue'
+import ImagePreloader from '@/components/ImagePreloader.vue'
 
 defineOptions({
   name: 'HistoryPageAdmin',
@@ -178,16 +181,24 @@ const deletePatientRecord = (nik) => {
 
 <template>
   <div class="history-page mt-10">
+    <!-- Preload critical images -->
+    <ImagePreloader :images="[
+      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+      'https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      '/images/hostipal.jpg',
+      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      '/images/ike.jpg'
+    ]" />
+    
     <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background -->
     <section class="relative">
-      <div
-        class="absolute inset-0 bg-cover bg-center"
-        style="
-          background-image: url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
-          filter: brightness(0.4);
-        "
-      ></div>
+      <LazyBackground
+        class="absolute inset-0"
+        src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+        placeholder="/images/loading-placeholder.svg"
+        :style="{ filter: 'brightness(0.4)' }"
+      />
       <div class="relative z-10 py-20 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Patient Diagnosis History</h1>
         <p class="text-xl text-blue-100 max-w-3xl mx-auto">
@@ -738,25 +749,37 @@ const deletePatientRecord = (nik) => {
 
         <!-- Medical Images Section -->
         <div class="mt-16 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <img
+          <LazyImage
             src="https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
             alt="Hospital corridor"
             class="rounded-lg shadow-lg w-full h-40 object-cover"
+            loadingClass="animate-pulse bg-blue-200"
+            placeholder="/images/loading-placeholder.svg"
+            errorPlaceholder="/images/error-placeholder.svg"
           />
-          <img
+          <LazyImage
             src="/images/hostipal.jpg"
             alt="Hospital"
             class="rounded-lg shadow-lg w-full h-40 object-cover"
+            loadingClass="animate-pulse bg-blue-200"
+            placeholder="/images/loading-placeholder.svg"
+            errorPlaceholder="/images/error-placeholder.svg"
           />
-          <img
+          <LazyImage
             src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
             alt="Medical equipment"
             class="rounded-lg shadow-lg w-full h-40 object-cover"
+            loadingClass="animate-pulse bg-blue-200"
+            placeholder="/images/loading-placeholder.svg"
+            errorPlaceholder="/images/error-placeholder.svg"
           />
-          <img
+          <LazyImage
             src="/images/ike.jpg"
             alt="Hospital staff"
             class="rounded-lg shadow-lg w-full h-40 object-cover"
+            loadingClass="animate-pulse bg-blue-200"
+            placeholder="/images/loading-placeholder.svg"
+            errorPlaceholder="/images/error-placeholder.svg"
           />
         </div>
       </div>

@@ -1,26 +1,58 @@
 <script setup>
+import { ref } from 'vue'
 import FooterComponent from '@/components/Footer-component.vue'
-// Import the NewsViewModel
-import { useNewsViewModel } from '@/viewmodels/NewsViewModel'
+import LazyImage from '@/components/LazyImage.vue'
+import LazyBackground from '@/components/LazyBackground.vue'
+import ImagePreloader from '@/components/ImagePreloader.vue'
 
 defineOptions({
-  name: 'NewsPage',
+  name: 'NewsPageAdmin',
 })
 
-// Use the NewsViewModel to get all required data and methods
-const { newsItems } = useNewsViewModel()
+// Sample news data that matches the image
+const newsItems = ref([
+  {
+    id: 1,
+    title: 'Mewaspadai Tanda Awal Penyakit Jantung: Jangan Abaikan Nyeri Dada dan Sesak Napas',
+    date: ' 5 November 2024',
+    image: '/images/heart1.jpg',
+    content:
+      'Meningkatnya jumlah kasus penyakit jantung pada kelompok dewasa muda diakibatkan oleh berbagai faktor, mulai dari pola makan tidak sehat, jarang olahraga, kebiasaan merokok, hingga penyakit tertentu seperti kolesterol tinggi, diabetes, dan hipertensi.',
+    url: 'https://www.alodokter.com/gejala-awal-penyakit-jantung-yang-perlu-diwaspadai',
+  },
+  {
+    id: 2,
+    title: 'Penyakit Jantung Serang Generasi Muda? Waspada!',
+    date: '22 Agustus 2024',
+    image: '/images/heart2.jpg',
+    content:
+      'Ancaman gangguan kardiovaskular kini bergeser menyasar kelompok usia produktif yang sebelumnya dianggap aman. Akar masalahnya adalah akumulasi kebiasaan buruk, seperti pola makan tidak teratur, gaya hidup sedentari, dan tingkat stres tinggi.',
+    url: 'https://www.rspondokindah.co.id/id/news/penyakit-jantung-generasi-muda',
+  },
+  {
+    id: 3,
+    title: 'Jantung Berdebar Padahal Tak Aktivitas Berat, Bahayakah? Ini Kata Dokter',
+    date: '29 Mei 2025',
+    image: '/images/heart3.jpg',
+    content:
+      'Jantung berdebar tanpa melakukan aktivitas berat bisa menjadi tanda masalah kesehatan. Palpitasi jantung dapat disebabkan oleh stres, kafein berlebih, kurang tidur, atau gangguan kesehatan yang lebih serius. Konsultasi dengan dokter diperlukan jika gejala ini sering terjadi.',
+    url: 'https://health.detik.com/berita-detikhealth/d-7938972/jantung-berdebar-padahal-tak-aktivitas-berat-bahayakah-ini-kata-dokter',
+  },
+])
 </script>
 
 <template>
-  <div class="news-page">
+  <div class="news-page mt-16">
+    <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background - Enhanced Modern -->
     <section class="relative">
       <!-- Background with overlay and subtle animation -->
       <div class="absolute inset-0">
-        <div
-          class="absolute inset-0 bg-cover bg-center hero-bg"
-          style="background-image: url('/images/king.jpg'); filter: brightness(0.4)"
-        ></div>
+        <lazy-background
+          class="absolute inset-0 bg-cover bg-center"
+          src="/images/king.jpg"
+          style="filter: brightness(0.4)"
+        ></lazy-background>
         <div
           class="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-indigo-800/50 to-blue-800/60"
         ></div>
@@ -101,74 +133,9 @@ const { newsItems } = useNewsViewModel()
             </svg>
             All News
           </button>
-          <button class="category-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-            Cardiology
-          </button>
-          <button class="category-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-              />
-            </svg>
-            Research
-          </button>
-          <button class="category-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            Hospital Updates
-          </button>
-          <button class="category-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            Resources
-          </button>
+         
+              
+
         </div>
 
         <!-- News Cards Section - Enhanced Modern -->
@@ -176,10 +143,10 @@ const { newsItems } = useNewsViewModel()
           <article
             v-for="item in newsItems"
             :key="item.id"
-            class="news-card bg-white/80 backdrop-blur-md rounded-xl overflow-hidden transform transition-all hover:scale-[1.02]"
+            class="news-card bg-white/80 backdrop-blur-md rounded-xl overflow-hidden transform transition-all hover:scale-[1.02] flex flex-col"
           >
             <div class="relative">
-              <img :src="item.image" :alt="item.title" class="w-full h-52 object-cover" />
+              <lazy-image :src="item.image" :alt="item.title" class="w-full h-52 object-cover" />
               <div
                 class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"
               >
@@ -207,11 +174,11 @@ const { newsItems } = useNewsViewModel()
                 </div>
               </div>
             </div>
-            <div class="p-6">
-              <h2 class="text-xl font-bold mb-3 text-gray-800">{{ item.title }}</h2>
-              <p class="text-gray-600 line-clamp-3">{{ item.content }}</p>
+            <div class="p-6 flex flex-col flex-grow">
+              <h2 class="text-xl font-bold mb-3 text-gray-800 h-14 line-clamp-2">{{ item.title }}</h2>
+              <p class="text-gray-600 line-clamp-3 flex-grow">{{ item.content }}</p>
               <div class="mt-6 flex justify-between items-center">
-                <button class="read-more-btn flex items-center group">
+                <a :href="item.url" target="_blank" class="read-more-btn flex items-center group">
                   <span>Read More</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +192,7 @@ const { newsItems } = useNewsViewModel()
                       clip-rule="evenodd"
                     />
                   </svg>
-                </button>
+                </a>
                 <div class="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -263,8 +230,11 @@ const { newsItems } = useNewsViewModel()
 /* Line clamp for text truncation */
 .line-clamp-3 {
   display: -webkit-box;
+  display: box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
+  box-orient: vertical;
   overflow: hidden;
 }
 
@@ -362,6 +332,47 @@ article:hover {
   color: #2563eb;
 }
 
+/* Add article button */
+.add-article-btn {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  padding-left: 0.8rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 10px 15px -3px rgba(37, 99, 235, 0.3),
+    0 4px 6px -4px rgba(37, 99, 235, 0.4);
+}
+
+.add-article-btn:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 15px 20px -3px rgba(37, 99, 235, 0.4),
+    0 8px 8px -4px rgba(37, 99, 235, 0.2);
+}
+
+.add-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: white;
+  border-radius: 50%;
+  margin-right: 0.8rem;
+}
+
+.add-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #2563eb;
+}
+
 /* Floating shapes */
 .floating-shape {
   position: absolute;
@@ -417,5 +428,19 @@ article:hover {
 .news-card {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  height: 450px; /* Fixed height for all cards */
+}
+
+/* Line clamp for title to ensure consistent height */
+.line-clamp-2 {
+  display: -webkit-box;
+  display: box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+  overflow: hidden;
 }
 </style>

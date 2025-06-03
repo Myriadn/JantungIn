@@ -1,13 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
+import LazyImage from '@/components/LazyImage.vue'
 
 defineOptions({
   name: 'AccountPageAdmin',
 })
 
 const router = useRouter()
+const fileInput = ref(null)
+const doctorPhotoUrl = ref(null)
+const showPhotoOptions = ref(false)
+const showNotification = ref(false)
+const notificationMessage = ref('')
+const notificationType = ref('success') // 'success', 'error', 'info'
 
 // User information (mock data)
 const user = ref({
@@ -51,15 +58,7 @@ const recentActivities = ref([
     date: '30/05/2025',
     time: '14:20',
     status: 'completed',
-  },
-  {
-    type: 'consultation',
-    patientId: 'PT-77645',
-    patientName: 'Budi Santoso',
-    date: '29/05/2025',
-    time: '11:15',
-    status: 'scheduled',
-  },
+  }
 ])
 
 // Stats for the dashboard
@@ -69,15 +68,129 @@ const stats = ref([
   { title: 'Total', diagnoses: user.value.diagnoses, patients: user.value.patients },
 ])
 
+// Function to toggle photo options menu
+const togglePhotoOptions = () => {
+  showPhotoOptions.value = !showPhotoOptions.value
+}
+
+// Function to open file input dialog
+const triggerFileInput = () => {
+  fileInput.value.click()
+  showPhotoOptions.value = false
+}
+
+// Function to remove profile photo
+const removePhoto = () => {
+  doctorPhotoUrl.value = null
+  localStorage.removeItem('doctorPhotoUrl')
+  
+  showNotification.value = true
+  notificationMessage.value = 'Foto profil telah dihapus'
+  notificationType.value = 'info'
+  setTimeout(() => {
+    showNotification.value = false
+  }, 3000)
+  
+  showPhotoOptions.value = false
+}
+
+// Handle file upload
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (file && file.type.match('image.*')) {
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification.value = true
+      notificationMessage.value = 'File terlalu besar. Maksimal ukuran 5MB.'
+      notificationType.value = 'error'
+      setTimeout(() => {
+        showNotification.value = false
+      }, 3000)
+      return
+    }
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      doctorPhotoUrl.value = e.target.result
+      // In a real application, you would upload this to a server
+      // and store the URL or reference in the doctor's profile
+      
+      // Save to localStorage for persistence between page loads
+      localStorage.setItem('doctorPhotoUrl', doctorPhotoUrl.value)
+      
+      // Show success notification
+      showNotification.value = true
+      notificationMessage.value = 'Foto profil berhasil diperbarui!'
+      notificationType.value = 'success'
+      setTimeout(() => {
+        showNotification.value = false
+      }, 3000)
+    }
+    reader.readAsDataURL(file)
+  } else if (file) {
+    // Wrong file type
+    showNotification.value = true
+    notificationMessage.value = 'Format file tidak didukung. Gunakan file gambar.'
+    notificationType.value = 'error'
+    setTimeout(() => {
+      showNotification.value = false
+    }, 3000)
+  }
+}
+
 // Logout function
 const logout = () => {
   // In a real app, you would clear tokens or session data here
   router.push('/admin') // Redirect to login page
 }
+
+// Load profile photo from localStorage if available
+onMounted(() => {
+  const savedPhotoUrl = localStorage.getItem('doctorPhotoUrl')
+  if (savedPhotoUrl) {
+    doctorPhotoUrl.value = savedPhotoUrl
+  }
+})
 </script>
 
 <template>
   <div class="account-page-admin mt-16">
+    <!-- Notification component -->
+    <div 
+      v-if="showNotification" 
+      class="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 opacity-100"
+      :class="{
+        'bg-green-100 border-l-4 border-green-500 text-green-700': notificationType === 'success',
+        'bg-red-100 border-l-4 border-red-500 text-red-700': notificationType === 'error',
+        'bg-blue-100 border-l-4 border-blue-500 text-blue-700': notificationType === 'info'
+      }"
+    >
+      <div class="flex items-center">
+        <!-- Success icon -->
+        <div v-if="notificationType === 'success'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        
+        <!-- Error icon -->
+        <div v-if="notificationType === 'error'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        
+        <!-- Info icon -->
+        <div v-if="notificationType === 'info'" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        
+        <p class="font-medium">{{ notificationMessage }}</p>
+      </div>
+    </div>
+    
     <!-- Added mt-16 for navbar spacing -->
     <!-- Main section with gradient background -->
     <div
@@ -116,21 +229,74 @@ const logout = () => {
                   class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700 opacity-90"
                 ></div>
                 <div class="relative z-10 p-6 text-center">
-                  <div class="inline-block bg-white rounded-full p-4 mb-3 shadow-lg">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-14 w-14 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <!-- Profile photo with upload overlay -->
+                  <div class="relative inline-block mb-3">
+                    <div v-if="doctorPhotoUrl" class="h-28 w-28 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto">
+                      <img :src="doctorPhotoUrl" alt="Doctor Profile Photo" class="h-full w-full object-cover" />
+                    </div>
+                    <div v-else class="h-28 w-28 flex items-center justify-center bg-white rounded-full p-4 border-4 border-white shadow-lg mx-auto">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-14 w-14 text-blue-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    
+                    <!-- Upload overlay and input -->
+                    <div 
+                      class="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 p-2 rounded-full cursor-pointer border-2 border-white shadow-md transition-all duration-200 group"
+                      @click="togglePhotoOptions"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input 
+                        type="file" 
+                        ref="fileInput" 
+                        accept="image/*" 
+                        class="hidden" 
+                        @change="handleFileUpload"
                       />
-                    </svg>
+                    </div>
+                    
+                    <!-- Photo options menu -->
+                    <div 
+                      v-if="showPhotoOptions" 
+                      class="absolute bottom-12 right-0 bg-white rounded-md shadow-lg overflow-hidden z-20 min-w-[180px]"
+                    >
+                      <div class="py-1">
+                        <button 
+                          @click="triggerFileInput" 
+                          class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Upload Foto
+                        </button>
+                        
+                        <button 
+                          v-if="doctorPhotoUrl"
+                          @click="removePhoto" 
+                          class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Hapus Foto
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <h2 class="text-2xl font-bold text-white mb-1">Dr. {{ user.name }}</h2>
                   <p class="text-blue-100 text-sm">{{ user.position }}</p>
@@ -330,56 +496,8 @@ const logout = () => {
               </div>
             </div>
 
-            <!-- Statistics card -->
-            <div
-              class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden transform hover:translate-y-[-5px] transition-all duration-300"
-            >
-              <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-5">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                  Statistics
-                </h3>
-              </div>
-
-              <div class="p-6">
-                <div class="space-y-5">
-                  <div v-for="(stat, index) in stats" :key="index" class="stat-group">
-                    <h4 class="text-sm font-semibold text-gray-600 mb-3">{{ stat.title }}</h4>
-                    <div class="grid grid-cols-2 gap-3">
-                      <div v-if="stat.diagnoses" class="stat-card">
-                        <div class="stat-number">{{ stat.diagnoses }}</div>
-                        <div class="stat-label">Diagnoses</div>
-                      </div>
-                      <div v-if="stat.consultations" class="stat-card">
-                        <div class="stat-number">{{ stat.consultations }}</div>
-                        <div class="stat-label">Consultations</div>
-                      </div>
-                      <div v-if="stat.reviews" class="stat-card">
-                        <div class="stat-number">{{ stat.reviews }}</div>
-                        <div class="stat-label">Reviews</div>
-                      </div>
-                      <div v-if="stat.patients" class="stat-card">
-                        <div class="stat-number">{{ stat.patients }}</div>
-                        <div class="stat-label">Patients</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Empty space to remove Statistics card from this location -->
+            
           </div>
 
           <!-- Right column: Activities and actions -->
@@ -441,7 +559,6 @@ const logout = () => {
                         class="activity-icon"
                         :class="{
                           'bg-blue-100 text-blue-600': activity.type === 'diagnosis',
-                          'bg-green-100 text-green-600': activity.type === 'consultation',
                           'bg-purple-100 text-purple-600': activity.type === 'review',
                         }"
                       >
@@ -458,21 +575,6 @@ const logout = () => {
                             stroke-linejoin="round"
                             stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          />
-                        </svg>
-                        <svg
-                          v-if="activity.type === 'consultation'"
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                           />
                         </svg>
                         <svg
@@ -507,9 +609,7 @@ const logout = () => {
                           {{
                             activity.type === 'diagnosis'
                               ? 'Performed diagnosis'
-                              : activity.type === 'consultation'
-                                ? 'Patient consultation'
-                                : 'Medical record review'
+                              : 'Medical record review'
                           }}
                         </p>
                       </div>
@@ -530,7 +630,7 @@ const logout = () => {
               </div>
             </div>
 
-            <!-- Quick actions card -->
+            <!-- Statistics card -->
             <div
               class="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden transform hover:translate-y-[-5px] transition-all duration-300"
             >
@@ -547,184 +647,35 @@ const logout = () => {
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                   </svg>
-                  Quick Actions
+                  Statistics
                 </h3>
               </div>
 
               <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <!-- Action 1 -->
-                  <div class="action-card">
-                    <div class="flex items-start">
-                      <div class="action-icon bg-indigo-100 text-indigo-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                          />
-                        </svg>
+                <div class="space-y-5">
+                  <div v-for="(stat, index) in stats" :key="index" class="stat-group">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-3">{{ stat.title }}</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div v-if="stat.diagnoses" class="stat-card">
+                        <div class="stat-number">{{ stat.diagnoses }}</div>
+                        <div class="stat-label">Diagnoses</div>
                       </div>
-                      <div class="ml-4">
-                        <h4 class="text-gray-800 font-semibold">New Diagnosis</h4>
-                        <p class="text-gray-500 text-sm mt-1">
-                          Create a new heart diagnosis for a patient
-                        </p>
-                        <button class="action-btn mt-3">Start Diagnosis</button>
+                      <div v-if="stat.consultations" class="stat-card">
+                        <div class="stat-number">{{ stat.consultations }}</div>
+                        <div class="stat-label">Consultations</div>
+                      </div>
+                      <div v-if="stat.reviews" class="stat-card">
+                        <div class="stat-number">{{ stat.reviews }}</div>
+                        <div class="stat-label">Reviews</div>
+                      </div>
+                      <div v-if="stat.patients" class="stat-card">
+                        <div class="stat-number">{{ stat.patients }}</div>
+                        <div class="stat-label">Patients</div>
                       </div>
                     </div>
-                  </div>
-
-                  <!-- Action 2 -->
-                  <div class="action-card">
-                    <div class="flex items-start">
-                      <div class="action-icon bg-blue-100 text-blue-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
-                      </div>
-                      <div class="ml-4">
-                        <h4 class="text-gray-800 font-semibold">View Patient Records</h4>
-                        <p class="text-gray-500 text-sm mt-1">
-                          Access your patients' health history
-                        </p>
-                        <button class="action-btn mt-3">View Records</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Action 3 -->
-                  <div class="action-card">
-                    <div class="flex items-start">
-                      <div class="action-icon bg-purple-100 text-purple-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                      <div class="ml-4">
-                        <h4 class="text-gray-800 font-semibold">Consultation Schedule</h4>
-                        <p class="text-gray-500 text-sm mt-1">
-                          Manage your upcoming patient consultations
-                        </p>
-                        <button class="action-btn mt-3">View Schedule</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Action 4 -->
-                  <div class="action-card">
-                    <div class="flex items-start">
-                      <div class="action-icon bg-green-100 text-green-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
-                          />
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
-                          />
-                        </svg>
-                      </div>
-                      <div class="ml-4">
-                        <h4 class="text-gray-800 font-semibold">Analytics</h4>
-                        <p class="text-gray-500 text-sm mt-1">
-                          View statistics and diagnosis accuracy
-                        </p>
-                        <button class="action-btn mt-3">View Analytics</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-6">
-                  <div class="relative">
-                    <div class="absolute inset-0 flex items-center">
-                      <div class="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div class="relative flex justify-center">
-                      <span class="bg-white px-3 text-sm text-gray-500">Medical Resources</span>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                    <button class="resource-btn">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                      Heart Disease Guidelines
-                    </button>
-
-                    <button class="resource-btn">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v10m2 2h-8m8 0l-4-4m4 4l-4 4"
-                        />
-                      </svg>
-                      Download Latest Research
-                    </button>
                   </div>
                 </div>
               </div>
@@ -978,6 +929,60 @@ const logout = () => {
   font-size: 0.75rem;
   color: #6b7280;
   margin-top: 0.25rem;
+}
+
+/* Profile photo upload styling */
+.profile-photo-container {
+  position: relative;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.profile-photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 9999px;
+}
+
+.upload-icon-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Notification animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Responsive adjustments */

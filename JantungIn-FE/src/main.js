@@ -5,6 +5,8 @@ import App from './App.vue'
 import router from './router'
 import { registerSW } from './registerSW'
 import { setupServiceProvider } from './services/serviceProvider'
+import VueLazyload from 'vue-lazyload'
+import { lazyImageDirective } from './utils/lazyLoadUtils'
 
 // Register service worker for PWA
 registerSW()
@@ -17,6 +19,17 @@ setupServiceProvider(app)
 
 // Use router
 app.use(router)
+
+// Use Vue Lazyload for images with v-lazy directive
+app.use(VueLazyload, {
+  preLoad: 1.3,
+  attempt: 1,
+  loading: '/images/loading-placeholder.svg',
+  error: '/images/error-placeholder.svg',
+})
+
+// Register custom lazy image directive for regular img tags
+app.directive('lazy-img', lazyImageDirective)
 
 // Mount app
 app.mount('#app')

@@ -1,83 +1,86 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import DoctorLogin from '@/Page/Admin/auth/Login-doctor.vue'
-import HomeAdminPage from '@/Page/Admin/HomeAdminPage.vue'
-import DiagnoseAdminPage from '@/Page/Admin/DiagnoseAdminPage.vue'
-import NewsAdminPage from '@/Page/Admin/NewsAdminPage.vue'
-import HistoryAdminPage from '@/Page/Admin/HistoryAdminPage.vue'
-import ResultAdminPage from '@/Page/Admin/ResultAdminPage.vue'
-import AccountPageAdmin from '@/Page/Admin/AccountAdminPage.vue'
-
-import Login from '@/Page/User/auth/Login-user.vue'
-import Register from '@/Page/User/auth/Register-user.vue'
-import NewsPage from '@/Page/User/NewsPage.vue'
-import HistoryPage from '@/Page/User/HistoryPage.vue'
+// Using lazy loading for all components
+// This will improve initial loading performance by loading routes only when needed
 
 const routes = [
   {
     path: '/',
     name: 'login',
-    component: Login,
+    component: () => import('@/Page/User/auth/Login-user.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/register',
     name: 'register',
-    component: Register,
+    component: () => import('@/Page/User/auth/Register-user.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/home',
     name: 'home',
-    component: HomeAdminPage,
+    component: () => import('@/Page/Admin/HomeAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/news',
     name: 'news',
-    component: NewsPage,
+    component: () => import('@/Page/User/NewsPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/history',
     name: 'history',
-    component: HistoryPage,
+    component: () => import('@/Page/User/HistoryPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/account',
     name: 'account',
     component: () => import('@/Page/User/AccountPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/admin',
     name: 'admin',
-    component: DoctorLogin,
+    component: () => import('@/Page/Admin/auth/Login-doctor.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/home-admin',
     name: 'homeAdmin',
-    component: HomeAdminPage,
+    component: () => import('@/Page/Admin/HomeAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/diagnose-admin',
     name: 'diagnoseAdmin',
-    component: DiagnoseAdminPage,
+    component: () => import('@/Page/Admin/DiagnoseAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/news-admin',
     name: 'newsAdmin',
-    component: NewsAdminPage,
+    component: () => import('@/Page/Admin/NewsAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/history-admin',
     name: 'historyAdmin',
-    component: HistoryAdminPage,
+    component: () => import('@/Page/Admin/HistoryAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/result-admin',
     name: 'resultAdmin',
-    component: ResultAdminPage,
+    component: () => import('@/Page/Admin/ResultAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
   {
     path: '/account-admin',
     name: 'accountAdmin',
-    component: AccountPageAdmin,
+    component: () => import('@/Page/Admin/AccountAdminPage.vue'),
+    meta: { transition: 'fade' }
   },
 ]
 

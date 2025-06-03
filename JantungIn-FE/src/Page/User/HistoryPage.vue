@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import FooterComponent from '@/components/Footer-component.vue'
+import LazyBackground from '@/components/LazyBackground.vue'
+import LazyImage from '@/components/LazyImage.vue'
+import ImagePreloader from '@/components/ImagePreloader.vue'
 
 defineOptions({
   name: 'HistoryPage',
@@ -64,14 +67,23 @@ const goBack = () => {
 
 <template>
   <div class="history-page">
+    <!-- Preload critical images -->
+    <ImagePreloader :images="[
+      '/images/diagnose-hero.jpg',
+      '/images/loading-placeholder.svg',
+      '/images/error-placeholder.svg'
+    ]" priority />
+    
     <!-- Hero Banner Section -->
     <section class="relative">
       <!-- Background with overlay -->
       <div class="absolute inset-0">
-        <div
-          class="absolute inset-0 bg-cover bg-center hero-bg"
-          style="background-image: url('/images/diagnose-hero.jpg'); filter: brightness(0.4)"
-        ></div>
+        <LazyBackground
+          class="absolute inset-0 hero-bg"
+          src="/images/diagnose-hero.jpg"
+          placeholder="/images/loading-placeholder.svg"
+          :style="{ filter: 'brightness(0.4)' }"
+        />
         <div
           class="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-indigo-800/60 to-blue-800/70"
         ></div>

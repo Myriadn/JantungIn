@@ -1,5 +1,7 @@
 <script setup>
 import FooterComponent from '@/components/Footer-component.vue'
+import LazyBackground from '@/components/LazyBackground.vue'
+import ImagePreloader from '@/components/ImagePreloader.vue'
 import { ref, onMounted } from 'vue'
 
 // Import gambar untuk mencegah error Vite
@@ -36,6 +38,15 @@ onMounted(() => {
 
 <template>
   <div class="admin-dashboard mt-16">
+    <!-- Preload important images for this page -->
+    <ImagePreloader :images="[
+      '/images/azwin.jpg',
+      '/images/OIP.jpg',
+      '/images/ui.jpg',
+      '/images/heart2.jpg',
+      '/images/heart3.jpg'
+    ]" />
+    
     <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Section with Hospital Background - Updated Modern Design -->
     <section class="hero relative text-white">
@@ -44,9 +55,21 @@ onMounted(() => {
         class="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-indigo-800/80 to-blue-600/70 z-10"
       ></div>
 
-      <!-- Hospital Background Image with Animation -->
-      <div class="absolute inset-0 bg-cover bg-center hospital-bg"></div>
-      <div class="absolute inset-0 bg-cover bg-center hospital-bg-2 animate-fade-in-out"></div>
+      <!-- Hospital Background Image with Animation - Lazy loaded -->
+      <lazy-background
+        class="absolute inset-0 bg-cover bg-center"
+        src="/images/azwin.jpg"
+        root-margin="0px"
+        threshold="0.1"
+        style="filter: blur(1px); transform: scale(1.03);"
+      ></lazy-background>
+      <lazy-background
+        class="absolute inset-0 bg-cover bg-center animate-fade-in-out"
+        src="/images/picu.jpg"
+        root-margin="0px"
+        threshold="0.1"
+        style="filter: blur(1px); transform: scale(1.03); opacity: 0;"
+      ></lazy-background>
 
       <!-- Floating Shapes for Modern Design -->
       <div class="absolute inset-0 z-10 overflow-hidden">
