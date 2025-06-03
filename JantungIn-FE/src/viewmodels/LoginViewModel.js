@@ -9,11 +9,13 @@ import authService from '@/services/AuthService'
 export function useLoginViewModel() {
   const router = useRouter()
 
-  // Form state
+  // State
   const nik = ref('')
+  const email = ref('') // Add email for alternative login
   const password = ref('')
   const rememberMe = ref(false)
   const showPassword = ref(false)
+  const loginMethod = ref('nik') // 'nik' or 'email'
 
   // UI state
   const isLoading = ref(false)
@@ -24,7 +26,11 @@ export function useLoginViewModel() {
    * Computed property to check if form is valid
    */
   const isFormValid = computed(() => {
-    return nik.value.trim() !== '' && password.value.trim() !== ''
+    if (loginMethod.value === 'nik') {
+      return nik.value.trim() !== '' && password.value.trim() !== ''
+    } else {
+      return email.value.trim() !== '' && password.value.trim() !== ''
+    }
   })
 
   /**
@@ -40,16 +46,33 @@ export function useLoginViewModel() {
       isLoading.value = true
       errorMessage.value = ''
 
-      await authService.login(nik.value, password.value)
+      let user
+      if (loginMethod.value === 'nik') {
+        user = await authService.login(nik.value, password.value)
+      } else {
+        user = await authService.loginWithEmail(email.value, password.value)
+      }
+
+      console.log('Login successful:', user)
 
       // Redirect to news page after successful login
       router.push('/news')
     } catch (error) {
       console.error('Login error:', error)
       errorMessage.value = error.message || 'Login failed. Please check your credentials.'
+      throw error
     } finally {
       isLoading.value = false
     }
+  }
+
+  /**
+   * Toggle login method between NIK and email
+   */
+  const toggleLoginMethod = () => {
+    loginMethod.value = loginMethod.value === 'nik' ? 'email' : 'nik'
+    // Reset fields when changing login method
+    errorMessage.value = ''
   }
 
   /**
@@ -86,6 +109,7 @@ export function useLoginViewModel() {
   return {
     // State
     nik,
+    email,
     password,
     rememberMe,
     showPassword,
@@ -93,11 +117,13 @@ export function useLoginViewModel() {
     errorMessage,
     isOfflineMode,
     isFormValid,
+    loginMethod,
 
     // Methods
     handleLogin,
     goToRegister,
     resetForm,
     togglePasswordVisibility,
+    toggleLoginMethod,
   }
 }

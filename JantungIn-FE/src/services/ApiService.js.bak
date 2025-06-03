@@ -1,0 +1,470 @@
+/**
+ * Base API service with common fetch methods
+ */
+class ApiService {
+  constructor() {
+    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+    this.headers = {
+      'Content-Type': 'application/json',
+    }
+  }
+    this.headers = {
+      'Content-Type': 'application/json',
+    }
+    this.isRefreshingToken = false
+    this.refreshPromise = null
+    this.requestQueue = []
+    this.requestTimeout = 30000 // 30 seconds timeout for requests
+    this.networkStatus = {
+      online: navigator.onLine,
+      lastChecked: Date.now()
+    }
+
+    // Listen for online/offline events
+    window.addEventListener('online', this.handleOnlineStatus.bind(this, true))
+    window.addEventListener('offline', this.handleOnlineStatus.bind(this, false))
+  }
+
+  /**
+   * Handle online/offline status changes
+   * @param {boolean} isOnline - Whether the browser is online
+   */
+  handleOnlineStatus(isOnline) {
+    this.networkStatus.online = isOnline
+    this.networkStatus.lastChecked = Date.now()
+    
+    // Dispatch custom event for the application to react to network changes
+    window.dispatchEvent(new CustomEvent('network-status-changed', { 
+      detail: { online: isOnline } 
+    }))
+
+    // If coming back online, process any queued requests
+    if (isOnline && this.requestQueue.length > 0) {
+      this.processRequestQueue()
+    }
+  }
+
+  /**
+   * Process queued requests when back online
+   */
+  async processRequestQueue() {
+    if (this.requestQueue.length === 0) return
+
+    const queue = [...this.requestQueue]
+    this.requestQueue = []
+
+    for (const request of queue) {
+      try {
+        const result = await request.execute()
+        request.resolve(result)
+      } catch (error) {
+        request.reject(error)
+      }
+    }
+  }
+
+  /**
+   * Check if network is available
+   * @returns {boolean} Network availability
+   */
+  isNetworkAvailable() {
+    // Update the last checked timestamp
+    this.networkStatus.lastChecked = Date.now()
+    return navigator.onLine
+  }
+
+  /**
+   * Set authorization token
+   * @param {string} token - JWT token
+   */
+  setToken(token) {
+    if (token) {
+      this.headers['Authorization'] = `Bearer ${token}`
+      
+      // Parse expiration from JWT to determine when to refresh
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.exp) {
+          this.tokenExpiry = payload.exp * 1000 // convert to milliseconds
+        }
+      } catch (error) {
+        console.error('Error parsing token:', error)
+      }
+    } else {
+      delete this.headers['Authorization']
+      this.tokenExpiry = null
+    }
+  }
+
+  /**
+   * Check if token is expired or about to expire
+   * @returns {boolean} Whether token needs refresh
+   */
+  isTokenExpired() {
+    if (!this.tokenExpiry) return false
+    
+    // Refresh if less than 5 minutes remaining
+    const fiveMinutes = 5 * 60 * 1000
+    return Date.now() + fiveMinutes >= this.tokenExpiry
+  }
+
+  /**
+   * Refresh the authentication token
+   * @returns {Promise<string>} New token
+   */
+  async refreshToken() {
+    // Don't try to refresh if already in progress
+    if (this.isRefreshingToken) {
+      return this.refreshPromise
+    }
+
+    this.isRefreshingToken = true
+    this.refreshPromise = new Promise((resolve, reject) => {
+      // Get current user data from storage
+      const userData = localStorage.getItem('jantungin_user')
+      if (!userData) {
+        reject(new Error('No user data found for token refresh'))
+        return
+      }
+
+        const user = JSON.parse(userData)
+
+        // Call refresh token endpoint - adapt to your API's refresh token endpoint
+        const response = await fetch(`${this.baseUrl}/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            refreshToken: user.refreshToken || user.token 
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error(`Token refresh failed: ${response.status}`)
+        }
+
+        const result = await response.json()
+        const newToken = result.data?.token || result.token
+
+        if (!newToken) {
+          throw new Error('No token received during refresh')
+        }
+
+        // Update stored user data with new token
+        user.token = newToken
+        if (result.data?.refreshToken) {
+          user.refreshToken = result.data.refreshToken
+        }
+        
+        localStorage.setItem('jantungin_user', JSON.stringify(user))
+        
+        // Update authorization header
+        this.setToken(newToken)
+        
+        resolve(newToken)
+      } catch (error) {
+        console.error('Error refreshing token:', error)
+        
+        // If refresh fails, log out the user
+        localStorage.removeItem('jantungin_user')
+        this.setToken(null)
+        
+        // Redirect to login page
+        window.location.href = '/login?session=expired'
+        
+        reject(error)
+      } finally {
+        this.isRefreshingToken = false
+      }
+    })
+
+    return this.refreshPromise
+  }
+
+  /**
+   * Get token from storage
+   * @returns {string|null} Stored token
+   */
+  getStoredToken() {
+    try {
+      const userData = localStorage.getItem('jantungin_user')
+      if (userData) {
+        const { token } = JSON.parse(userData)
+        return token
+      }
+    } catch (error) {
+      console.error('Error reading token:', error)
+    }
+    return null
+  }
+
+  /**
+   * Initialize token from storage
+   */
+  initializeFromStorage() {
+    const token = this.getStoredToken()
+    if (token) {
+      this.setToken(token)
+    }
+  }
+
+  /**
+   * Handle API response
+   * @param {Response} response - Fetch Response object
+   * @returns {Promise} Processed response data
+   */
+  async handleResponse(response) {
+    if (!response.ok) {
+      // Handle specific HTTP status codes
+      switch (response.status) {
+        case 401:
+          // Unauthorized - try to refresh token if not already refreshing
+          if (this.isTokenExpired() && !this.isRefreshingToken) {
+            await this.refreshToken()
+            // The request will be retried after token refresh
+          } else {
+            throw new Error('Unauthorized access')
+          }
+          break
+        case 403:
+          throw new Error('Access forbidden')
+        case 404:
+          throw new Error('Resource not found')
+        case 500:
+          throw new Error('Server error')
+        default:
+          throw new Error(`API call failed: ${response.status}`)
+      }
+    }
+
+    // Parse JSON response
+    try {
+      return await response.json()
+    } catch (error) {
+      // If response is empty or not JSON
+      if (response.status === 204) {
+        return { success: true }
+      }
+      throw new Error('Invalid response format')
+    }
+  }
+
+  /**
+   * Create request with timeout
+   * @param {Promise} fetchPromise - The fetch promise
+   * @returns {Promise} Promise with timeout
+   */
+  withTimeout(fetchPromise) {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out'))
+      }, this.requestTimeout)
+    })
+
+    return Promise.race([fetchPromise, timeoutPromise])
+  }
+
+  /**
+   * HTTP GET request
+   * @param {string} endpoint - API endpoint
+   * @param {Object} params - Query parameters
+   * @returns {Promise} Response promise
+   */
+  async get(endpoint, params = {}) {
+    const url = new URL(`${this.baseUrl}${endpoint}`)
+
+    // Add query parameters
+    Object.keys(params).forEach((key) => {
+      if (params[key] !== undefined && params[key] !== null) {
+        url.searchParams.append(key, params[key])
+      }
+    })
+
+    try {
+      // Check network availability
+      if (!this.isNetworkAvailable()) {
+        throw new Error('No network connection')
+      }
+
+      // Check if token needs refresh before making request
+      if (this.isTokenExpired() && !this.isRefreshingToken) {
+        await this.refreshToken()
+      }
+
+      const response = await this.withTimeout(fetch(url, {
+        method: 'GET',
+        headers: this.headers,
+      }))
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      console.error('API get error:', error)
+      
+      // If the error is due to network availability, queue the request
+      if (error.message === 'No network connection' || !navigator.onLine) {
+        return new Promise((resolve, reject) => {
+          this.requestQueue.push({
+            execute: () => this.get(endpoint, params),
+            resolve,
+            reject
+          })
+        })
+      }
+      
+      throw this.enhanceError(error, 'GET', endpoint)
+    }
+  }
+
+  /**
+   * HTTP POST request
+   * @param {string} endpoint - API endpoint
+   * @param {Object} data - Request body data
+   * @returns {Promise} Response promise
+   */
+  async post(endpoint, data = {}) {
+    try {
+      // Check network availability
+      if (!this.isNetworkAvailable()) {
+        throw new Error('No network connection')
+      }
+
+      // Check if token needs refresh before making request
+      if (this.isTokenExpired() && !this.isRefreshingToken) {
+        await this.refreshToken()
+      }
+
+      const response = await this.withTimeout(fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify(data),
+      }))
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      console.error('API post error:', error)
+      
+      // If the error is due to network availability, queue the request
+      if (error.message === 'No network connection' || !navigator.onLine) {
+        return new Promise((resolve, reject) => {
+          this.requestQueue.push({
+            execute: () => this.post(endpoint, data),
+            resolve,
+            reject
+          })
+        })
+      }
+      
+      throw this.enhanceError(error, 'POST', endpoint)
+    }
+  }
+
+  /**
+   * HTTP PUT request
+   * @param {string} endpoint - API endpoint
+   * @param {Object} data - Request body data
+   * @returns {Promise} Response promise
+   */
+  async put(endpoint, data = {}) {
+    try {
+      // Check network availability
+      if (!this.isNetworkAvailable()) {
+        throw new Error('No network connection')
+      }
+
+      // Check if token needs refresh before making request
+      if (this.isTokenExpired() && !this.isRefreshingToken) {
+        await this.refreshToken()
+      }
+
+      const response = await this.withTimeout(fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'PUT',
+        headers: this.headers,
+        body: JSON.stringify(data),
+      }))
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      console.error('API put error:', error)
+      
+      // If the error is due to network availability, queue the request
+      if (error.message === 'No network connection' || !navigator.onLine) {
+        return new Promise((resolve, reject) => {
+          this.requestQueue.push({
+            execute: () => this.put(endpoint, data),
+            resolve,
+            reject
+          })
+        })
+      }
+      
+      throw this.enhanceError(error, 'PUT', endpoint)
+    }
+  }
+
+  /**
+   * HTTP DELETE request
+   * @param {string} endpoint - API endpoint
+   * @returns {Promise} Response promise
+   */
+  async delete(endpoint) {
+    try {
+      // Check network availability
+      if (!this.isNetworkAvailable()) {
+        throw new Error('No network connection')
+      }
+
+      // Check if token needs refresh before making request
+      if (this.isTokenExpired() && !this.isRefreshingToken) {
+        await this.refreshToken()
+      }
+
+      const response = await this.withTimeout(fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'DELETE',
+        headers: this.headers,
+      }))
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      console.error('API delete error:', error)
+      
+      // If the error is due to network availability, queue the request
+      if (error.message === 'No network connection' || !navigator.onLine) {
+        return new Promise((resolve, reject) => {
+          this.requestQueue.push({
+            execute: () => this.delete(endpoint),
+            resolve,
+            reject
+          })
+        })
+      }
+      
+      throw this.enhanceError(error, 'DELETE', endpoint)
+    }
+  }
+
+  /**
+   * Enhance error with request details
+   * @param {Error} error - Original error
+   * @param {string} method - HTTP method
+   * @param {string} endpoint - API endpoint
+   * @returns {Error} Enhanced error
+   */
+  enhanceError(error, method, endpoint) {
+    const enhancedError = new Error(error.message)
+    enhancedError.originalError = error
+    enhancedError.request = {
+      method,
+      endpoint,
+      baseUrl: this.baseUrl,
+      timestamp: new Date().toISOString()
+    }
+    enhancedError.isNetworkError = !navigator.onLine || error.message === 'No network connection'
+    enhancedError.isTimeoutError = error.message === 'Request timed out'
+    
+    return enhancedError
+  }
+}
+
+// Create singleton instance
+const apiService = new ApiService()
+
+export default apiService

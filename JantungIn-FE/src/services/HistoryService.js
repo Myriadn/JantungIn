@@ -14,8 +14,17 @@ class HistoryService {
     try {
       // Check if we're online
       if (navigator.onLine) {
-        const response = await apiService.get('/diagnosis/history', params)
-        const historyItems = DiagnosisModel.fromArray(response.data || response)
+        // Endpoint sesuai dengan API docs: GET /api/diagnosis/history
+        const response = await apiService.get('/api/v1/diagnosis/history', params)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "Diagnoses retrieved successfully", data: [...] }
+        const responseData = response.data || response
+
+        // Ekstrak array diagnoses dari response
+        const historyData = responseData.data || responseData
+
+        const historyItems = Array.isArray(historyData) ? DiagnosisModel.fromArray(historyData) : []
 
         // Cache for offline mode
         this.cacheHistoryForOffline(historyItems)
@@ -41,8 +50,15 @@ class HistoryService {
   async getDiagnosisById(id) {
     try {
       if (navigator.onLine) {
-        const response = await apiService.get(`/diagnosis/${id}`)
-        return new DiagnosisModel(response.data || response)
+        // Endpoint sesuai dengan API docs: GET /api/diagnosis/{id}
+        const response = await apiService.get(`/api/v1/diagnosis/${id}`)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "Diagnosis retrieved successfully", data: {...} }
+        const responseData = response.data || response
+        const diagnosisData = responseData.data || responseData
+
+        return new DiagnosisModel(diagnosisData)
       } else {
         // Try to find in offline cache
         return this.getOfflineDiagnosisById(id)

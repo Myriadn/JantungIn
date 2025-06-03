@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JantungIn API Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #d33;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #d33;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px 0;
+    }
+    button:hover {
+      background-color: #b22;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>JantungIn API Test</h1>
+  <p>Use this page to test the JantungIn API endpoints and debug connection issues.</p>
+
+  <div class="test-section">
+    <h2>User Registration</h2>
+    <form id="register-form">
+      <label for="reg-name">Name:</label>
+      <input type="text" id="reg-name" placeholder="Full Name" required>
+      
+      <label for="reg-nik">NIK:</label>
+      <input type="text" id="reg-nik" placeholder="16-digit NIK" required>
+      
+      <label for="reg-email">Email (optional):</label>
+      <input type="email" id="reg-email" placeholder="Email">
+      
+      <label for="reg-password">Password:</label>
+      <input type="password" id="reg-password" placeholder="Password" required>
+      
+      <label for="reg-dob">Date of Birth (optional):</label>
+      <input type="date" id="reg-dob">
+      
+      <button type="button" onclick="testRegister()">Register User</button>
+    </form>
+    <div id="register-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>User Login</h2>
+    <form id="login-form">
+      <label for="login-nik">NIK:</label>
+      <input type="text" id="login-nik" placeholder="16-digit NIK" required>
+      
+      <label for="login-password">Password:</label>
+      <input type="password" id="login-password" placeholder="Password" required>
+      
+      <button type="button" onclick="testLogin()">Login User</button>
+    </form>
+    <div id="login-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Email Login</h2>
+    <form id="email-login-form">
+      <label for="login-email">Email:</label>
+      <input type="email" id="login-email" placeholder="Email" required>
+      
+      <label for="login-email-password">Password:</label>
+      <input type="password" id="login-email-password" placeholder="Password" required>
+      
+      <button type="button" onclick="testEmailLogin()">Login with Email</button>
+    </form>
+    <div id="email-login-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Get User Profile</h2>
+    <button type="button" onclick="testGetProfile()">Get User Profile</button>
+    <div id="profile-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Update Profile</h2>
+    <form id="update-profile-form">
+      <label for="update-name">Name:</label>
+      <input type="text" id="update-name" placeholder="New Name">
+      
+      <label for="update-dob">Date of Birth:</label>
+      <input type="date" id="update-dob">
+      
+      <button type="button" onclick="testUpdateProfile()">Update Profile</button>
+    </form>
+    <div id="update-profile-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Admin Login</h2>
+    <form id="admin-login-form">
+      <label for="admin-username">Username:</label>
+      <input type="text" id="admin-username" placeholder="Admin Username" required>
+      
+      <label for="admin-password">Password:</label>
+      <input type="password" id="admin-password" placeholder="Password" required>
+      
+      <button type="button" onclick="testAdminLogin()">Admin Login</button>
+    </form>
+    <div id="admin-login-result" class="result"></div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'https://jantungin-api.up.railway.app';
+    
+    // Store token in session storage for this test
+    function saveToken(token, isAdmin = false) {
+      if (isAdmin) {
+        localStorage.setItem('jantungin_admin_token', token);
+      } else {
+        localStorage.setItem('jantungin_token', token);
+      }
+    }
+    
+    function getToken(isAdmin = false) {
+      return isAdmin 
+        ? localStorage.getItem('jantungin_admin_token')
+        : localStorage.getItem('jantungin_token');
+    }
+    
+    async function testRegister() {
+      const resultDiv = document.getElementById('register-result');
+      resultDiv.innerHTML = 'Registering user...';
+      
+      const userData = {
+        name: document.getElementById('reg-name').value,
+        nik: document.getElementById('reg-nik').value,
+        password: document.getElementById('reg-password').value
+      };
+      
+      // Add optional fields if provided
+      const email = document.getElementById('reg-email').value;
+      if (email) userData.email = email;
+      
+      const dob = document.getElementById('reg-dob').value;
+      if (dob) userData.dateOfBirth = dob;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store token if registration successful
+          if (data.data && data.data.token) {
+            saveToken(data.data.token);
+          }
+          
+          resultDiv.innerHTML = `
+            <p class="success">✅ Registration Successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+          
+          // Pre-fill login form
+          document.getElementById('login-nik').value = userData.nik;
+          document.getElementById('login-password').value = userData.password;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Registration Failed!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Registration Error!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+    
+    async function testLogin() {
+      const resultDiv = document.getElementById('login-result');
+      resultDiv.innerHTML = 'Logging in...';
+      
+      const loginData = {
+        nik: document.getElementById('login-nik').value,
+        password: document.getElementById('login-password').value
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(loginData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store token if login successful
+          if (data.data && data.data.token) {
+            saveToken(data.data.token);
+          }
+          
+          resultDiv.innerHTML = `
+            <p class="success">✅ Login Successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Login Failed!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Login Error!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+    
+    async function testEmailLogin() {
+      const resultDiv = document.getElementById('email-login-result');
+      resultDiv.innerHTML = 'Logging in with email...';
+      
+      const loginData = {
+        email: document.getElementById('login-email').value,
+        password: document.getElementById('login-email-password').value
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(loginData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store token if login successful
+          if (data.data && data.data.token) {
+            saveToken(data.data.token);
+          }
+          
+          resultDiv.innerHTML = `
+            <p class="success">✅ Email Login Successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Email Login Failed!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Email Login Error!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+    
+    async function testGetProfile() {
+      const resultDiv = document.getElementById('profile-result');
+      resultDiv.innerHTML = 'Fetching profile...';
+      
+      const token = getToken();
+      
+      if (!token) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Authentication Required!</p>
+          <p>Please login first to get a token.</p>
+        `;
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <p class="success">✅ Profile Retrieved!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+          
+          // Pre-fill update form with current data
+          if (data.data) {
+            document.getElementById('update-name').value = data.data.name || '';
+            if (data.data.dateOfBirth) {
+              document.getElementById('update-dob').value = data.data.dateOfBirth.substring(0, 10);
+            }
+          }
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Failed to Retrieve Profile!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Failed to Retrieve Profile!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+    
+    async function testUpdateProfile() {
+      const resultDiv = document.getElementById('update-profile-result');
+      resultDiv.innerHTML = 'Updating profile...';
+      
+      const token = getToken();
+      
+      if (!token) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Authentication Required!</p>
+          <p>Please login first to get a token.</p>
+        `;
+        return;
+      }
+      
+      const updateData = {
+        name: document.getElementById('update-name').value,
+        dateOfBirth: document.getElementById('update-dob').value
+      };
+      
+      // Remove empty fields
+      Object.keys(updateData).forEach(key => {
+        if (!updateData[key]) delete updateData[key];
+      });
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <p class="success">✅ Profile Updated!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Failed to Update Profile!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Failed to Update Profile!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+    
+    async function testAdminLogin() {
+      const resultDiv = document.getElementById('admin-login-result');
+      resultDiv.innerHTML = 'Logging in as admin...';
+      
+      const adminData = {
+        username: document.getElementById('admin-username').value,
+        password: document.getElementById('admin-password').value
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(adminData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store admin token
+          if (data.data && data.data.token) {
+            saveToken(data.data.token, true);
+          } else if (data.token) {
+            saveToken(data.token, true);
+          }
+          
+          resultDiv.innerHTML = `
+            <p class="success">✅ Admin Login Successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+            <p>Admin token saved.</p>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">❌ Admin Login Failed!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Admin Login Failed!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

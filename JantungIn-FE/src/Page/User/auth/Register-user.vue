@@ -1,12 +1,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import authService from '@/services/AuthService'
 
 const router = useRouter()
 const nik = ref('')
 const username = ref('')
+const email = ref('') // Added email field
 const password = ref('')
 const confirmPassword = ref('')
+const dateOfBirth = ref('') // Added date of birth field
 const loading = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -48,28 +51,28 @@ const validateForm = () => {
   return true
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   errorMessage.value = ''
-
   if (!validateForm()) {
     return
   }
-
   loading.value = true
-
-  // TODO: Implement registration functionality
-  console.log('Registration attempt with:', {
-    nik: nik.value,
-    username: username.value,
-    password: password.value,
-  })
-
-  // Simulate api call
-  setTimeout(() => {
-    // After successful registration, navigate to login
+  try {
+    // Panggil backend register
+    await authService.register({
+      nik: nik.value,
+      name: username.value,
+      email: email.value || undefined, // Include email if provided
+      password: password.value,
+      dateOfBirth: dateOfBirth.value || undefined, // Include dateOfBirth if provided
+    })
+    // Redirect ke login/news setelah sukses
+    router.push('/')
+  } catch (err) {
+    errorMessage.value = err.message || 'Registration failed. Please try again.'
+  } finally {
     loading.value = false
-    router.push('/login')
-  }, 1500)
+  }
 }
 </script>
 
@@ -257,6 +260,62 @@ const handleRegister = () => {
                   class="form-control"
                   placeholder="Choose a username"
                   required
+                />
+              </div>
+            </div>
+
+            <!-- Optional Email Field -->
+            <div class="form-group">
+              <label for="email">Email (Optional)</label>
+              <div class="input-container">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="input-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <input
+                  id="email"
+                  v-model="email"
+                  type="email"
+                  class="form-control"
+                  placeholder="Enter your email (optional)"
+                />
+              </div>
+            </div>
+
+            <!-- Optional Date of Birth Field -->
+            <div class="form-group">
+              <label for="dateOfBirth">Date of Birth (Optional)</label>
+              <div class="input-container">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="input-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <input
+                  id="dateOfBirth"
+                  v-model="dateOfBirth"
+                  type="date"
+                  class="form-control"
+                  placeholder="YYYY-MM-DD"
                 />
               </div>
             </div>

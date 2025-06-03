@@ -562,9 +562,14 @@ const getAdminProfile = async (request, h) => {
     const admin = await User.findOne({
       where: {
         id,
-        role: ['admin', 'dokter'],
+        role: {
+          [Op.in]: ['admin', 'dokter'], // Menggunakan Op.in untuk array roles
+        },
       },
-      attributes: { exclude: ['password'] },
+      attributes: {
+        exclude: ['password', 'nik_encrypted'],
+        include: ['id', 'name', 'email', 'role', 'dateOfBirth', 'createdAt', 'updatedAt'],
+      },
     });
 
     if (!admin) {

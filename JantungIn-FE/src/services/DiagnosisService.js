@@ -16,8 +16,18 @@ class DiagnosisService {
         throw new Error('Cannot submit diagnosis in offline mode')
       }
 
-      const response = await apiService.post('/diagnosis/submit', diagnosisData)
-      const diagnosis = new DiagnosisModel(response.data || response)
+      // Prepare diagnosis data according to API format
+      const preparedData = this.prepareDiagnosisData(diagnosisData)
+
+      // Endpoint sesuai dengan API docs: POST /api/diagnosis
+      const response = await apiService.post('/api/diagnosis', preparedData)
+
+      // Struktur response sesuai dengan API docs:
+      // { statusCode: 201, message: "Diagnosis created successfully", data: {...} }
+      const responseData = response.data || response
+      const diagnosisResult = responseData.data || responseData
+
+      const diagnosis = new DiagnosisModel(diagnosisResult)
 
       // Add to offline cache to make it available in history
       this.addToOfflineCache(diagnosis)
@@ -26,6 +36,30 @@ class DiagnosisService {
     } catch (error) {
       console.error('Error submitting diagnosis:', error)
       throw error
+    }
+  }
+
+  /**
+   * Prepare diagnosis data for API format
+   * @param {Object} rawData - Raw diagnosis form data
+   * @returns {Object} Prepared data in API format
+   */
+  prepareDiagnosisData(rawData) {
+    // Format the data according to API expectations
+    return {
+      age: parseInt(rawData.age) || 50,
+      sex: rawData.sex || 'Male',
+      chestPainType: rawData.chestPainType || 'Typical angina',
+      restingBP: parseInt(rawData.restingBP) || 120,
+      serumCholesterol: parseInt(rawData.serumCholesterol) || 200,
+      fastingBloodSugar: parseInt(rawData.fastingBloodSugar) || 120,
+      restingEcgResults: rawData.restingEcgResults || 'Normal',
+      maxHeartRate: parseInt(rawData.maxHeartRate) || 150,
+      exerciseInducedAngina: rawData.exerciseInducedAngina || 'No',
+      stDepression: parseFloat(rawData.stDepression) || 1.0,
+      stSegment: rawData.stSegment || 'Flat',
+      majorVessels: parseInt(rawData.majorVessels) || 0,
+      thalassemia: rawData.thalassemia || 'Normal',
     }
   }
 
@@ -113,6 +147,111 @@ class DiagnosisService {
       },
       // Add more default questions as needed
     ]
+  }
+
+  /**
+   * Get user's diagnosis history
+   * @returns {Promise<Array<DiagnosisModel>>} Array of diagnosis models
+   */
+  async getDiagnosisHistory() {
+    try {
+      if (navigator.onLine) {
+        // Endpoint sesuai dengan API docs: GET /api/diagnosis/history
+        const response = await apiService.get('/diagnosis/history')
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "Diagnoses retrieved successfully", data: [...] }
+        const diagnosisData = response.data || response
+        const diagnosisHistory = Array.isArray(diagnosisData)
+          ? diagnosisData.map((item) => new DiagnosisModel(item))
+          : []
+
+        // Cache for offline use
+        localStorage.setItem('jantungin_offline_history', JSON.stringify(diagnosisHistory))
+
+        return diagnosisHistory
+      } else {
+        // Use cached history for offline mode
+        return this.getOfflineHistory()
+      }
+    } catch (error) {
+      console.error('Error fetching diagnosis history:', error)
+
+      // Fallback to offline history
+      return this.getOfflineHistory()
+    }
+  }
+
+  /**
+   * Get a specific diagnosis by ID
+   * @param {string} id - Diagnosis ID
+   * @returns {Promise<DiagnosisModel>} Diagnosis model
+   */
+  async getDiagnosisById(id) {
+    try {
+      if (navigator.onLine) {
+        // Endpoint sesuai dengan API docs: GET /api/diagnosis/{id}
+        const response = await apiService.get(`/diagnosis/${id}`)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "Diagnosis retrieved successfully", data: {...} }
+        const diagnosisData = response.data || response
+        return new DiagnosisModel(diagnosisData)
+      } else {
+        // Try to find in offline cache
+        return this.getOfflineDiagnosisById(id)
+      }
+    } catch (error) {
+      console.error(`Error fetching diagnosis with ID ${id}:`, error)
+
+      // Try to find in offline cache
+      return this.getOfflineDiagnosisById(id)
+    }
+  }
+
+  /**
+   * Get offline diagnosis history from local storage
+   * @returns {Array<DiagnosisModel>} Array of diagnosis models
+   */
+  getOfflineHistory() {
+    try {
+      const cachedHistory = localStorage.getItem('jantungin_offline_history')
+
+      if (cachedHistory) {
+        const historyData = JSON.parse(cachedHistory)
+        return Array.isArray(historyData) ? historyData.map((item) => new DiagnosisModel(item)) : []
+      }
+
+      return []
+    } catch (error) {
+      console.error('Error getting offline history:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get offline diagnosis by ID from local storage
+   * @param {string} id - Diagnosis ID
+   * @returns {DiagnosisModel|null} Diagnosis model or null if not found
+   */
+  getOfflineDiagnosisById(id) {
+    try {
+      const cachedHistory = localStorage.getItem('jantungin_offline_history')
+
+      if (cachedHistory) {
+        const historyData = JSON.parse(cachedHistory)
+        const diagnosis = Array.isArray(historyData)
+          ? historyData.find((item) => item.id === id)
+          : null
+
+        return diagnosis ? new DiagnosisModel(diagnosis) : null
+      }
+
+      return null
+    } catch (error) {
+      console.error(`Error getting offline diagnosis with ID ${id}:`, error)
+      return null
+    }
   }
 }
 

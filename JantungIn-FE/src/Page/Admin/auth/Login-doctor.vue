@@ -1,34 +1,31 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import authService from '@/services/AuthService'
 
 const router = useRouter()
-const doctorId = ref('')
+const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
+const errorMessage = ref('')
 
 // Function to navigate to user login page
 const navigateToUserLogin = () => {
   router.push('/')
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
   loading.value = true
-  // TODO: Implement login functionality
-  console.log('Login attempt with:', { doctorId: doctorId.value, password: password.value })
-
-  // Simulate API call with delay
-  setTimeout(() => {
-    loading.value = false
-    // Navigate to home after login
+  errorMessage.value = ''
+  try {
+    await authService.adminLogin(email.value, password.value)
     router.push('/home-admin')
-  }, 1000)
-}
-
-const handleResetPassword = () => {
-  // TODO: Implement password reset functionality
-  console.log('Password reset requested')
+  } catch (err) {
+    errorMessage.value = err.message || 'Login failed. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 
 const togglePasswordVisibility = () => {
@@ -123,7 +120,7 @@ const togglePasswordVisibility = () => {
 
           <form @submit.prevent="handleLogin">
             <div class="form-group">
-              <label for="doctorId">Doctor ID</label>
+              <label for="email">Doctor Email</label>
               <div class="input-container">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -140,11 +137,11 @@ const togglePasswordVisibility = () => {
                   />
                 </svg>
                 <input
-                  id="doctorId"
-                  v-model="doctorId"
-                  type="text"
+                  id="email"
+                  v-model="email"
+                  type="email"
                   class="form-control"
-                  placeholder="Enter your ID"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
@@ -216,20 +213,16 @@ const togglePasswordVisibility = () => {
               </div>
             </div>
 
-            <div class="remember-forgot">
-              <label class="remember-me">
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
-              <a href="#" @click.prevent="handleResetPassword" class="forgot-password">
-                Forgot password?
-              </a>
-            </div>
+            <!-- Remove prototype features -->
 
             <button type="submit" class="btn-primary" :disabled="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <span>{{ loading ? 'Signing in...' : 'Sign In' }}</span>
             </button>
+
+            <div class="error-message" v-if="errorMessage">
+              {{ errorMessage }}
+            </div>
 
             <div class="login-divider">
               <span>Healthcare Professional Access</span>
@@ -373,7 +366,7 @@ const togglePasswordVisibility = () => {
   color: #60a5fa;
 }
 
-/* Right side styling */
+/* Right side - Login form */
 .login-form-container {
   flex: 1;
   display: flex;
@@ -539,6 +532,17 @@ const togglePasswordVisibility = () => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.error-message {
+  color: #ef4444;
+  background-color: #fee2e2;
+  border: 1px solid #f87171;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 .login-divider {
