@@ -55,51 +55,86 @@ const loadProfileData = async () => {
 
     // Load profile data
     const profileResponse = await profileService.getProfile()
-    if (profileResponse.data) {
+
+    // Format respons bisa berbeda-beda, jadi kita coba beberapa variasi path
+    // 1. data.data.data - standar dari API yang dikemas dalam axios full response
+    // 2. data.data - untuk data yang dikemas dalam "data" field
+    // 3. data - untuk respons yang langsung berisi data
+    const profileResponseData = profileResponse?.data?.data || profileResponse?.data || {}
+    const profileData = profileResponseData?.data || profileResponseData
+
+    console.log('Profile response structure:', {
+      hasDataData: !!profileResponse?.data?.data,
+      hasData: !!profileResponse?.data,
+      profileData,
+    })
+
+    if (profileData) {
+      console.log('Profile data loaded:', profileData)
       user.value = {
         ...user.value,
-        name: profileResponse.data.name || '',
-        email: profileResponse.data.email || '',
-        specialty: profileResponse.data.specialty || 'Cardiology',
-        department: profileResponse.data.department || 'Cardiology',
-        position: profileResponse.data.position || 'Senior Cardiologist',
-        license: profileResponse.data.license || '1234567890',
-        Hospital: profileResponse.data.hospital || 'JantungIn Hospital',
-        dateofbirth: profileResponse.data.dateOfBirth,
-        yearsofexperience: profileResponse.data.yearsOfExperience || 5,
-        certifications: profileResponse.data.certifications || ['Board Certified Cardiologist'],
+        name: profileData.name || '',
+        email: profileData.email || '',
+        specialty: profileData.specialty || 'Cardiology',
+        department: profileData.department || 'Cardiology',
+        position: profileData.position || 'Senior Cardiologist',
+        license: profileData.license || '1234567890',
+        Hospital: profileData.hospital || 'JantungIn Hospital',
+        dateofbirth: profileData.dateOfBirth,
+        yearsofexperience: profileData.yearsOfExperience || 5,
+        certifications: profileData.certifications || ['Board Certified Cardiologist'],
       }
+    } else {
+      console.warn('No profile data found in response')
     }
 
     // Load dashboard stats
     const statsResponse = await profileService.getDashboardStats()
-    if (statsResponse.data) {
-      const { users, diagnoses } = statsResponse.data
+
+    // Format respons bisa berbeda-beda, seperti pada profile
+    const statsResponseData = statsResponse?.data?.data || statsResponse?.data || {}
+    const statsData = statsResponseData?.data || statsResponseData
+
+    console.log('Stats response structure:', {
+      hasDataData: !!statsResponse?.data?.data,
+      hasData: !!statsResponse?.data,
+      statsData,
+    })
+
+    if (statsData) {
+      console.log('Dashboard stats loaded:', statsData)
+      const { users = {}, diagnoses = {} } = statsData
       stats.value = [
         {
           title: 'This Week',
-          diagnoses: diagnoses.newLastWeek || 0,
-          consultations: diagnoses.recentConsultations || 0,
-          reviews: diagnoses.recentReviews || 0,
+          diagnoses: diagnoses?.newLastWeek || 0,
+          consultations: diagnoses?.recentConsultations || 0,
+          reviews: diagnoses?.recentReviews || 0,
         },
         {
           title: 'This Month',
-          diagnoses: diagnoses.monthlyTotal || 0,
-          consultations: diagnoses.monthlyConsultations || 0,
-          reviews: diagnoses.monthlyReviews || 0,
+          diagnoses: diagnoses?.monthlyTotal || 0,
+          consultations: diagnoses?.monthlyConsultations || 0,
+          reviews: diagnoses?.monthlyReviews || 0,
         },
         {
           title: 'Total',
-          diagnoses: diagnoses.total || 0,
-          patients: users.total || 0,
+          diagnoses: diagnoses?.total || 0,
+          patients: users?.total || 0,
         },
       ]
+    } else {
+      console.warn('No dashboard stats found in response')
     }
 
     // Load activities
     const activitiesResponse = await profileService.getRecentActivities()
-    if (activitiesResponse.data) {
-      recentActivities.value = activitiesResponse.data.map((activity) => ({
+    // Handle responseData yang bisa ada di data.data atau langsung di data
+    const activitiesData = activitiesResponse.data?.data || activitiesResponse.data
+
+    if (Array.isArray(activitiesData)) {
+      console.log('Activities loaded:', activitiesData)
+      recentActivities.value = activitiesData.map((activity) => ({
         type: activity.type,
         patientId: activity.patientId,
         patientName: activity.patientName,
@@ -110,6 +145,8 @@ const loadProfileData = async () => {
         }),
         status: activity.status,
       }))
+    } else {
+      console.warn('No activities found in response or invalid format')
     }
   } catch (err) {
     console.error('Error loading profile data:', err)

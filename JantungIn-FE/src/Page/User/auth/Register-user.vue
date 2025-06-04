@@ -1,9 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import authService from '@/services/AuthService'
+import { useErrorHandler } from '@/utils/errorHandler'
 
 const router = useRouter()
+const { t } = useI18n()
+const { getErrorMessage } = useErrorHandler()
+
 const nik = ref('')
 const username = ref('')
 const email = ref('') // Added email field
@@ -34,17 +39,30 @@ const toggleConfirmPasswordVisibility = () => {
 
 const validateForm = () => {
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = 'Passwords do not match'
+    errorMessage.value = t('errors.validation.passwordsDoNotMatch')
     return false
   }
 
   if (password.value.length < 6) {
-    errorMessage.value = 'Password must be at least 6 characters'
+    errorMessage.value = t('errors.validation.passwordLength')
     return false
   }
 
-  if (nik.value.length < 6) {
-    errorMessage.value = 'Please enter a valid NIK'
+  // Validate NIK as 16 digit number
+  if (!/^\d{16}$/.test(nik.value)) {
+    errorMessage.value = t('errors.validation.nikFormat')
+    return false
+  }
+
+  // Validate username
+  if (username.value.length < 3) {
+    errorMessage.value = t('errors.validation.nameLength')
+    return false
+  }
+
+  // Validate email format if provided
+  if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errorMessage.value = t('errors.validation.emailFormat')
     return false
   }
 
@@ -59,6 +77,13 @@ const handleRegister = async () => {
   loading.value = true
   try {
     // Panggil backend register
+    console.log('Attempting to register with:', {
+      nik: nik.value,
+      name: username.value,
+      email: email.value || '[not provided]',
+      dateOfBirth: dateOfBirth.value || '[not provided]',
+    })
+
     await authService.register({
       nik: nik.value,
       name: username.value,
@@ -66,10 +91,14 @@ const handleRegister = async () => {
       password: password.value,
       dateOfBirth: dateOfBirth.value || undefined, // Include dateOfBirth if provided
     })
+
     // Redirect ke login/news setelah sukses
     router.push('/')
   } catch (err) {
-    errorMessage.value = err.message || 'Registration failed. Please try again.'
+    console.error('Registration failed:', err)
+
+    // Use error handler to get consistent localized error message
+    errorMessage.value = getErrorMessage(err)
   } finally {
     loading.value = false
   }

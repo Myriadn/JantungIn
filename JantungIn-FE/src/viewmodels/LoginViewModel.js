@@ -1,6 +1,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import authService from '@/services/AuthService'
+import { useErrorHandler } from '@/utils/errorHandler'
 
 /**
  * Login ViewModel
@@ -8,6 +10,8 @@ import authService from '@/services/AuthService'
  */
 export function useLoginViewModel() {
   const router = useRouter()
+  const { t } = useI18n()
+  const { getErrorMessage } = useErrorHandler()
 
   // State
   const nik = ref('')
@@ -27,9 +31,13 @@ export function useLoginViewModel() {
    */
   const isFormValid = computed(() => {
     if (loginMethod.value === 'nik') {
-      return nik.value.trim() !== '' && password.value.trim() !== ''
+      // NIK must be 16 digits and password must not be empty
+      return (
+        nik.value.trim().length === 16 && /^\d+$/.test(nik.value) && password.value.trim() !== ''
+      )
     } else {
-      return email.value.trim() !== '' && password.value.trim() !== ''
+      // Email must be in valid format and password must not be empty
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) && password.value.trim() !== ''
     }
   })
 
@@ -38,7 +46,25 @@ export function useLoginViewModel() {
    */
   const handleLogin = async () => {
     if (!isFormValid.value) {
-      errorMessage.value = 'Please fill in all required fields'
+      if (loginMethod.value === 'nik') {
+        if (nik.value.trim() === '') {
+          errorMessage.value = t('errors.validation.requiredField')
+        } else if (nik.value.trim().length !== 16) {
+          errorMessage.value = t('errors.validation.nikFormat')
+        } else if (!/^\d+$/.test(nik.value)) {
+          errorMessage.value = t('errors.validation.nikFormat')
+        } else {
+          errorMessage.value = t('errors.auth.missingFields')
+        }
+      } else {
+        if (email.value.trim() === '') {
+          errorMessage.value = t('errors.validation.requiredField')
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+          errorMessage.value = t('errors.validation.emailFormat')
+        } else {
+          errorMessage.value = t('errors.auth.missingFields')
+        }
+      }
       return
     }
 
@@ -59,7 +85,10 @@ export function useLoginViewModel() {
       router.push('/news')
     } catch (error) {
       console.error('Login error:', error)
-      errorMessage.value = error.message || 'Login failed. Please check your credentials.'
+
+      // Use error handler to get localized error message
+      errorMessage.value = getErrorMessage(error)
+
       throw error
     } finally {
       isLoading.value = false

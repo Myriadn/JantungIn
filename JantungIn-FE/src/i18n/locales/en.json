@@ -1,0 +1,58 @@
+{
+  "common": {
+    "attempt": "Attempt",
+    "loading": "Loading",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning"
+  },
+  "errors": {
+    "network": {
+      "offline": "No internet connection. Please check your connection.",
+      "timeout": "Request timed out. Please try again later.",
+      "connectionRefused": "Connection refused. The server may be unavailable.",
+      "serverError": "Server error occurred. Please try again later.",
+      "retry": "Attempting to reconnect..."
+    },
+    "auth": {
+      "invalidCredentials": "Invalid NIK or password.",
+      "invalidEmailCredentials": "Invalid email or password.",
+      "tokenExpired": "Your session has expired. Please log in again.",
+      "invalidToken": "Invalid session. Please log in again.",
+      "accessDenied": "Access denied. You don't have permission to access this resource.",
+      "registrationFailed": "Registration failed. Please try again.",
+      "userNotFound": "User not found.",
+      "nikAlreadyRegistered": "NIK is already registered. Each NIK can only be used once.",
+      "emailAlreadyRegistered": "Email is already registered.",
+      "missingFields": "Please complete all required fields.",
+      "loginFailed": "Login failed. Please try again."
+    },
+    "validation": {
+      "nikFormat": "NIK must consist of 16 digits.",
+      "emailFormat": "Invalid email format.",
+      "passwordLength": "Password must be at least 8 characters long.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "nameLength": "Name is too short (minimum 3 characters).",
+      "nameRequired": "Name is required.",
+      "dateFormat": "Invalid date format.",
+      "requiredField": "This field is required."
+    },
+    "api": {
+      "invalidResponse": "Invalid server response.",
+      "missingToken": "Token not found in response.",
+      "badRequest": "Invalid request.",
+      "unknownError": "An unknown error occurred. Please try again later."
+    }
+  },
+  "success": {
+    "auth": {
+      "login": "Login successful.",
+      "registration": "Registration successful.",
+      "profileUpdate": "Profile updated successfully.",
+      "logout": "Logout successful."
+    }
+  }
+}

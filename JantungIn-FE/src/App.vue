@@ -7,13 +7,15 @@ import RefreshApp from '@/components/RefreshApp.vue'
 import PWAStatus from '@/components/PWAStatus.vue'
 import AdPopupComponent from '@/components/AdPopupComponent.vue'
 import { useRoute } from 'vue-router'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, onErrorCaptured } from 'vue'
 import { preloadCriticalImages } from '@/utils/lazyLoadUtils'
 
 const route = useRoute()
 const isOnline = ref(navigator.onLine)
 const offlineAlert = ref(false)
 const installPwa = ref(null)
+const hasError = ref(false)
+const errorMessage = ref('')
 
 // Preload critical images for performance
 preloadCriticalImages([
@@ -51,17 +53,36 @@ const handleOffline = () => {
   }, 5000)
 }
 
+// Error handling
+onErrorCaptured((err, instance, info) => {
+  console.error('App Error:', err)
+  console.error('Component:', instance)
+  console.error('Info:', info)
+
+  hasError.value = true
+  errorMessage.value = err.message || 'An unexpected error occurred.'
+
+  // Prevent error from propagating further
+  return false
+})
+
+// Function to reset error state
+const resetErrorState = () => {
+  hasError.value = false
+  errorMessage.value = ''
+}
+
 onMounted(() => {
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
-  
+
   // Preload critical images for better performance
   preloadCriticalImages([
     '/images/loading-placeholder.svg',
     '/images/error-placeholder.svg',
     '/src/assets/images/diagnose-hero.jpg',
     '/src/assets/images/history-hero.jpg',
-    '/images/heart1.jpg'
+    '/images/heart1.jpg',
   ])
 })
 
@@ -101,6 +122,34 @@ onUnmounted(() => {
     <main class="flex-grow">
       <!-- Display offline page when offline -->
       <OfflinePage v-if="!isOnline" />
+
+      <!-- Display error state when there's an error -->
+      <div
+        v-else-if="hasError"
+        class="error-container flex flex-col items-center justify-center h-full p-6"
+      >
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg w-full">
+          <h2 class="text-xl font-semibold text-red-700 mb-3">Something went wrong</h2>
+          <p class="text-gray-700 mb-4">{{ errorMessage }}</p>
+          <p class="text-sm text-gray-600 mb-4">
+            This error has been logged and we're working on fixing it.
+          </p>
+          <div class="flex gap-3">
+            <button
+              @click="resetErrorState"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              @click="$router.push('/')"
+              class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-md transition-colors"
+            >
+              Go to Home
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Display normal content when online with page transition -->
       <transition :name="route.meta.transition || 'fade'" mode="out-in" v-else>
@@ -158,7 +207,9 @@ main {
 /* Slide transitions */
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .slide-enter-from {
@@ -179,5 +230,10 @@ main {
 
 .lazy-load.loaded {
   opacity: 1;
+}
+
+/* Error container */
+.error-container {
+  min-height: calc(100vh - 8rem);
 }
 </style>

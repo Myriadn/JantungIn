@@ -1,5 +1,6 @@
 import apiService from './ApiService'
 import { UserModel } from '@/models/UserModel'
+import { useErrorHandler } from '@/utils/errorHandler'
 
 /**
  * Authentication service for login, register, and user management
@@ -15,34 +16,49 @@ class AuthService {
     try {
       // Try to make the API call if online
       if (navigator.onLine) {
-        const response = await apiService.post('/api/v1/auth/login', { nik, password })
+        const response = await apiService.post(
+          '/api/v1/auth/login',
+          { nik, password },
+          {
+            showNotifications: true,
+            operationName: 'Login',
+          },
+        )
         console.log('Login API response:', response)
 
         // The API returns: { statusCode, message, data: { id, name, email, role, token } }
-        if (!response.data || !response.data.token) {
-          throw new Error('Invalid response from server: missing token')
+        // Check if the token is in response.data.data.token or response.data.token
+        const responseData = response.data
+        const userData = responseData.data || responseData
+
+        if (!userData || !userData.token) {
+          console.error('Invalid login response format:', responseData)
+          throw this.formatError(
+            new Error('Invalid response format from server: missing token'),
+            'Login failed - invalid server response',
+          )
         }
 
         console.log('Login successful, received token')
 
         // Set token first before saving to storage
-        apiService.setToken(response.data.token)
+        apiService.setToken(userData.token)
 
         // Save user data to local storage for offline mode
         this.saveUserToStorage({
-          ...response.data,
+          ...userData,
           nik: nik,
           password: password, // Only for offline login, in a real app use more secure methods
         })
 
-        return new UserModel(response.data)
+        return new UserModel(userData)
       } else {
         // Offline login from cache
         return await this.offlineLogin(nik, password)
       }
     } catch (error) {
       console.error('Login error:', error)
-      throw error
+      throw this.formatError(error, 'Login failed')
     }
   }
 
@@ -55,27 +71,46 @@ class AuthService {
   async loginWithEmail(email, password) {
     try {
       if (navigator.onLine) {
-        const response = await apiService.post('/api/v1/auth/login-email', { email, password })
+        const response = await apiService.post(
+          '/api/v1/auth/login-email',
+          { email, password },
+          {
+            showNotifications: true,
+            operationName: 'Login dengan Email',
+          },
+        )
+        console.log('Email login response:', response)
 
-        if (!response.data || !response.data.token) {
-          throw new Error('Invalid response from server: missing token')
+        // Check if the token is in response.data.data.token or response.data.token
+        const responseData = response.data
+        const userData = responseData.data || responseData
+
+        if (!userData || !userData.token) {
+          console.error('Invalid email login response format:', responseData)
+          throw this.formatError(
+            new Error('Invalid response format from server: missing token'),
+            'Login failed - invalid server response',
+          )
         }
 
         this.saveUserToStorage({
-          ...response.data,
+          ...userData,
           email: email,
           password: password, // Only for offline login
         })
 
-        apiService.setToken(response.data.token)
+        apiService.setToken(userData.token)
 
-        return new UserModel(response.data)
+        return new UserModel(userData)
       } else {
-        throw new Error('Cannot login with email while offline')
+        throw this.formatError(
+          new Error('Cannot login with email while offline'),
+          'No internet connection',
+        )
       }
     } catch (error) {
       console.error('Email login error:', error)
-      throw error
+      throw this.formatError(error, 'Email login failed')
     }
   }
 
@@ -110,30 +145,56 @@ class AuthService {
     try {
       // Validate user data
       if (!userData.nik || !userData.password || !userData.name) {
-        throw new Error('Missing required fields for registration')
+        throw this.formatError(
+          new Error('Missing required fields for registration'),
+          'Registration failed - missing required fields',
+        )
       }
 
-      const response = await apiService.post('/api/v1/auth/register', userData)
+      // Validate NIK format
+      if (!/^\d{16}$/.test(userData.nik)) {
+        throw this.formatError(new Error('NIK harus 16 digit angka'), 'Invalid NIK format')
+      }
+
+      // Validate email if provided
+      if (userData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+        throw this.formatError(new Error('Format email tidak valid'), 'Invalid email format')
+      }
+
+      console.log('Sending registration request with data:', { ...userData, password: '***' })
+      const response = await apiService.post('/api/v1/auth/register', userData, {
+        showNotifications: true,
+        operationName: 'Registrasi',
+      })
+      console.log('Registration response:', response)
 
       // API returns: { statusCode: 201, message: "User registered successfully", data: { id, name, email, role, token } }
-      if (!response.data || !response.data.token) {
-        throw new Error('Invalid response from server during registration')
+      // Check if the token is in response.data.data.token or response.data.token
+      const responseData = response.data
+      const userData2 = responseData.data || responseData
+
+      if (!userData2 || !userData2.token) {
+        console.error('Invalid registration response format:', responseData)
+        throw this.formatError(
+          new Error('Invalid response format from server during registration'),
+          'Registration failed - invalid server response',
+        )
       }
 
       // Set token for future API calls
-      apiService.setToken(response.data.token)
+      apiService.setToken(userData2.token)
 
       // Save user data for offline usage
       this.saveUserToStorage({
-        ...response.data,
+        ...userData2,
         nik: userData.nik,
         password: userData.password, // Only for offline login
       })
 
-      return new UserModel(response.data)
+      return new UserModel(userData2)
     } catch (error) {
       console.error('Registration error:', error)
-      throw error
+      throw this.formatError(error, 'Registration failed')
     }
   }
 
@@ -145,16 +206,31 @@ class AuthService {
    */
   async adminLogin(email, password) {
     try {
+      // Validate email format
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw this.formatError(new Error('Format email tidak valid'), 'Invalid email format')
+      }
+
       // Login request
       console.log('Attempting admin login...')
-      const loginResponse = await apiService.post('/api/v1/admin/login', { email, password })
+      const loginResponse = await apiService.post(
+        '/api/v1/admin/login',
+        { email, password },
+        {
+          showNotifications: true,
+          operationName: 'Admin Login',
+        },
+      )
 
       // The login response can either be in data.data or directly in data
       const responseData = loginResponse.data?.data || loginResponse.data
 
       if (!responseData?.token) {
         console.error('Invalid login response:', loginResponse.data)
-        throw new Error('Invalid response from server: missing token')
+        throw this.formatError(
+          new Error('Invalid response from server: missing token'),
+          'Admin login failed - invalid server response',
+        )
       }
 
       const { token, ...userData } = responseData
@@ -166,14 +242,24 @@ class AuthService {
       try {
         // Get full admin profile with new token
         console.log('Fetching admin profile...')
-        const profileResponse = await apiService.get('/api/v1/admin/profile')
+        const profileResponse = await apiService.get(
+          '/api/v1/admin/profile',
+          {},
+          {
+            showNotifications: true,
+            operationName: 'Mengambil Profil Admin',
+          },
+        )
 
         // Profile data can be in data.data or directly in data
         const profileData = profileResponse.data?.data || profileResponse.data
 
         if (!profileData) {
           console.error('Invalid profile response:', profileResponse.data)
-          throw new Error('Failed to get admin profile')
+          throw this.formatError(
+            new Error('Failed to get admin profile'),
+            'Failed to retrieve admin profile',
+          )
         }
 
         // Combine login data and profile data
@@ -196,8 +282,46 @@ class AuthService {
       }
     } catch (error) {
       console.error('Admin login error:', error)
-      throw error
+      throw this.formatError(error, 'Admin login failed')
     }
+  }
+
+  /**
+   * Format error for consistent error handling
+   * @param {Error} error - Original error
+   * @param {string} defaultMessage - Default message if no specific handler
+   * @returns {Error} Formatted error
+   */
+  formatError(error, defaultMessage = 'Authentication error occurred') {
+    console.error('Auth error:', error)
+
+    // Create a new error with the formatted message
+    const formattedError = new Error(error.message || defaultMessage)
+
+    // Copy properties from the original error
+    formattedError.originalError = error
+    formattedError.status = error.status
+    formattedError.endpoint = error.endpoint
+    formattedError.data = error.data
+
+    // Add error category for UI handling
+    if (error.isNetworkError) {
+      formattedError.category = 'network'
+    } else if (
+      error.message &&
+      (error.message.includes('NIK') ||
+        error.message.includes('password') ||
+        error.message.includes('email') ||
+        error.message.includes('required field'))
+    ) {
+      formattedError.category = 'validation'
+    } else if (error.status === 401 || error.status === 403) {
+      formattedError.category = 'authentication'
+    } else {
+      formattedError.category = 'unknown'
+    }
+
+    return formattedError
   }
 
   /**
@@ -248,30 +372,47 @@ class AuthService {
       // Check if we have auth token
       const token = apiService.getStoredToken()
       if (!token) {
-        throw new Error('No authentication token found')
+        throw this.formatError(
+          new Error('No authentication token found'),
+          'Authentication required',
+        )
       }
 
-      const response = await apiService.get('/api/v1/auth/profile')
+      const response = await apiService.get(
+        '/api/v1/auth/profile',
+        {},
+        {
+          showNotifications: true,
+          operationName: 'Mengambil Profil',
+        },
+      )
       console.log('Profile response:', response)
 
       if (!response.data) {
-        throw new Error('Invalid profile response from server')
+        throw this.formatError(
+          new Error('Invalid profile response from server'),
+          'Failed to retrieve profile',
+        )
       }
+
+      // Handle nested response data structure
+      const responseData = response.data
+      const profileData = responseData.data || responseData
 
       // Update stored user data with latest profile info
       const currentUser = this.getCurrentUser()
       if (currentUser) {
         const updatedUserData = {
           ...JSON.parse(localStorage.getItem('jantungin_user')),
-          ...response.data,
+          ...profileData,
         }
         this.saveUserToStorage(updatedUserData)
       }
 
-      return response.data
+      return profileData
     } catch (error) {
       console.error('Error getting profile:', error)
-      throw error
+      throw this.formatError(error, 'Failed to retrieve profile')
     }
   }
 
@@ -282,26 +423,42 @@ class AuthService {
    */
   async updateProfile(profileData) {
     try {
-      const response = await apiService.put('/api/v1/auth/profile', profileData)
+      // Validate profile data
+      if (profileData.name && profileData.name.trim() === '') {
+        throw this.formatError(new Error('Name cannot be empty'), 'Name is required')
+      }
+
+      const response = await apiService.put('/api/v1/auth/profile', profileData, {
+        showNotifications: true,
+        operationName: 'Memperbarui Profil',
+      })
+      console.log('Profile update response:', response)
 
       if (!response.data) {
-        throw new Error('Invalid response from server during profile update')
+        throw this.formatError(
+          new Error('Invalid response from server during profile update'),
+          'Failed to update profile',
+        )
       }
+
+      // Handle nested response data structure
+      const responseData = response.data
+      const updatedProfileData = responseData.data || responseData
 
       // Update stored user data with latest profile info
       const currentUser = this.getCurrentUser()
       if (currentUser) {
         const updatedUserData = {
           ...JSON.parse(localStorage.getItem('jantungin_user')),
-          ...response.data,
+          ...updatedProfileData,
         }
         this.saveUserToStorage(updatedUserData)
       }
 
-      return response.data
+      return updatedProfileData
     } catch (error) {
       console.error('Error updating profile:', error)
-      throw error
+      throw this.formatError(error, 'Failed to update profile')
     }
   }
 
