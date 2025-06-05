@@ -3,15 +3,31 @@
  */
 export class DiagnosisModel {
   constructor(data = {}) {
+    // Handle nested data structure from API response
+    if (data.data && typeof data.data === 'object') {
+      data = data.data
+    }
+
     this.id = data.id || null
     this.userId = data.userId || null
-    this.patientNIK = data.patientNIK || ''
-    this.dateCreated = data.dateCreated || new Date().toISOString()
-    this.symptoms = data.symptoms || {}
-    this.result = data.result || null
-    this.doctorId = data.doctorId || null
-    this.doctorNotes = data.doctorNotes || ''
-    this.status = data.status || 'pending' // pending, reviewed, completed
+    this.age = data.age || 0
+    this.sex = data.sex || ''
+    this.chestPainType = data.chestPainType || ''
+    this.restingBP = data.restingBP || data.restingBloodPressure || 0
+    this.serumCholesterol = data.serumCholesterol || 0
+    this.fastingBloodSugar = data.fastingBloodSugar || 0
+    this.restingEcgResults = data.restingEcgResults || ''
+    this.maxHeartRate = data.maxHeartRate || data.maximumHeartRate || 0
+    this.exerciseInducedAngina = data.exerciseInducedAngina || ''
+    this.stDepression = data.stDepression || 0
+    this.stSegment = data.stSegment || ''
+    this.majorVessels = data.majorVessels || 0
+    this.thalassemia = data.thalassemia || ''
+    this.resultPercentage = data.resultPercentage || 0
+    this.cardiovascularRisk = data.cardiovascularRisk || ''
+    this.prediction = data.prediction || ''
+    this.createdAt = data.createdAt || new Date().toISOString()
+    this.updatedAt = data.updatedAt || new Date().toISOString()
   }
 
   /**
@@ -19,7 +35,7 @@ export class DiagnosisModel {
    * @returns {boolean} True if valid, false otherwise
    */
   isValid() {
-    return this.patientNIK && Object.keys(this.symptoms).length > 0
+    return this.age > 0 && this.sex && this.chestPainType
   }
 
   /**
@@ -27,13 +43,19 @@ export class DiagnosisModel {
    * @returns {string} Formatted date
    */
   getFormattedDate() {
-    if (!this.dateCreated) return ''
+    if (!this.createdAt) return ''
 
     try {
-      const date = new Date(this.dateCreated)
-      return date.toLocaleDateString()
+      const date = new Date(this.createdAt)
+      return date.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     } catch {
-      return this.dateCreated
+      return this.createdAt
     }
   }
 
@@ -42,14 +64,19 @@ export class DiagnosisModel {
    * @returns {string} Risk level (low, medium, high)
    */
   getRiskLevel() {
-    if (!this.result) return 'unknown'
+    if (this.cardiovascularRisk) {
+      return this.cardiovascularRisk.toLowerCase()
+    }
 
-    // Example logic - adjust based on your actual diagnosis criteria
-    const probability = parseFloat(this.result)
+    if (this.resultPercentage) {
+      const probability = parseFloat(this.resultPercentage) / 100
 
-    if (probability < 0.3) return 'low'
-    if (probability < 0.7) return 'medium'
-    return 'high'
+      if (probability < 0.3) return 'low'
+      if (probability < 0.7) return 'medium'
+      return 'high'
+    }
+
+    return 'unknown'
   }
 
   /**

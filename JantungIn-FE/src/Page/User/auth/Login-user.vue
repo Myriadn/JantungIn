@@ -10,10 +10,15 @@ const router = useRouter()
 // Get all reactive state and methods from the ViewModel
 const {
   nik,
+  email,
   password,
   showPassword,
   errorMessage,
   isOfflineMode,
+  isLoading,
+  loginMethod,
+  handleLogin,
+  toggleLoginMethod,
 
   goToRegister: navigateToRegister,
   togglePasswordVisibility,
@@ -24,9 +29,14 @@ const navigateToDoctorLogin = () => {
   router.push('/admin')
 }
 
-// Function to navigate directly to news page (for prototype)
-const navigateToNews = () => {
-  router.push('/news')
+// Handle login submission
+const submitLogin = async () => {
+  try {
+    await handleLogin()
+    // Router navigation is handled inside the handleLogin function
+  } catch (error) {
+    console.error('Login submission error:', error)
+  }
 }
 
 // PWA installation
@@ -215,8 +225,29 @@ const handleResetPassword = () => {
             <span>{{ errorMessage }}</span>
           </div>
 
-          <form class="login-form">
-            <div class="form-group">
+          <form class="login-form" @submit.prevent="submitLogin">
+            <!-- Login Method Toggle -->
+            <div class="login-toggle">
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{ active: loginMethod === 'nik' }"
+                @click="loginMethod = 'nik'"
+              >
+                Login with NIK
+              </button>
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{ active: loginMethod === 'email' }"
+                @click="loginMethod = 'email'"
+              >
+                Login with Email
+              </button>
+            </div>
+
+            <!-- NIK Input Field (shown when loginMethod is 'nik') -->
+            <div v-if="loginMethod === 'nik'" class="form-group">
               <label for="nik">NIK (National ID)</label>
               <div class="input-container">
                 <svg
@@ -239,6 +270,35 @@ const handleResetPassword = () => {
                   type="text"
                   class="form-control"
                   placeholder="Enter your NIK"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Email Input Field (shown when loginMethod is 'email') -->
+            <div v-if="loginMethod === 'email'" class="form-group">
+              <label for="email">Email</label>
+              <div class="input-container">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="input-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <input
+                  id="email"
+                  v-model="email"
+                  type="email"
+                  class="form-control"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
@@ -325,8 +385,9 @@ const handleResetPassword = () => {
               </button>
             </div>
 
-            <button type="button" class="btn-primary" @click="navigateToNews">
-              <span>{{ isOfflineMode ? 'Go to App (Offline)' : 'Go to App' }}</span>
+            <button type="button" class="btn-primary" @click="submitLogin" :disabled="isLoading">
+              <div v-if="isLoading" class="loading-spinner"></div>
+              <span>{{ isOfflineMode ? 'Login (Offline)' : 'Login' }}</span>
             </button>
 
             <div class="login-divider">
@@ -763,6 +824,35 @@ const handleResetPassword = () => {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* Login method toggle styling */
+.login-toggle {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border: none;
+  color: #64748b;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.toggle-btn:hover:not(.active) {
+  background-color: #e2e8f0;
 }
 
 /* Responsive design */

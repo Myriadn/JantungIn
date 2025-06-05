@@ -9,7 +9,7 @@ module.exports = {
     server.route([
       {
         method: 'POST',
-        path: '/api/setup/admin',
+        path: '/api/v1/setup/admin',
         handler: setupController.setupAdmin,
         options: {
           auth: false,
@@ -22,7 +22,7 @@ module.exports = {
       },
       {
         method: 'GET',
-        path: '/api/setup/admin-check',
+        path: '/api/v1/setup/admin-check',
         handler: setupController.checkAdminAccount,
         options: {
           auth: false,

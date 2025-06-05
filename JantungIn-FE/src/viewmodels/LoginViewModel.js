@@ -1,6 +1,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import authService from '@/services/AuthService'
+import { useErrorHandler } from '@/utils/errorHandler'
 
 /**
  * Login ViewModel
@@ -8,12 +10,16 @@ import authService from '@/services/AuthService'
  */
 export function useLoginViewModel() {
   const router = useRouter()
+  const { t } = useI18n()
+  const { getErrorMessage } = useErrorHandler()
 
-  // Form state
+  // State
   const nik = ref('')
+  const email = ref('') // Add email for alternative login
   const password = ref('')
   const rememberMe = ref(false)
   const showPassword = ref(false)
+  const loginMethod = ref('nik') // 'nik' or 'email'
 
   // UI state
   const isLoading = ref(false)
@@ -24,7 +30,15 @@ export function useLoginViewModel() {
    * Computed property to check if form is valid
    */
   const isFormValid = computed(() => {
-    return nik.value.trim() !== '' && password.value.trim() !== ''
+    if (loginMethod.value === 'nik') {
+      // NIK must be 16 digits and password must not be empty
+      return (
+        nik.value.trim().length === 16 && /^\d+$/.test(nik.value) && password.value.trim() !== ''
+      )
+    } else {
+      // Email must be in valid format and password must not be empty
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) && password.value.trim() !== ''
+    }
   })
 
   /**
@@ -32,7 +46,25 @@ export function useLoginViewModel() {
    */
   const handleLogin = async () => {
     if (!isFormValid.value) {
-      errorMessage.value = 'Please fill in all required fields'
+      if (loginMethod.value === 'nik') {
+        if (nik.value.trim() === '') {
+          errorMessage.value = t('errors.validation.requiredField')
+        } else if (nik.value.trim().length !== 16) {
+          errorMessage.value = t('errors.validation.nikFormat')
+        } else if (!/^\d+$/.test(nik.value)) {
+          errorMessage.value = t('errors.validation.nikFormat')
+        } else {
+          errorMessage.value = t('errors.auth.missingFields')
+        }
+      } else {
+        if (email.value.trim() === '') {
+          errorMessage.value = t('errors.validation.requiredField')
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+          errorMessage.value = t('errors.validation.emailFormat')
+        } else {
+          errorMessage.value = t('errors.auth.missingFields')
+        }
+      }
       return
     }
 
@@ -40,16 +72,36 @@ export function useLoginViewModel() {
       isLoading.value = true
       errorMessage.value = ''
 
-      await authService.login(nik.value, password.value)
+      let user
+      if (loginMethod.value === 'nik') {
+        user = await authService.login(nik.value, password.value)
+      } else {
+        user = await authService.loginWithEmail(email.value, password.value)
+      }
+
+      console.log('Login successful:', user)
 
       // Redirect to news page after successful login
-      router.push('/news')
+      router.push('/home')
     } catch (error) {
       console.error('Login error:', error)
-      errorMessage.value = error.message || 'Login failed. Please check your credentials.'
+
+      // Use error handler to get localized error message
+      errorMessage.value = getErrorMessage(error)
+
+      throw error
     } finally {
       isLoading.value = false
     }
+  }
+
+  /**
+   * Toggle login method between NIK and email
+   */
+  const toggleLoginMethod = () => {
+    loginMethod.value = loginMethod.value === 'nik' ? 'email' : 'nik'
+    // Reset fields when changing login method
+    errorMessage.value = ''
   }
 
   /**
@@ -86,6 +138,7 @@ export function useLoginViewModel() {
   return {
     // State
     nik,
+    email,
     password,
     rememberMe,
     showPassword,
@@ -93,11 +146,13 @@ export function useLoginViewModel() {
     errorMessage,
     isOfflineMode,
     isFormValid,
+    loginMethod,
 
     // Methods
     handleLogin,
     goToRegister,
     resetForm,
     togglePasswordVisibility,
+    toggleLoginMethod,
   }
 }

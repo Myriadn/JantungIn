@@ -1,8 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
 import LazyImage from '@/components/LazyImage.vue'
+import apiService from '@/services/ApiService'
+import authService from '@/services/AuthService'
+import LoadingComponent from '@/components/LoadingComponent.vue'
+import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'AccountPage',
@@ -11,12 +16,14 @@ defineOptions({
 const router = useRouter()
 const fileInput = ref(null)
 const userPhotoUrl = ref(null)
+const isLoading = ref(true)
+const error = ref(null)
 
-// User information (mock data)
+// User information from API
 const user = ref({
-  name: 'Bener Dzero',
-  nik: '1234567890123456',
-  email: 'bener.dzero@example.com',
+  name: '',
+  nik: '',
+  email: '',
   lastLogin: (() => {
     const date = new Date()
     const hours = date.getHours().toString().padStart(2, '0')
@@ -28,6 +35,11 @@ const user = ref({
   })(),
   healthStatus: 'Good',
   profileCompleted: 85,
+})
+
+// Computed property to check if user data is loaded
+const isUserDataLoaded = computed(() => {
+  return user.value.name !== '' && user.value.nik !== ''
 })
 
 // Notification system
@@ -52,14 +64,14 @@ const triggerFileInput = () => {
 const removePhoto = () => {
   userPhotoUrl.value = null
   localStorage.removeItem('userPhotoUrl')
-  
+
   showNotification.value = true
   notificationMessage.value = 'Foto profil telah dihapus'
   notificationType.value = 'info'
   setTimeout(() => {
     showNotification.value = false
   }, 3000)
-  
+
   showPhotoOptions.value = false
 }
 
@@ -77,13 +89,13 @@ const handleFileUpload = (event) => {
       }, 3000)
       return
     }
-    
+
     const reader = new FileReader()
     reader.onload = (e) => {
       userPhotoUrl.value = e.target.result
       // In a real application, you would upload this to a server
       // and store the URL or reference in the user's profile
-      
+
       // Update profile completion
       if (user.value.profileCompleted < 100) {
         user.value.profileCompleted += 5
@@ -91,10 +103,10 @@ const handleFileUpload = (event) => {
           user.value.profileCompleted = 100
         }
       }
-      
+
       // Save to localStorage for persistence between page loads
       localStorage.setItem('userPhotoUrl', userPhotoUrl.value)
-      
+
       // Show success notification
       showNotification.value = true
       notificationMessage.value = 'Foto profil berhasil diperbarui!'
@@ -121,12 +133,79 @@ onMounted(() => {
   if (savedPhotoUrl) {
     userPhotoUrl.value = savedPhotoUrl
   }
+
+  // Load user data from API
+  loadUserData()
 })
+
+// Fetch user data from API
+const loadUserData = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+
+    // Get current user from auth service
+    const currentUser = authService.getCurrentUser()
+
+    if (currentUser) {
+      // Use user data from local storage if available
+      user.value = {
+        ...user.value,
+        name: currentUser.name || 'User',
+        nik: currentUser.nik || '',
+        email: currentUser.email || '',
+      }
+
+      // Try to fetch fresh data from API if online
+      if (navigator.onLine) {
+        const response = await apiService.get('/api/v1/auth/profile')
+        const userData = response.data || response
+
+        if (userData && userData.data) {
+          // Update user data with fresh data from API
+          user.value = {
+            ...user.value,
+            name: userData.data.name || user.value.name,
+            email: userData.data.email || user.value.email,
+            // NIK is stored locally as it's not returned by the API for security
+          }
+        }
+      }
+    } else {
+      // No authenticated user found, redirect to login
+      router.push('/')
+    }
+  } catch (err) {
+    console.error('Error loading user data:', err)
+    error.value = {
+      title: 'Failed to load profile',
+      message: err.message || 'Could not load your profile data. Please try again.',
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // Logout function
 const logout = () => {
-  // In a real app, you would clear tokens or session data here
-  router.push('/') // Redirect to login page
+  try {
+    // Clear authentication data
+    authService.logout()
+    // Show notification before redirecting
+    showNotification.value = true
+    notificationMessage.value = 'Logged out successfully'
+    notificationType.value = 'info'
+
+    // Redirect after a short delay
+    setTimeout(() => {
+      router.push('/') // Redirect to login page
+    }, 1500)
+  } catch (error) {
+    console.error('Logout error:', error)
+    showNotification.value = true
+    notificationMessage.value = 'Error during logout'
+    notificationType.value = 'error'
+  }
 }
 
 // Navigate to history page
@@ -145,41 +224,74 @@ const healthData = ref([
 <template>
   <div class="account-page">
     <!-- Notification component -->
-    <div 
-      v-if="showNotification" 
+    <div
+      v-if="showNotification"
       class="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 opacity-100"
       :class="{
         'bg-green-100 border-l-4 border-green-500 text-green-700': notificationType === 'success',
         'bg-red-100 border-l-4 border-red-500 text-red-700': notificationType === 'error',
-        'bg-blue-100 border-l-4 border-blue-500 text-blue-700': notificationType === 'info'
+        'bg-blue-100 border-l-4 border-blue-500 text-blue-700': notificationType === 'info',
       }"
     >
       <div class="flex items-center">
         <!-- Success icon -->
         <div v-if="notificationType === 'success'" class="mr-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
-        
+
         <!-- Error icon -->
         <div v-if="notificationType === 'error'" class="mr-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
-        
+
         <!-- Info icon -->
         <div v-if="notificationType === 'info'" class="mr-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
-        
+
         <p class="font-medium">{{ notificationMessage }}</p>
       </div>
     </div>
-    
+
     <!-- Main section with gradient background -->
     <div
       class="relative bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 min-h-screen overflow-hidden"
@@ -192,8 +304,23 @@ const healthData = ref([
       </div>
 
       <div class="container max-w-5xl mx-auto py-12 px-4 relative z-10">
+        <!-- Loading component -->
+        <LoadingComponent
+          :is-loading="isLoading"
+          message="Loading your profile..."
+          :full-page="false"
+        />
+
+        <!-- Error component -->
+        <NetworkErrorComponent
+          v-if="error && !isLoading"
+          :title="error.title"
+          :message="error.message"
+          :retry-action="loadUserData"
+        />
+
         <!-- Page header with welcome message -->
-        <div class="mb-8 text-center">
+        <div class="mb-8 text-center" v-if="!isLoading && !error">
           <div
             class="inline-block px-4 py-2 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 text-blue-100 text-sm mb-4"
           >
@@ -206,7 +333,10 @@ const healthData = ref([
         </div>
 
         <!-- Main content with two columns on larger screens -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          v-if="!isLoading && !error && isUserDataLoaded"
+        >
           <!-- Left column: Profile card -->
           <div class="lg:col-span-1">
             <div
@@ -220,10 +350,20 @@ const healthData = ref([
                 <div class="relative z-10 p-6 text-center">
                   <!-- Profile photo with upload overlay -->
                   <div class="relative inline-block mb-3">
-                    <div v-if="userPhotoUrl" class="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto">
-                      <img :src="userPhotoUrl" alt="Profile Photo" class="h-full w-full object-cover" />
+                    <div
+                      v-if="userPhotoUrl"
+                      class="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto"
+                    >
+                      <img
+                        :src="userPhotoUrl"
+                        alt="Profile Photo"
+                        class="h-full w-full object-cover"
+                      />
                     </div>
-                    <div v-else class="h-24 w-24 flex items-center justify-center bg-white rounded-full p-4 border-4 border-white shadow-lg mx-auto">
+                    <div
+                      v-else
+                      class="h-24 w-24 flex items-center justify-center bg-white rounded-full p-4 border-4 border-white shadow-lg mx-auto"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="h-14 w-14 text-blue-600"
@@ -239,48 +379,86 @@ const healthData = ref([
                         />
                       </svg>
                     </div>
-                    
+
                     <!-- Upload overlay and input -->
-                    <div 
+                    <div
                       class="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 p-1.5 rounded-full cursor-pointer border-2 border-white shadow-md transition-all duration-200 group"
                       @click="togglePhotoOptions"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
                       </svg>
-                      <input 
-                        type="file" 
-                        ref="fileInput" 
-                        accept="image/*" 
-                        class="hidden" 
+                      <input
+                        type="file"
+                        ref="fileInput"
+                        accept="image/*"
+                        class="hidden"
                         @change="handleFileUpload"
                       />
                     </div>
-                    
+
                     <!-- Photo options menu -->
-                    <div 
-                      v-if="showPhotoOptions" 
+                    <div
+                      v-if="showPhotoOptions"
                       class="absolute bottom-8 right-0 bg-white rounded-md shadow-lg overflow-hidden z-20 min-w-[180px]"
                     >
                       <div class="py-1">
-                        <button 
-                          @click="triggerFileInput" 
+                        <button
+                          @click="triggerFileInput"
                           class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2 text-blue-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                           Upload Foto
                         </button>
-                        
-                        <button 
+
+                        <button
                           v-if="userPhotoUrl"
-                          @click="removePhoto" 
+                          @click="removePhoto"
                           class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2 text-red-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                           Hapus Foto
                         </button>
@@ -608,6 +786,9 @@ const healthData = ref([
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </div>
 </template>
 

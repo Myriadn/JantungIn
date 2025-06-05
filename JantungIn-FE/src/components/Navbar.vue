@@ -7,6 +7,7 @@ defineOptions({
 })
 
 const menuItems = ref([
+  { name: 'Home', path: '/home' },
   { name: 'News', path: '/news' },
   { name: 'History', path: '/history' },
 ])
@@ -14,11 +15,9 @@ const menuItems = ref([
 // State untuk menu mobile
 const showMobileMenu = ref(false)
 
-
 // Using vue-router for navigation
 const route = useRoute()
 const router = useRouter()
-
 </script>
 
 <template>

@@ -6,7 +6,7 @@ const diagnosisController = require('../controllers/diagnosisController');
 module.exports = [
   {
     method: 'POST',
-    path: '/api/diagnosis',
+    path: '/api/v1/diagnosis',
     options: {
       auth: 'jwt',
       validate: {
@@ -35,7 +35,7 @@ module.exports = [
   },
   {
     method: 'GET',
-    path: '/api/diagnosis/{id}',
+    path: '/api/v1/diagnosis/{id}',
     options: {
       auth: 'jwt',
       validate: {
@@ -48,7 +48,7 @@ module.exports = [
   },
   {
     method: 'GET',
-    path: '/api/diagnosis/history',
+    path: '/api/v1/diagnosis/history',
     options: {
       auth: 'jwt',
       validate: {
@@ -61,7 +61,7 @@ module.exports = [
   },
   {
     method: 'GET',
-    path: '/api/admin/diagnosis/all',
+    path: '/api/v1/admin/diagnosis/all',
     options: {
       auth: 'jwt',
       handler: diagnosisController.getAllDiagnoses,
@@ -73,7 +73,7 @@ module.exports = [
   },
   {
     method: 'GET',
-    path: '/api/admin/diagnosis/patient/{patientId}',
+    path: '/api/v1/admin/diagnosis/patient/{patientId}',
     options: {
       auth: 'jwt',
       validate: {

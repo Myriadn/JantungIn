@@ -4,6 +4,12 @@ import FooterComponent from '@/components/Footer-component.vue'
 import LazyBackground from '@/components/LazyBackground.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
+import LoadingComponent from '@/components/LoadingComponent.vue'
+import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
+import historyService from '@/services/HistoryService'
+import { handleApiError } from '@/utils/apiErrorHandler'
+import { withCache, createCacheKey } from '@/utils/apiCache'
 
 defineOptions({
   name: 'HistoryPage',
@@ -15,23 +21,53 @@ const diagnoses = ref([])
 const hasHistory = ref(false)
 const isLoading = ref(true)
 const selectedDiagnosis = ref(null)
+const error = ref(null)
 
-// Load diagnoses from localStorage
-onMounted(() => {
-  setTimeout(() => {
+// Load diagnoses from API with fallback to localStorage
+const loadUserHistory = async () => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    // Use cache mechanism for history
+    const cacheKey = createCacheKey('/diagnosis/history', { userId: patientNik.value })
+
+    const historyData = await withCache(
+      () => historyService.getUserHistory({ userId: patientNik.value }),
+      cacheKey,
+      { duration: 30 * 60 * 1000 }, // 30 minutes cache
+    )
+
+    if (historyData && historyData.length > 0) {
+      diagnoses.value = historyData
+      hasHistory.value = true
+    } else {
+      hasHistory.value = false
+    }
+  } catch (err) {
+    handleApiError(err, {
+      setError: (details) => {
+        error.value = details
+      },
+      setLoading: (state) => {
+        isLoading.value = state
+      },
+    })
+
+    // Try to fallback to localStorage if API fails
     try {
       const userHistory = JSON.parse(localStorage.getItem('userHistory') || '{}')
       if (userHistory[patientNik.value] && userHistory[patientNik.value].length > 0) {
         diagnoses.value = userHistory[patientNik.value]
         hasHistory.value = true
       }
-    } catch (error) {
-      console.error('Error loading diagnosis history:', error)
-    } finally {
-      isLoading.value = false
+    } catch (localError) {
+      console.error('Error loading local diagnosis history:', localError)
     }
-  }, 500) // Simulate loading delay
-})
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // Helper functions
 const formatDate = (dateString) => {
@@ -48,6 +84,11 @@ const getStatusClass = (percentage) => {
   if (numPercentage < 50) return 'bg-yellow-500'
   return 'bg-red-500'
 }
+
+// Call the load function when component mounts
+onMounted(() => {
+  loadUserHistory()
+})
 
 const getStatusText = (percentage) => {
   const numPercentage = parseFloat(percentage)
@@ -68,12 +109,15 @@ const goBack = () => {
 <template>
   <div class="history-page">
     <!-- Preload critical images -->
-    <ImagePreloader :images="[
-      '/images/diagnose-hero.jpg',
-      '/images/loading-placeholder.svg',
-      '/images/error-placeholder.svg'
-    ]" priority />
-    
+    <ImagePreloader
+      :images="[
+        '/images/diagnose-hero.jpg',
+        '/images/loading-placeholder.svg',
+        '/images/error-placeholder.svg',
+      ]"
+      priority
+    />
+
     <!-- Hero Banner Section -->
     <section class="relative">
       <!-- Background with overlay -->
@@ -149,31 +193,25 @@ const goBack = () => {
 
       <div class="max-w-4xl mx-auto px-4 relative z-10">
         <!-- Loading State -->
-        <div
-          v-if="isLoading"
-          class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 text-center"
-        >
-          <div class="animate-pulse flex flex-col items-center">
-            <div class="heartbeat-loader mb-6">
-              <svg
-                class="heart-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                  fill="currentColor"
-                />
-              </svg>
-            </div>
-            <p class="text-gray-700 text-lg font-medium">Loading your health records...</p>
-            <p class="text-gray-500 mt-2">Please wait while we retrieve your medical history</p>
-          </div>
-        </div>
+        <LoadingComponent
+          :is-loading="isLoading"
+          message="Loading your health records..."
+          :full-page="false"
+        />
+
+        <!-- Network Error State -->
+        <NetworkErrorComponent
+          v-if="error && !isLoading"
+          :title="error.title"
+          :message="error.message"
+          :retry-action="loadUserHistory"
+        />
 
         <!-- Empty State -->
-        <div v-else-if="!hasHistory" class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8">
+        <div
+          v-else-if="!isLoading && !error && !hasHistory"
+          class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8"
+        >
           <div class="flex flex-col items-center text-center">
             <div class="bg-blue-50 rounded-full p-5 mb-6">
               <svg
@@ -858,6 +896,9 @@ const goBack = () => {
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </div>
 </template>
 

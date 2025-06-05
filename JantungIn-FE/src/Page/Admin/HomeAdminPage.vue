@@ -39,14 +39,16 @@ onMounted(() => {
 <template>
   <div class="admin-dashboard mt-16">
     <!-- Preload important images for this page -->
-    <ImagePreloader :images="[
-      '/images/azwin.jpg',
-      '/images/OIP.jpg',
-      '/images/ui.jpg',
-      '/images/heart2.jpg',
-      '/images/heart3.jpg'
-    ]" />
-    
+    <ImagePreloader
+      :images="[
+        '/images/azwin.jpg',
+        '/images/OIP.jpg',
+        '/images/ui.jpg',
+        '/images/heart2.jpg',
+        '/images/heart3.jpg',
+      ]"
+    />
+
     <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Section with Hospital Background - Updated Modern Design -->
     <section class="hero relative text-white">
@@ -61,14 +63,14 @@ onMounted(() => {
         src="/images/azwin.jpg"
         root-margin="0px"
         threshold="0.1"
-        style="filter: blur(1px); transform: scale(1.03);"
+        style="filter: blur(1px); transform: scale(1.03)"
       ></lazy-background>
       <lazy-background
         class="absolute inset-0 bg-cover bg-center animate-fade-in-out"
         src="/images/picu.jpg"
         root-margin="0px"
         threshold="0.1"
-        style="filter: blur(1px); transform: scale(1.03); opacity: 0;"
+        style="filter: blur(1px); transform: scale(1.03); opacity: 0"
       ></lazy-background>
 
       <!-- Floating Shapes for Modern Design -->
@@ -87,7 +89,7 @@ onMounted(() => {
             Doctor Dashboard
           </div>
           <h1 class="text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight">
-            JantungIn <span class="text-gradient">Y0uk</span>
+            JantungIn <span class="text-gradient">Yuk</span>
           </h1>
           <p class="text-xl mb-8 text-blue-100 max-w-2xl leading-relaxed">
             Advanced cardiovascular risk assessment and patient management platform powered by AI

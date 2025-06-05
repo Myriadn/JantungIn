@@ -9,7 +9,7 @@ module.exports = {
     server.route([
       {
         method: 'POST',
-        path: '/api/admin/login',
+        path: '/api/v1/admin/login',
         handler: adminController.adminLogin,
         options: {
           auth: false,
@@ -23,7 +23,7 @@ module.exports = {
       // Rute untuk pasien (user)
       {
         method: 'GET',
-        path: '/api/admin/patients',
+        path: '/api/v1/admin/patients',
         handler: adminController.getAllPatients,
         options: {
           auth: 'jwt',
@@ -37,7 +37,7 @@ module.exports = {
       },
       {
         method: 'GET',
-        path: '/api/admin/patients/{id}',
+        path: '/api/v1/admin/patients/{id}',
         handler: adminController.getPatientById,
         options: {
           auth: 'jwt',
@@ -51,12 +51,25 @@ module.exports = {
       },
       {
         method: 'POST',
-        path: '/api/admin/patients/find',
+        path: '/api/v1/admin/patients/find',
         handler: adminController.findPatientByNik,
         options: {
           auth: 'jwt',
           tags: ['api', 'admin'],
           description: 'Mencari pasien berdasarkan NIK',
+          app: {
+            requiredRoles: ['admin', 'dokter'],
+          },
+        },
+      },
+      {
+        method: 'GET',
+        path: '/api/v1/admin/patients/search',
+        handler: adminController.searchPatients,
+        options: {
+          auth: 'jwt',
+          tags: ['api', 'admin'],
+          description: 'Mencari pasien berdasarkan nama atau NIK',
           app: {
             requiredRoles: ['admin', 'dokter'],
             // localhostOnly: true, // Dinonaktifkan untuk presentasi
@@ -67,7 +80,7 @@ module.exports = {
       // Rute untuk manajemen admin/dokter
       {
         method: 'GET',
-        path: '/api/admin/admins',
+        path: '/api/v1/admin/admins',
         handler: adminController.getAllAdmins,
         options: {
           auth: 'jwt',
@@ -81,7 +94,7 @@ module.exports = {
       },
       {
         method: 'POST',
-        path: '/api/admin/admins',
+        path: '/api/v1/admin/admins',
         handler: adminController.createAdminUser,
         options: {
           auth: 'jwt',
@@ -97,7 +110,7 @@ module.exports = {
       // Rute untuk manajemen user (common)
       {
         method: 'PUT',
-        path: '/api/admin/users/{id}',
+        path: '/api/v1/admin/users/{id}',
         handler: adminController.updateUser,
         options: {
           auth: 'jwt',
@@ -111,7 +124,7 @@ module.exports = {
       },
       {
         method: 'DELETE',
-        path: '/api/admin/users/{id}',
+        path: '/api/v1/admin/users/{id}',
         handler: adminController.deleteUser,
         options: {
           auth: 'jwt',
@@ -125,7 +138,7 @@ module.exports = {
       },
       {
         method: 'POST',
-        path: '/api/admin/users/{id}/reset-password',
+        path: '/api/v1/admin/users/{id}/reset-password',
         handler: adminController.resetUserPassword,
         options: {
           auth: 'jwt',
@@ -140,7 +153,7 @@ module.exports = {
       // Rute untuk statistik
       {
         method: 'GET',
-        path: '/api/admin/statistics/diagnosis',
+        path: '/api/v1/admin/statistics/diagnosis',
         handler: adminController.getDiagnosisStatistics,
         options: {
           auth: 'jwt',
@@ -155,7 +168,7 @@ module.exports = {
       // Rute untuk dashboard admin
       {
         method: 'GET',
-        path: '/api/admin/dashboard',
+        path: '/api/v1/admin/dashboard',
         handler: adminController.getAdminDashboard,
         options: {
           auth: 'jwt',
@@ -170,7 +183,7 @@ module.exports = {
       // Rute untuk profil admin
       {
         method: 'GET',
-        path: '/api/admin/profile',
+        path: '/api/v1/admin/profile',
         handler: adminController.getAdminProfile,
         options: {
           auth: 'jwt',
@@ -186,7 +199,7 @@ module.exports = {
       // Rute untuk mengganti password admin
       {
         method: 'POST',
-        path: '/api/admin/change-password',
+        path: '/api/v1/admin/change-password',
         handler: adminController.changeAdminPassword,
         options: {
           auth: 'jwt',

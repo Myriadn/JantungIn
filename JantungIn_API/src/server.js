@@ -55,23 +55,34 @@ const init = async () => {
   if (process.env.NODE_ENV === 'production') {
     await securityHeaders(server);
   }
+  // Apply rate limiting only in production
+  if (process.env.NODE_ENV === 'production') {
+    server.ext('onPreAuth', (request, h) => {
+      // Apply auth rate limiter to login/register routes
+      if (
+        (request.path.includes('/api/auth/login') || request.path.includes('/api/auth/register')) &&
+        request.method.toLowerCase() === 'post'
+      ) {
+        return authLimiter(request, h);
+      }
 
-  // Apply rate limiting for sensitive routes
-  server.ext('onPreAuth', (request, h) => {
-    // Apply auth rate limiter to login/register routes
-    if (
-      (request.path.includes('/api/auth/login') || request.path.includes('/api/auth/register')) &&
-      request.method.toLowerCase() === 'post'
-    ) {
-      return authLimiter(request, h);
-    }
-
-    // Apply general rate limiter to all routes
-    return createRateLimiter()(request, h);
-  });
-
+      // Apply general rate limiter to all routes
+      return createRateLimiter()(request, h);
+    });
+  }
   // Register routes
-  await server.register([require('./routes/adminRoutes'), require('./routes/setupRoutes')]);
+  await server.register([
+    require('./routes/adminRoutes'),
+    require('./routes/setupRoutes'),
+    {
+      plugin: {
+        name: 'auth-routes',
+        register: async (server) => {
+          server.route(require('./routes/authRoutes'));
+        },
+      },
+    },
+  ]);
 
   // Serve static files from public folder with higher priority
   server.route({
@@ -101,9 +112,8 @@ const init = async () => {
       return h.redirect('/api-docs.html');
     },
   });
-
-  // Add routes
-  server.route([...authRoutes, ...diagnosisRoutes]);
+  // Add diagnosis routes
+  server.route([...diagnosisRoutes]);
 
   // Print registered routes for debugging
   console.log('Registered routes:');

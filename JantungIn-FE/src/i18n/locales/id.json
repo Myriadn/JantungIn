@@ -1,0 +1,58 @@
+{
+  "common": {
+    "attempt": "Percobaan",
+    "loading": "Memuat",
+    "retry": "Coba lagi",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "success": "Berhasil",
+    "error": "Kesalahan",
+    "warning": "Peringatan"
+  },
+  "errors": {
+    "network": {
+      "offline": "Tidak ada koneksi internet. Silakan periksa koneksi Anda.",
+      "timeout": "Waktu permintaan habis. Silakan coba lagi nanti.",
+      "connectionRefused": "Koneksi ditolak. Server mungkin sedang tidak tersedia.",
+      "serverError": "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
+      "retry": "Mencoba menghubungkan kembali..."
+    },
+    "auth": {
+      "invalidCredentials": "NIK atau password tidak valid.",
+      "invalidEmailCredentials": "Email atau password tidak valid.",
+      "tokenExpired": "Sesi Anda telah berakhir. Silakan login kembali.",
+      "invalidToken": "Sesi tidak valid. Silakan login kembali.",
+      "accessDenied": "Akses ditolak. Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+      "registrationFailed": "Pendaftaran gagal. Silakan coba lagi.",
+      "userNotFound": "Pengguna tidak ditemukan.",
+      "nikAlreadyRegistered": "NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.",
+      "emailAlreadyRegistered": "Email sudah terdaftar.",
+      "missingFields": "Mohon lengkapi semua kolom yang diperlukan.",
+      "loginFailed": "Login gagal. Silakan coba lagi."
+    },
+    "validation": {
+      "nikFormat": "NIK harus terdiri dari 16 digit angka.",
+      "emailFormat": "Format email tidak valid.",
+      "passwordLength": "Password harus terdiri dari minimal 8 karakter.",
+      "passwordsDoNotMatch": "Password tidak cocok.",
+      "nameLength": "Nama terlalu pendek (minimal 3 karakter).",
+      "nameRequired": "Nama harus diisi.",
+      "dateFormat": "Format tanggal tidak valid.",
+      "requiredField": "Kolom ini wajib diisi."
+    },
+    "api": {
+      "invalidResponse": "Respons server tidak valid.",
+      "missingToken": "Token tidak ditemukan dalam respons.",
+      "badRequest": "Permintaan tidak valid.",
+      "unknownError": "Terjadi kesalahan yang tidak diketahui. Silakan coba lagi nanti."
+    }
+  },
+  "success": {
+    "auth": {
+      "login": "Login berhasil.",
+      "registration": "Pendaftaran berhasil.",
+      "profileUpdate": "Profil berhasil diperbarui.",
+      "logout": "Logout berhasil."
+    }
+  }
+}

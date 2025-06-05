@@ -4,10 +4,10 @@ const Joi = require('@hapi/joi');
 const authController = require('../controllers/authController');
 
 module.exports = [
-  // Rute dengan prefix /api
+  // Rute dengan prefix /api/v1
   {
     method: 'POST',
-    path: '/api/auth/register',
+    path: '/api/v1/auth/register',
     options: {
       auth: false,
       validate: {
@@ -22,56 +22,23 @@ module.exports = [
       handler: authController.register,
     },
   },
-  // Rute alternatif tanpa prefix /api
   {
     method: 'POST',
-    path: '/auth/register',
+    path: '/api/v1/auth/login',
     options: {
       auth: false,
       validate: {
         payload: Joi.object({
-          name: Joi.string().required(),
-          email: Joi.string().email(), // Email optional
-          nik: Joi.string().length(16).pattern(/^\d+$/).required(), // NIK harus 16 digit angka
-          password: Joi.string().min(6).required(),
-          dateOfBirth: Joi.date(),
-        }),
-      },
-      handler: authController.register,
-    },
-  }, // Rute dengan prefix /api
-  {
-    method: 'POST',
-    path: '/api/auth/login',
-    options: {
-      auth: false,
-      validate: {
-        payload: Joi.object({
-          nik: Joi.string().length(16).pattern(/^\d+$/).required(), // Login dengan NIK
+          nik: Joi.string().length(16).pattern(/^\d+$/).required(),
           password: Joi.string().required(),
         }),
       },
       handler: authController.login,
     },
   },
-  // Rute alternatif tanpa prefix /api
   {
     method: 'POST',
-    path: '/auth/login',
-    options: {
-      auth: false,
-      validate: {
-        payload: Joi.object({
-          nik: Joi.string().length(16).pattern(/^\d+$/).required(), // Login dengan NIK
-          password: Joi.string().required(),
-        }),
-      },
-      handler: authController.login,
-    },
-  }, // Login dengan email (fallback) dengan prefix /api
-  {
-    method: 'POST',
-    path: '/api/auth/login-email',
+    path: '/api/v1/auth/login-email',
     options: {
       auth: false,
       validate: {
@@ -82,19 +49,18 @@ module.exports = [
       },
       handler: authController.loginWithEmail,
     },
-  }, // Debugging endpoint untuk NIK
+  },
   {
     method: 'GET',
-    path: '/api/auth/debug-nik',
+    path: '/api/v1/auth/debug-nik',
     options: {
       auth: false,
       handler: authController.debugNIK,
     },
   },
-  // Update NIK endpoint
   {
     method: 'PUT',
-    path: '/api/auth/update-nik',
+    path: '/api/v1/auth/update-nik',
     options: {
       auth: false,
       validate: {
@@ -106,34 +72,17 @@ module.exports = [
       handler: authController.updateUserNIK,
     },
   },
-  // Rute alternatif tanpa prefix /api
   {
     method: 'GET',
-    path: '/auth/profile',
+    path: '/api/v1/auth/profile',
     options: {
       auth: 'jwt',
       handler: authController.getProfile,
     },
   },
-  // Rute dengan prefix /api
   {
     method: 'PUT',
-    path: '/api/auth/profile',
-    options: {
-      auth: 'jwt',
-      validate: {
-        payload: Joi.object({
-          name: Joi.string(),
-          dateOfBirth: Joi.date(),
-        }),
-      },
-      handler: authController.updateProfile,
-    },
-  },
-  // Rute alternatif tanpa prefix /api
-  {
-    method: 'PUT',
-    path: '/auth/profile',
+    path: '/api/v1/auth/profile',
     options: {
       auth: 'jwt',
       validate: {

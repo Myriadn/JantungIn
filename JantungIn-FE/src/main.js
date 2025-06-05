@@ -3,6 +3,7 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 import { registerSW } from './registerSW'
 import { setupServiceProvider } from './services/serviceProvider'
 import VueLazyload from 'vue-lazyload'
@@ -19,6 +20,9 @@ setupServiceProvider(app)
 
 // Use router
 app.use(router)
+
+// Use i18n for internationalization
+app.use(i18n)
 
 // Use Vue Lazyload for images with v-lazy directive
 app.use(VueLazyload, {

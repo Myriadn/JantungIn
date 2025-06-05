@@ -1,7 +1,27 @@
 <template>
   <div class="result-page mt-16">
-    <!-- Added mt-16 for navbar spacing -->
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Loading indicator -->
+    <div v-if="isLoading" class="flex justify-center items-center h-screen">
+      <div class="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-500"></div>
+      <span class="ml-3 text-lg">Memuat data diagnosis...</span>
+    </div>
+
+    <!-- Error message -->
+    <div v-else-if="error" class="flex justify-center items-center h-screen">
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-lg">
+        <p class="font-bold">Terjadi kesalahan</p>
+        <p>{{ error }}</p>
+        <button
+          @click="loadDiagnosisData"
+          class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    </div>
+
+    <!-- Main content when data is loaded -->
+    <div v-else class="container mx-auto px-4 py-8 max-w-6xl">
       <!-- Back Button and Send to Patient Button -->
       <div class="mb-6 flex justify-between items-center">
         <button
@@ -22,7 +42,7 @@
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Back to Diagnosis
+          Kembali
         </button>
 
         <button
@@ -43,7 +63,7 @@
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
-          Send to Patient
+          Kirim ke Pasien
         </button>
       </div>
 
@@ -65,18 +85,19 @@
                   clip-rule="evenodd"
                 />
               </svg>
-              <h1 class="text-3xl font-bold text-gray-800">Heart Disease Diagnosis Report</h1>
+              <h1 class="text-3xl font-bold text-gray-800">Laporan Diagnosis Penyakit Jantung</h1>
             </div>
 
             <div class="bg-gray-100 p-3 rounded-lg border-l-4 border-blue-500">
               <p class="text-gray-700">
-                <span class="font-medium">Patient:</span> {{ patientName }}
+                <span class="font-medium">Pasien:</span> {{ patientName }}
               </p>
               <p class="text-gray-700">
-                <span class="font-medium">Date:</span> {{ formatDate(diagnosisDate) }}
+                <span class="font-medium">Tanggal:</span> {{ formatDate(diagnosisDate) }}
               </p>
               <p class="text-gray-700">
-                <span class="font-medium">Report ID:</span> HD-{{ generateReportId() }}
+                <span class="font-medium">ID Laporan:</span>
+                {{ diagnosisId ? diagnosisId : 'HD-' + generateReportId() }}
               </p>
             </div>
           </div>
@@ -130,11 +151,11 @@
 
         <!-- Risk Factors and Recommendations -->
         <div class="mb-10 p-6 bg-gray-50 rounded-lg border border-gray-200">
-          <h2 class="text-xl font-semibold mb-4">Risk Analysis & Recommendations</h2>
+          <h2 class="text-xl font-semibold mb-4">Analisis Risiko & Rekomendasi</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 class="text-lg font-medium mb-3">Key Risk Factors</h3>
+              <h3 class="text-lg font-medium mb-3">Faktor Risiko Utama</h3>
               <ul class="space-y-2">
                 <li
                   v-for="(factor, index) in topRiskFactors"
@@ -159,7 +180,7 @@
             </div>
 
             <div>
-              <h3 class="text-lg font-medium mb-3">Recommendations</h3>
+              <h3 class="text-lg font-medium mb-3">Rekomendasi</h3>
               <ul class="space-y-2">
                 <li
                   v-for="(recommendation, index) in recommendations"
@@ -184,9 +205,10 @@
             </div>
           </div>
         </div>
+
         <!-- Patient Data Table -->
         <div class="mb-10">
-          <h2 class="text-xl font-semibold mb-4">Patient Input Data</h2>
+          <h2 class="text-xl font-semibold mb-4">Data Input Pasien</h2>
           <div class="overflow-x-auto">
             <table class="w-full border-collapse">
               <thead>
@@ -194,17 +216,17 @@
                   <th
                     class="px-4 py-3 text-left text-sm font-medium text-gray-700 border border-gray-200"
                   >
-                    Feature
+                    Fitur
                   </th>
                   <th
                     class="px-4 py-3 text-left text-sm font-medium text-gray-700 border border-gray-200"
                   >
-                    Value
+                    Nilai
                   </th>
                   <th
                     class="px-4 py-3 text-left text-sm font-medium text-gray-700 border border-gray-200"
                   >
-                    Normal Range/Description
+                    Rentang Normal/Deskripsi
                   </th>
                   <th
                     class="px-4 py-3 text-left text-sm font-medium text-gray-700 border border-gray-200"
@@ -279,318 +301,21 @@
           <div class="mt-3 text-right text-xs text-gray-500">
             <span class="inline-block mr-4">
               <span class="inline-block w-3 h-3 bg-red-50 border border-red-200 mr-1"></span>
-              Indicates values outside normal range
+              Mengindikasikan nilai di luar rentang normal
             </span>
           </div>
         </div>
-        <!-- Charts Section -->
-        <div class="mb-10">
-          <h2 class="text-xl font-semibold mb-6">Feature Contributions Analysis</h2>
 
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Left Feature Contributions Chart - Horizontal Bars -->
-            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div class="flex justify-between mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold">Feature Impact</h3>
-                  <p class="text-gray-600 text-sm">
-                    How each factor affects your heart disease risk
-                  </p>
-                </div>
-                <div
-                  class="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>{{ resultPercentage }}% Risk Score</span>
-                </div>
-              </div>
-
-              <div class="space-y-6">
-                <!-- Center Scale Indicator -->
-                <div class="relative h-6 mb-4 mt-2">
-                  <div class="absolute left-0 w-full top-1/2 h-0.5 bg-gray-300"></div>
-                  <div
-                    class="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-6 bg-gray-400 rounded-sm"
-                  ></div>
-
-                  <div class="absolute left-0 -bottom-1 text-xs text-gray-500">Decreases Risk</div>
-                  <div class="absolute right-0 -bottom-1 text-xs text-gray-500 text-right">
-                    Increases Risk
-                  </div>
-                </div>
-
-                <div v-for="(item, index) in featureContributions" :key="index" class="relative">
-                  <div class="flex justify-between mb-2">
-                    <div class="flex items-center">
-                      <div
-                        class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                        :class="getIconBgClass(item.value)"
-                      >
-                        <svg
-                          v-if="item.value > 0"
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-3 w-3 text-white"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 15l7-7 7 7"
-                          />
-                        </svg>
-                        <svg
-                          v-else
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-3 w-3 text-white"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </div>
-                      <span class="text-sm font-medium">{{ item.feature }}</span>
-                    </div>
-                    <span class="text-sm font-medium" :class="getTextColorClass(item.value)">
-                      {{ item.value > 0 ? '+' : '' }}{{ (item.value * 100).toFixed(0) }}%
-                    </span>
-                  </div>
-                  <div class="h-3 bg-gray-200 rounded-full relative">
-                    <!-- Center line -->
-                    <div
-                      class="absolute h-full w-px bg-gray-400 left-1/2 transform -translate-x-1/2"
-                    ></div>
-
-                    <!-- Negative bar (if value is negative) -->
-                    <div
-                      v-if="item.value < 0"
-                      class="absolute h-full bg-blue-500 rounded-l-full right-1/2"
-                      :style="{ width: `${Math.abs(item.value) * 50}%` }"
-                    ></div>
-
-                    <!-- Positive bar (if value is positive) -->
-                    <div
-                      v-if="item.value > 0"
-                      class="absolute h-full rounded-r-full left-1/2"
-                      :class="getBarColorClass(item.value)"
-                      :style="{ width: `${item.value * 50}%` }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Risk Summary -->
-              <div class="mt-8 pt-4 border-t border-gray-200">
-                <h4 class="font-medium text-sm mb-2">Key Risk Findings:</h4>
-                <ul class="space-y-2 text-sm">
-                  <li
-                    v-for="(factor, index) in topRiskFactors"
-                    :key="index"
-                    class="flex items-start"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-red-500 mr-2 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    <span>{{ factor }}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Feature Contribution Chart - Donut Chart -->
-            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h3 class="text-lg font-semibold mb-3">Contribution Breakdown</h3>
-              <p class="mb-4 text-gray-600 text-sm">
-                Relative impact of positive factors on diagnosis
-              </p>
-
-              <div class="flex flex-col md:flex-row items-center justify-between">
-                <!-- Donut Chart -->
-                <div class="donut-chart-container w-52 h-52 relative">
-                  <svg viewBox="0 0 100 100" class="donut-chart">
-                    <!-- Create donut segments for positive contributions -->
-                    <circle
-                      class="donut-ring"
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke="#e2e8f0"
-                      stroke-width="15"
-                    ></circle>
-
-                    <!-- Dynamic segments based on positive contributions -->
-                    <template v-for="(segment, index) in donutSegments" :key="index">
-                      <circle
-                        class="donut-segment"
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        :stroke="segment.color"
-                        stroke-width="15"
-                        :stroke-dasharray="`${segment.percent} ${100 - segment.percent}`"
-                        :stroke-dashoffset="-segment.offset"
-                      ></circle>
-                    </template>
-
-                    <!-- Center Text -->
-                    <text
-                      x="50"
-                      y="45"
-                      text-anchor="middle"
-                      class="donut-text font-bold"
-                      font-size="10"
-                    >
-                      {{ Math.round(calculateTotalPositiveContribution() * 100) }}%
-                    </text>
-                    <text x="50" y="55" text-anchor="middle" class="donut-subtext" font-size="6">
-                      Total Impact
-                    </text>
-                  </svg>
-                </div>
-
-                <!-- Legend -->
-                <div class="mt-4 md:mt-0 md:ml-6">
-                  <div class="space-y-3">
-                    <div
-                      v-for="(item, index) in positiveContributions"
-                      :key="index"
-                      class="flex items-center"
-                    >
-                      <div
-                        :style="{ backgroundColor: donutColors[index % donutColors.length] }"
-                        class="w-3 h-3 rounded-sm mr-2"
-                      ></div>
-                      <span class="text-sm">{{ item.feature }}</span>
-                      <span class="ml-2 text-xs text-gray-600">
-                        {{ (item.value * 100).toFixed(0) }}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- Action Buttons -->
         <div
           class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mt-10"
         >
           <button
             class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition-colors"
-            @click="saveResults"
-          >
-            Save Results
-          </button>
-
-          <button
-            class="px-8 py-3 bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition-colors"
             @click="printResults"
           >
-            Print Report
+            Cetak Laporan
           </button>
-        </div>
-
-        <!-- NIK Input Dialog -->
-        <div
-          v-if="showNikDialog"
-          class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-        >
-          <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">Enter Patient NIK</h3>
-            <p class="text-gray-600 mb-4">
-              Please enter the patient's NIK (National ID Number) to save this diagnosis to their
-              history.
-            </p>
-
-            <div class="mb-4">
-              <label for="patientNik" class="block text-sm font-medium text-gray-700 mb-1"
-                >NIK</label
-              >
-              <input
-                type="text"
-                id="patientNik"
-                v-model="patientNik"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter 16-digit NIK"
-                maxlength="16"
-              />
-              <p v-if="nikError" class="mt-1 text-sm text-red-600">{{ nikError }}</p>
-            </div>
-
-            <div class="flex justify-end space-x-3">
-              <button
-                @click="closeNikDialog"
-                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                Cancel
-              </button>
-
-              <button
-                @click="handleSaveToHistory"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                :disabled="isSaving"
-              >
-                <span v-if="isSaving" class="flex items-center">
-                  <svg
-                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Saving...
-                </span>
-                <span v-else>Save to History</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         <!-- Send to Patient Dialog -->
@@ -599,9 +324,9 @@
           class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
         >
           <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">Send Results to Patient</h3>
+            <h3 class="text-lg font-semibold mb-4">Kirim Hasil ke Pasien</h3>
             <p class="text-gray-600 mb-4">
-              Enter the patient's information to send this diagnosis report.
+              Masukkan informasi pasien untuk mengirim laporan diagnosis ini.
             </p>
 
             <div class="mb-4">
@@ -613,7 +338,7 @@
                 id="sendPatientNik"
                 v-model="sendPatientNik"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter 16-digit NIK"
+                placeholder="Masukkan NIK 16 digit"
                 maxlength="16"
               />
               <p v-if="sendNikError" class="mt-1 text-sm text-red-600">{{ sendNikError }}</p>
@@ -621,14 +346,14 @@
 
             <div class="mb-4">
               <label for="sendPatientName" class="block text-sm font-medium text-gray-700 mb-1"
-                >Full Name</label
+                >Nama Lengkap</label
               >
               <input
                 type="text"
                 id="sendPatientName"
                 v-model="sendPatientName"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter patient's full name"
+                placeholder="Masukkan nama lengkap pasien"
               />
               <p v-if="sendNameError" class="mt-1 text-sm text-red-600">{{ sendNameError }}</p>
             </div>
@@ -638,7 +363,7 @@
                 @click="closeSendDialog"
                 class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
-                Cancel
+                Batal
               </button>
 
               <button
@@ -667,9 +392,9 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Sending...
+                  Mengirim...
                 </span>
-                <span v-else>Send Results</span>
+                <span v-else>Kirim Hasil</span>
               </button>
             </div>
           </div>
@@ -680,83 +405,490 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import diagnosisService from '@/services/DiagnosisService'
+import patientService from '@/services/PatientService'
+import historyService from '@/services/HistoryService'
 
 const router = useRouter()
 const route = useRoute()
 
-// Get data from route params or use mock data if not available
-const patientName = ref(route.params.patientName || 'John Doe')
-const resultPercentage = ref(route.params.resultPercentage || 10)
-const diagnosisDate = ref(new Date())
+// State variables
+const isLoading = ref(true)
+const error = ref(null)
+const diagnosis = ref(null)
+const patientInfo = ref(null)
 
-// Mock data for the charts- Feature contributions can be positive (increasing risk) or negative (decreasing risk)
-const featureContributions = ref([
-  { feature: 'Serum Cholesterol', value: 0.42 },
-  { feature: 'Age', value: 0.26 },
-  { feature: 'ST Depression', value: 0.18 },
-  { feature: 'Resting Blood Pressure', value: 0.14 },
-  { feature: 'Number of Major Vessels', value: 0.08 },
-  { feature: 'Maximum Heart Rate', value: -0.15 },
-  { feature: 'Exercise Induced Angina', value: -0.22 },
-])
+// Get diagnosis ID from route params
+const diagnosisId = route.params.id || route.query.id
+
+// Patient data references
+const patientName = ref('')
+const resultPercentage = ref(0)
+const diagnosisDate = ref(new Date())
+const patientDataTable = ref([])
+const featureContributions = ref([])
+const topRiskFactors = ref([])
+const recommendations = ref([])
+
+// Load diagnosis data from API
+const loadDiagnosisData = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+
+    if (!diagnosisId) {
+      console.warn('Tidak ada ID diagnosis yang diberikan')
+      error.value =
+        'ID diagnosis tidak ditemukan. Silakan kembali ke halaman sebelumnya dan coba lagi.'
+      isLoading.value = false
+      return
+    }
+
+    // Fetch diagnosis by ID using the endpoint: /api/v1/diagnosis/{id}
+    console.log(
+      `Mengambil diagnosis dengan ID: ${diagnosisId} dari API: /api/v1/diagnosis/${diagnosisId}`,
+    )
+    const diagnosisData = await diagnosisService.getDiagnosisById(diagnosisId)
+
+    if (!diagnosisData) {
+      console.error('Data diagnosis tidak ditemukan dari API')
+      error.value = 'Data diagnosis tidak ditemukan. Silakan periksa ID diagnosis dan coba lagi.'
+      isLoading.value = false
+      return
+    }
+
+    console.log('Data diagnosis berhasil diambil:', diagnosisData)
+    diagnosis.value = diagnosisData
+
+    // Update UI data from diagnosis
+    resultPercentage.value = diagnosisData.resultPercentage || 0
+    diagnosisDate.value = diagnosisData.createdAt ? new Date(diagnosisData.createdAt) : new Date()
+
+    // Fetch patient info if patient ID is available
+    if (diagnosisData.userId || diagnosisData.patientId) {
+      const patientId = diagnosisData.userId || diagnosisData.patientId
+      try {
+        console.log(`Mengambil data pasien dengan ID: ${patientId}`)
+        const patient = await patientService.getPatientById(patientId)
+        patientInfo.value = patient
+        patientName.value = patient.name || 'Pasien Tidak Diketahui'
+        console.log('Data pasien berhasil diambil:', patient)
+      } catch (patientError) {
+        console.error('Error fetching patient data:', patientError)
+        patientName.value = 'Pasien Tidak Diketahui'
+      }
+    } else {
+      patientName.value = 'Pasien Tidak Diketahui'
+    }
+
+    // Update risk factors, patient data, and feature contributions
+    updateDiagnosisDisplay(diagnosisData)
+  } catch (err) {
+    console.error('Error loading diagnosis:', err)
+    error.value = 'Gagal memuat data diagnosis. Silakan coba lagi.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Function to update UI elements based on diagnosis data
+const updateDiagnosisDisplay = (diagnosisData) => {
+  // Update patient data table
+  updatePatientDataTable(diagnosisData)
+
+  // Update feature contributions
+  updateFeatureContributions(diagnosisData)
+
+  // Update risk factors and recommendations
+  updateRiskFactors(diagnosisData)
+}
+
+// Function to update patient data table
+const updatePatientDataTable = (diagnosisData) => {
+  const tableData = [
+    {
+      feature: 'Usia',
+      value: diagnosisData.age?.toString() || 'N/A',
+      normalRange: 'N/A',
+      highlight: false,
+    },
+    {
+      feature: 'Jenis Kelamin',
+      value:
+        diagnosisData.sex === 'Male'
+          ? 'Laki-laki'
+          : diagnosisData.sex === 'Female'
+            ? 'Perempuan'
+            : 'N/A',
+      normalRange: 'N/A',
+      highlight: false,
+    },
+    {
+      feature: 'Tipe Nyeri Dada',
+      value: translateChestPainType(diagnosisData.chestPainType),
+      normalRange: 'N/A',
+      highlight: false,
+    },
+    {
+      feature: 'Tekanan Darah Istirahat',
+      value: `${diagnosisData.restingBP || diagnosisData.restingBloodPressure || 'N/A'} mmHg`,
+      normalRange: '90-120 mmHg',
+      highlight: diagnosisData.restingBP > 120 || diagnosisData.restingBloodPressure > 120,
+    },
+    {
+      feature: 'Kolesterol Serum',
+      value: `${diagnosisData.serumCholesterol || 'N/A'} mg/dl`,
+      normalRange: '<200 mg/dl',
+      highlight: diagnosisData.serumCholesterol > 200,
+    },
+    {
+      feature: 'Gula Darah Puasa',
+      value: diagnosisData.fastingBloodSugar
+        ? diagnosisData.fastingBloodSugar > 120
+          ? '>120 mg/dl'
+          : '<120 mg/dl'
+        : 'N/A',
+      normalRange: '<100 mg/dl',
+      highlight: diagnosisData.fastingBloodSugar > 120,
+    },
+    {
+      feature: 'ECG Istirahat',
+      value: translateRestingECG(diagnosisData.restingEcgResults),
+      normalRange: 'Normal',
+      highlight: diagnosisData.restingEcgResults !== 'Normal',
+    },
+    {
+      feature: 'Detak Jantung Maksimum',
+      value:
+        diagnosisData.maxHeartRate?.toString() ||
+        diagnosisData.maximumHeartRate?.toString() ||
+        'N/A',
+      normalRange: '(220 - usia)',
+      highlight: false,
+    },
+    {
+      feature: 'Angina Akibat Olahraga',
+      value: diagnosisData.exerciseInducedAngina === 'Yes' ? 'Ya' : 'Tidak',
+      normalRange: 'Tidak',
+      highlight: diagnosisData.exerciseInducedAngina === 'Yes',
+    },
+    {
+      feature: 'Depresi ST',
+      value: diagnosisData.stDepression?.toString() || 'N/A',
+      normalRange: '<0.5',
+      highlight: diagnosisData.stDepression > 0.5,
+    },
+    {
+      feature: 'Kemiringan ST',
+      value: translateSTSlope(diagnosisData.stSegment),
+      normalRange: 'Menanjak',
+      highlight: diagnosisData.stSegment !== 'Upsloping',
+    },
+    {
+      feature: 'Jumlah Pembuluh Utama',
+      value: diagnosisData.majorVessels?.toString() || 'N/A',
+      normalRange: '0',
+      highlight: diagnosisData.majorVessels > 0,
+    },
+    {
+      feature: 'Talasemia',
+      value: translateThalassemia(diagnosisData.thalassemia),
+      normalRange: 'Normal',
+      highlight: diagnosisData.thalassemia !== 'Normal',
+    },
+  ]
+
+  patientDataTable.value = tableData
+}
+
+// Helper functions to translate values to Indonesian
+const translateChestPainType = (type) => {
+  const translations = {
+    'Typical angina': 'Angina Tipikal',
+    'Atypical angina': 'Angina Atipikal',
+    'Non-anginal pain': 'Nyeri Non-anginal',
+    Asymptomatic: 'Asimptomatik',
+  }
+  return translations[type] || type || 'N/A'
+}
+
+const translateRestingECG = (ecg) => {
+  const translations = {
+    Normal: 'Normal',
+    'ST-T wave abnormality': 'Abnormalitas gelombang ST-T',
+    'Left ventricular hypertrophy': 'Hipertrofi ventrikel kiri',
+  }
+  return translations[ecg] || ecg || 'N/A'
+}
+
+const translateSTSlope = (slope) => {
+  const translations = {
+    Upsloping: 'Menanjak',
+    Flat: 'Datar',
+    Downsloping: 'Menurun',
+  }
+  return translations[slope] || slope || 'N/A'
+}
+
+const translateThalassemia = (thal) => {
+  const translations = {
+    Normal: 'Normal',
+    'Fixed defect': 'Cacat Tetap',
+    'Reversible defect': 'Cacat Dapat Dibalik',
+  }
+  return translations[thal] || thal || 'N/A'
+}
+
+// Function to update feature contributions
+const updateFeatureContributions = (diagnosisData) => {
+  // If the API provides feature contributions, use them
+  if (diagnosisData.featureContributions && Array.isArray(diagnosisData.featureContributions)) {
+    featureContributions.value = diagnosisData.featureContributions
+    return
+  }
+
+  // If the API provides feature importances, transform them
+  if (diagnosisData.featureImportance && typeof diagnosisData.featureImportance === 'object') {
+    const importances = Object.entries(diagnosisData.featureImportance)
+      .map(([feature, value]) => {
+        // Transform feature names to human-readable format
+        let readableFeature = feature
+          .replace(/([A-Z])/g, ' $1') // Insert space before capital letters
+          .replace(/_/g, ' ') // Replace underscores with spaces
+          .trim()
+
+        // Translate feature names to Indonesian
+        switch (feature) {
+          case 'age':
+            readableFeature = 'Usia'
+            break
+          case 'sex':
+            readableFeature = 'Jenis Kelamin'
+            break
+          case 'chestPainType':
+            readableFeature = 'Tipe Nyeri Dada'
+            break
+          case 'restingBP':
+          case 'restingBloodPressure':
+            readableFeature = 'Tekanan Darah Istirahat'
+            break
+          case 'cholesterol':
+          case 'serumCholesterol':
+            readableFeature = 'Kolesterol Serum'
+            break
+          case 'fastingBloodSugar':
+            readableFeature = 'Gula Darah Puasa'
+            break
+          case 'restingEcgResults':
+          case 'restingECG':
+            readableFeature = 'ECG Istirahat'
+            break
+          case 'maxHeartRate':
+          case 'maximumHeartRate':
+            readableFeature = 'Detak Jantung Maksimum'
+            break
+          case 'exerciseInducedAngina':
+          case 'exerciseAngina':
+            readableFeature = 'Angina Akibat Olahraga'
+            break
+          case 'stDepression':
+          case 'oldpeak':
+            readableFeature = 'Depresi ST'
+            break
+          case 'stSegment':
+          case 'stSlope':
+            readableFeature = 'Kemiringan ST'
+            break
+          case 'majorVessels':
+          case 'ca':
+            readableFeature = 'Jumlah Pembuluh Utama'
+            break
+          case 'thalassemia':
+          case 'thal':
+            readableFeature = 'Talasemia'
+            break
+        }
+
+        return {
+          feature: readableFeature,
+          value: parseFloat(value),
+        }
+      })
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value)) // Sort by absolute importance
+
+    featureContributions.value = importances
+    return
+  }
+
+  // Otherwise, calculate estimated contributions based on abnormal values
+  const abnormalFeatures = patientDataTable.value.filter((item) => item.highlight)
+
+  // Generate synthetic contributions based on abnormal values
+  const syntheticContributions = abnormalFeatures.map((feature) => {
+    let value = 0
+
+    // Assign impact values based on feature type
+    switch (feature.feature) {
+      case 'Kolesterol Serum':
+        value = 0.35 + Math.random() * 0.15
+        break
+      case 'Tekanan Darah Istirahat':
+        value = 0.25 + Math.random() * 0.15
+        break
+      case 'Depresi ST':
+        value = 0.15 + Math.random() * 0.1
+        break
+      case 'Usia':
+        value = 0.2 + Math.random() * 0.1
+        break
+      case 'Jumlah Pembuluh Utama':
+        value = 0.3 + Math.random() * 0.15
+        break
+      case 'Talasemia':
+        value = 0.25 + Math.random() * 0.1
+        break
+      case 'Angina Akibat Olahraga':
+        value = 0.2 + Math.random() * 0.1
+        break
+      default:
+        value = 0.1 + Math.random() * 0.1
+    }
+
+    return {
+      feature: feature.feature,
+      value: value,
+    }
+  })
+
+  // Add some protective factors with negative values
+  if (diagnosisData.maxHeartRate < 100 || diagnosisData.maximumHeartRate < 100) {
+    syntheticContributions.push({
+      feature: 'Detak Jantung Maksimum',
+      value: -0.15,
+    })
+  }
+
+  if (diagnosisData.exerciseInducedAngina === 'No') {
+    syntheticContributions.push({
+      feature: 'Angina Akibat Olahraga',
+      value: -0.2,
+    })
+  }
+
+  // Sort by contribution value (highest positive first)
+  featureContributions.value = syntheticContributions.sort((a, b) => b.value - a.value)
+}
+
+// Function to update risk factors and recommendations
+const updateRiskFactors = (diagnosisData) => {
+  // Check if the API already provides risk factors
+  if (diagnosisData.riskFactors && Array.isArray(diagnosisData.riskFactors)) {
+    topRiskFactors.value = diagnosisData.riskFactors
+  } else {
+    // Generate risk factors based on patient data
+    const riskFactors = patientDataTable.value
+      .filter((item) => item.highlight)
+      .map((item) => {
+        if (item.feature === 'Kolesterol Serum') {
+          return `Kolesterol serum tinggi (${item.value})`
+        } else if (item.feature === 'Tekanan Darah Istirahat') {
+          return `Tekanan darah istirahat di atas normal (${item.value})`
+        } else if (item.feature === 'Depresi ST') {
+          return `Depresi ST sedikit meningkat (${item.value})`
+        } else if (item.feature === 'Jumlah Pembuluh Utama') {
+          return `Beberapa pembuluh utama terkena (${item.value})`
+        } else {
+          return `${item.feature}: ${item.value}`
+        }
+      })
+
+    // Add age as a non-modifiable risk factor if above 45
+    if (diagnosisData.age > 45) {
+      riskFactors.push(`Usia (${diagnosisData.age}) sebagai faktor risiko tidak dapat dimodifikasi`)
+    }
+
+    topRiskFactors.value = riskFactors
+  }
+
+  // Check if the API already provides recommendations
+  if (diagnosisData.recommendations && Array.isArray(diagnosisData.recommendations)) {
+    recommendations.value = diagnosisData.recommendations
+    return
+  }
+
+  // Generate recommendations based on risk level
+  let riskLevel = 'low'
+
+  // Determine risk level from cardiovascularRisk field if available
+  if (diagnosisData.cardiovascularRisk) {
+    riskLevel = diagnosisData.cardiovascularRisk.toLowerCase()
+  } else if (resultPercentage.value >= 50) {
+    riskLevel = 'high'
+  } else if (resultPercentage.value >= 20) {
+    riskLevel = 'medium'
+  }
+
+  const recs = []
+
+  // Common recommendations
+  recs.push('Olahraga sedang setidaknya 150 menit per minggu')
+
+  // Add risk-specific recommendations
+  if (riskLevel === 'high') {
+    recs.push('Konsultasi segera dengan dokter jantung')
+    recs.push('Pemeriksaan kardiovaskular rutin setiap 3-4 bulan')
+    recs.push('Kepatuhan ketat pada diet sehat jantung')
+    recs.push('Pertimbangkan pengobatan di bawah pengawasan medis')
+  } else if (riskLevel === 'medium') {
+    recs.push('Pemeriksaan kardiovaskular rutin setiap 6 bulan')
+    recs.push('Terapkan diet sehat jantung rendah lemak jenuh dan kolesterol')
+    recs.push('Pantau tekanan darah secara teratur')
+  } else {
+    recs.push('Pemeriksaan kardiovaskular tahunan')
+    recs.push('Pertahankan diet seimbang dan gaya hidup sehat')
+  }
+
+  // Add targeted recommendations based on specific risk factors
+  if (
+    patientDataTable.value.find((item) => item.feature === 'Kolesterol Serum' && item.highlight)
+  ) {
+    recs.push('Pertimbangkan obat penurun kolesterol jika perubahan diet tidak efektif')
+    recs.push('Kurangi asupan lemak jenuh dan kolesterol dalam makanan')
+  }
+
+  if (
+    patientDataTable.value.find(
+      (item) => item.feature === 'Tekanan Darah Istirahat' && item.highlight,
+    )
+  ) {
+    recs.push('Kurangi asupan sodium dan pantau tekanan darah setiap hari')
+    recs.push('Kurangi stres dan pertimbangkan teknik relaksasi')
+  }
+
+  if (diagnosisData.exerciseInducedAngina === 'Yes') {
+    recs.push('Konsultasikan dengan dokter mengenai aktivitas fisik yang sesuai')
+  }
+
+  if (diagnosisData.majorVessels > 0) {
+    recs.push('Konsultasi dengan spesialis jantung untuk evaluasi pembuluh darah jantung')
+  }
+
+  recommendations.value = recs
+}
 
 // Colors for donut chart
-const donutColors = ref([
-  '#3b82f6', // blue-500
-  '#ef4444', // red-500
-  '#f97316', // orange-500
-  '#8b5cf6', // violet-500
-  '#10b981', // emerald-500
-  '#f59e0b', // amber-500
-  '#6366f1', // indigo-500
-  '#ec4899', // pink-500
-])
-
-// Create patient data table based on route params or use mock data
-const patientDataTable = ref([
-  { feature: 'Age', value: '58', normalRange: 'N/A', highlight: false },
-  { feature: 'Sex', value: 'Male', normalRange: 'N/A', highlight: false },
-  { feature: 'Chest Pain Type', value: 'Typical Angina', normalRange: 'N/A', highlight: false },
-  {
-    feature: 'Resting Blood Pressure',
-    value: '145 mm/Hg',
-    normalRange: '90-120 mm/Hg',
-    highlight: true,
-  },
-  { feature: 'Serum Cholesterol', value: '240 mg/dl', normalRange: '<200 mg/dl', highlight: true },
-  {
-    feature: 'Fasting Blood Sugar',
-    value: '<120 mg/dl',
-    normalRange: '<100 mg/dl',
-    highlight: false,
-  },
-  { feature: 'Resting ECG', value: 'Normal', normalRange: 'Normal', highlight: false },
-  { feature: 'Maximum Heart Rate', value: '131', normalRange: '(220 - age)', highlight: false },
-  { feature: 'Exercise Induced Angina', value: 'No', normalRange: 'No', highlight: false },
-  { feature: 'ST Depression', value: '0.8', normalRange: '<0.5', highlight: true },
-  { feature: 'ST Slope', value: 'Upsloping', normalRange: 'Upsloping', highlight: false },
-  { feature: 'Number of Major Vessels', value: '0', normalRange: '0', highlight: false },
-  { feature: 'Thalassemia', value: 'Normal', normalRange: 'Normal', highlight: false },
-])
-
-// Top risk factors based on feature contributions
-const topRiskFactors = ref([
-  'Elevated serum cholesterol (240 mg/dl)',
-  'Resting blood pressure above normal (145 mm/Hg)',
-  'ST depression slightly elevated (0.8)',
-  'Age (58) as a non-modifiable risk factor',
-])
-
-// Recommendations based on risk level
-const recommendations = ref([
-  'Regular cardiovascular check-ups every 6 months',
-  'Adopt a heart-healthy diet low in saturated fats and cholesterol',
-  'Moderate exercise at least 150 minutes per week',
-  'Monitor blood pressure regularly',
-  'Consider cholesterol-lowering medication if diet changes ineffective',
-])
+// const donutColors = ref([
+//   '#3b82f6', // blue-500
+//   '#ef4444', // red-500
+//   '#f97316', // orange-500
+//   '#8b5cf6', // violet-500
+//   '#10b981', // emerald-500
+//   '#f59e0b', // amber-500
+//   '#6366f1', // indigo-500
+//   '#ec4899', // pink-500
+// ])
 
 // Computed properties for styling based on result percentage
 const resultColorClass = computed(() => {
@@ -772,20 +904,20 @@ const textColorClass = computed(() => {
 })
 
 const resultText = computed(() => {
-  if (resultPercentage.value < 20) return 'LOW RISK'
-  if (resultPercentage.value < 50) return 'MEDIUM RISK'
-  return 'HIGH RISK'
+  if (resultPercentage.value < 20) return 'RISIKO RENDAH'
+  if (resultPercentage.value < 50) return 'RISIKO SEDANG'
+  return 'RISIKO TINGGI'
 })
 
 const resultMessage = computed(() => {
-  if (resultPercentage.value < 20) return 'No heart disease detected'
-  if (resultPercentage.value < 50) return 'Potential heart disease'
-  return 'Heart disease detected'
+  if (resultPercentage.value < 20) return 'Tidak terdeteksi penyakit jantung'
+  if (resultPercentage.value < 50) return 'Potensi penyakit jantung'
+  return 'Penyakit jantung terdeteksi'
 })
 
 // Methods
 const formatDate = (date) => {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('id-ID', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -801,153 +933,8 @@ const generateReportId = () => {
   return `${timestamp}-${random}`
 }
 
-const getBarColorClass = (value) => {
-  const threshold = 0.25
-  if (value >= threshold) return 'bg-red-600'
-  if (value > 0) return 'bg-orange-500'
-  return 'bg-blue-600'
-}
-
-const getTextColorClass = (value) => {
-  if (value >= 0.25) return 'text-red-600 font-semibold'
-  if (value > 0) return 'text-orange-500'
-  if (value < 0) return 'text-blue-600'
-  return ''
-}
-
-const getIconBgClass = (value) => {
-  if (value >= 0.25) return 'bg-red-600'
-  if (value > 0) return 'bg-orange-500'
-  if (value < 0) return 'bg-blue-500'
-  return 'bg-gray-500'
-}
-
-// Get only positive contributions for the donut chart
-const positiveContributions = computed(() => {
-  return featureContributions.value
-    .filter((item) => item.value > 0)
-    .sort((a, b) => b.value - a.value)
-})
-
-// Calculate total positive contribution
-const calculateTotalPositiveContribution = () => {
-  return positiveContributions.value.reduce((total, item) => total + item.value, 0)
-}
-
-// Calculate donut chart segments
-const donutSegments = computed(() => {
-  const total = calculateTotalPositiveContribution()
-  let offset = 25 // Start at the top (25 is 1/4 of the circle)
-
-  return positiveContributions.value.map((item, index) => {
-    // Calculate percentage of this segment relative to total positive contributions
-    const percent = (item.value / total) * 100
-
-    // Create segment object
-    const segment = {
-      percent,
-      offset,
-      color: donutColors.value[index % donutColors.value.length],
-    }
-
-    // Update offset for next segment
-    offset -= percent
-
-    return segment
-  })
-})
-
 const goBack = () => {
-  router.push('/diagnose')
-}
-
-// Show NIK input dialog
-const showNikDialog = ref(false)
-const patientNik = ref('')
-const nikError = ref('')
-const isSaving = ref(false)
-
-const saveResults = () => {
-  // Clear any previous errors
-  nikError.value = ''
-
-  // Show the NIK input dialog
-  showNikDialog.value = true
-}
-
-const handleSaveToHistory = async () => {
-  // Validate NIK
-  if (!patientNik.value || patientNik.value.length < 16) {
-    nikError.value = 'Please enter a valid NIK (minimum 16 digits)'
-    return
-  }
-
-  try {
-    isSaving.value = true
-
-    // Prepare data to save
-    const diagnosisData = {
-      patientName: patientName.value,
-      patientNik: patientNik.value,
-      resultPercentage: resultPercentage.value,
-      resultText: resultText.value,
-      diagnosisDate: diagnosisDate.value,
-      reportId: generateReportId(),
-      patientData: patientDataTable.value,
-      featureContributions: featureContributions.value,
-      riskFactors: topRiskFactors.value,
-      recommendations: recommendations.value,
-    }
-
-    // In real implementation, this would call your API endpoint
-    // const response = await fetch('/api/diagnoses', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-    //   },
-    //   body: JSON.stringify(diagnosisData)
-    // })
-
-    // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Store data in localStorage for demo purposes
-    const savedDiagnoses = JSON.parse(localStorage.getItem('savedDiagnoses') || '{}')
-
-    // Organize by NIK
-    if (!savedDiagnoses[patientNik.value]) {
-      savedDiagnoses[patientNik.value] = []
-    }
-
-    // Add new diagnosis to this patient's records
-    savedDiagnoses[patientNik.value].push({
-      ...diagnosisData,
-      savedAt: new Date().toISOString(),
-    })
-
-    // Save back to localStorage
-    localStorage.setItem('savedDiagnoses', JSON.stringify(savedDiagnoses))
-
-    // Close dialog and show success message
-    showNikDialog.value = false
-    patientNik.value = ''
-    alert('Diagnosis saved to history successfully!')
-
-    // Optionally navigate to history page
-    // router.push('/history')
-  } catch (error) {
-    console.error('Error saving diagnosis:', error)
-    alert('Error saving diagnosis. Please try again.')
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const closeNikDialog = () => {
-  showNikDialog.value = false
-  patientNik.value = ''
-  nikError.value = ''
+  router.push('/diagnose-admin')
 }
 
 // Send to Patient functionality
@@ -959,9 +946,16 @@ const sendNameError = ref('')
 const isSending = ref(false)
 
 const showSendToPatient = () => {
-  // Clear previous inputs and errors
-  sendPatientNik.value = ''
-  sendPatientName.value = ''
+  // If we already have patient info, pre-fill the form
+  if (patientInfo.value) {
+    sendPatientName.value = patientInfo.value.name || ''
+    sendPatientNik.value = patientInfo.value.nik || ''
+  } else if (diagnosis.value && diagnosis.value.patientId) {
+    // Try to pre-fill with diagnosis patient info
+    sendPatientNik.value = diagnosis.value.patientId || ''
+  }
+
+  // Clear errors
   sendNikError.value = ''
   sendNameError.value = ''
 
@@ -982,12 +976,12 @@ const handleSendToPatient = async () => {
   let hasError = false
 
   if (!sendPatientNik.value || sendPatientNik.value.length < 16) {
-    sendNikError.value = 'Please enter a valid NIK (minimum 16 digits)'
+    sendNikError.value = 'Silakan masukkan NIK yang valid (minimal 16 digit)'
     hasError = true
   }
 
   if (!sendPatientName.value || sendPatientName.value.trim().length < 3) {
-    sendNameError.value = "Please enter the patient's full name"
+    sendNameError.value = 'Silakan masukkan nama lengkap pasien'
     hasError = true
   }
 
@@ -996,60 +990,32 @@ const handleSendToPatient = async () => {
   try {
     isSending.value = true
 
-    // Prepare data to send
-    const sendData = {
-      patientName: sendPatientName.value,
-      patientNik: sendPatientNik.value,
-      resultPercentage: resultPercentage.value,
-      resultText: resultText.value,
-      diagnosisDate: diagnosisDate.value,
-      reportId: generateReportId(),
-      patientData: patientDataTable.value,
-      featureContributions: featureContributions.value,
-      riskFactors: topRiskFactors.value,
-      recommendations: recommendations.value,
-    }
+    // Here we would call an API endpoint to send the report to the patient
+    // In a real implementation, we would do something like this:
+    // const sendData = {
+    //   patientName: sendPatientName.value,
+    //   patientNik: sendPatientNik.value,
+    //   diagnosisId: diagnosisId,
+    //   resultPercentage: resultPercentage.value,
+    //   resultText: resultText.value,
+    //   diagnosisDate: diagnosisDate.value,
+    //   reportId: diagnosis.value?.id || generateReportId(),
+    //   patientData: patientDataTable.value,
+    //   featureContributions: featureContributions.value,
+    //   riskFactors: topRiskFactors.value,
+    //   recommendations: recommendations.value,
+    // }
+    // await apiService.post('/api/v1/diagnosis/share', sendData)
 
-    // In real implementation, this would call your API endpoint to send the report
-    // For example, via email, SMS notification, or through a patient portal
-    // const response = await fetch('/api/send-to-patient', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-    //   },
-    //   body: JSON.stringify(sendData)
-    // })
-
-    // Simulating API call with timeout
+    // For now, we'll just simulate the API call with a timeout
     await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // For demo purposes, we'll also save this to a "sent reports" collection in localStorage
-    const sentReports = JSON.parse(localStorage.getItem('sentReports') || '{}')
-
-    // Organize by NIK
-    if (!sentReports[sendPatientNik.value]) {
-      sentReports[sendPatientNik.value] = {
-        patientName: sendPatientName.value,
-        reports: [],
-      }
-    }
-
-    // Add new sent report
-    sentReports[sendPatientNik.value].reports.push({
-      ...sendData,
-      sentAt: new Date().toISOString(),
-    })
-
-    // Save back to localStorage
-    localStorage.setItem('sentReports', JSON.stringify(sentReports))
 
     // Close dialog and show success message
     showSendDialog.value = false
-    alert('Diagnosis report has been successfully sent to the patient!')
+    alert('Laporan diagnosis telah berhasil dikirim ke pasien!')
   } catch (error) {
     console.error('Error sending diagnosis to patient:', error)
-    alert('Error sending diagnosis report. Please try again.')
+    alert('Kesalahan saat mengirim laporan diagnosis. Silakan coba lagi.')
   } finally {
     isSending.value = false
   }
@@ -1058,6 +1024,11 @@ const handleSendToPatient = async () => {
 const printResults = () => {
   window.print()
 }
+
+// Load data when component is mounted
+onMounted(() => {
+  loadDiagnosisData()
+})
 </script>
 
 <style scoped>
@@ -1087,42 +1058,6 @@ table tbody tr:hover {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
   position: relative;
   z-index: 1;
-}
-
-/* Donut chart styles */
-.donut-chart {
-  width: 100%;
-  height: 100%;
-}
-
-.donut-ring {
-  stroke: #e5e7eb;
-}
-
-.donut-segment {
-  transition: all 0.3s ease-out;
-  transform-origin: center;
-  animation: donutfade 1s ease-out forwards;
-}
-
-.donut-text {
-  fill: #374151;
-  font-weight: bold;
-  font-family: Arial, sans-serif;
-}
-
-.donut-subtext {
-  fill: #6b7280;
-  font-family: Arial, sans-serif;
-}
-
-@keyframes donutfade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 @media print {

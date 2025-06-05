@@ -562,9 +562,14 @@ const getAdminProfile = async (request, h) => {
     const admin = await User.findOne({
       where: {
         id,
-        role: ['admin', 'dokter'],
+        role: {
+          [Op.in]: ['admin', 'dokter'], // Menggunakan Op.in untuk array roles
+        },
       },
-      attributes: { exclude: ['password'] },
+      attributes: {
+        exclude: ['password', 'nik_encrypted'],
+        include: ['id', 'name', 'email', 'role', 'dateOfBirth', 'createdAt', 'updatedAt'],
+      },
     });
 
     if (!admin) {
@@ -625,6 +630,73 @@ const changeAdminPassword = async (request, h) => {
   }
 };
 
+// Fungsi untuk mencari pasien berdasarkan nama atau NIK
+const searchPatients = async (request, h) => {
+  try {
+    const { query } = request.query;
+    console.log(`Searching for patients with query: ${query}`);
+
+    if (!query || query.trim() === '') {
+      return h.response({
+        statusCode: 400,
+        message: 'Query parameter is required',
+        data: [],
+      });
+    }
+
+    // Check database type to use appropriate operators
+    let whereClause;
+    const dialectName = sequelize.getDialect();
+    console.log(`Database dialect: ${dialectName}`);
+
+    // Different implementation based on database type
+    if (dialectName === 'postgres') {
+      // PostgreSQL supports iLike for case-insensitive search
+      whereClause = {
+        [Op.and]: [
+          { role: 'user' },
+          {
+            [Op.or]: [{ name: { [Op.iLike]: `%${query}%` } }, { nik: { [Op.like]: `%${query}%` } }],
+          },
+        ],
+      };
+    } else {
+      // For MySQL, SQLite, etc. - use LOWER function or dialect-specific approaches
+      whereClause = {
+        [Op.and]: [
+          { role: 'user' },
+          {
+            [Op.or]: [
+              sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), {
+                [Op.like]: `%${query.toLowerCase()}%`,
+              }),
+              { nik: { [Op.like]: `%${query}%` } },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Perform the search with the appropriate where clause
+    const patients = await User.findAll({
+      where: whereClause,
+      attributes: { exclude: ['password'] },
+      limit: 20,
+    });
+
+    console.log(`Found ${patients.length} patients matching query: ${query}`);
+
+    return h.response({
+      statusCode: 200,
+      message: 'Pencarian pasien berhasil',
+      data: patients,
+    });
+  } catch (error) {
+    console.error('Error searching patients:', error);
+    return Boom.badImplementation('Error saat mencari pasien');
+  }
+};
+
 module.exports = {
   adminLogin,
   getAllPatients,
@@ -639,4 +711,5 @@ module.exports = {
   getAdminDashboard,
   getAdminProfile,
   changeAdminPassword,
+  searchPatients,
 };

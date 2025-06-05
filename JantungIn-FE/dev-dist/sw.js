@@ -82,7 +82,7 @@ define(['./workbox-47da91e0'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.s6e7iau4v8g"
+    "revision": "0.5d7bllng5v8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -97,7 +97,7 @@ define(['./workbox-47da91e0'], (function (workbox) { 'use strict';
       statuses: [0, 200]
     })]
   }), 'GET');
-  workbox.registerRoute(/^https:\/\/api\.jantungin\.com\/.*/i, new workbox.NetworkFirst({
+  workbox.registerRoute(/^https:\/\/jantungin-api\.up\.railway\.app\/.*/i, new workbox.NetworkFirst({
     "cacheName": "api-cache",
     "networkTimeoutSeconds": 5,
     plugins: [new workbox.CacheableResponsePlugin({

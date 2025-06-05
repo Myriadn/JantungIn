@@ -9,6 +9,7 @@ export class UserModel {
     this.name = data.name || ''
     this.email = data.email || ''
     this.role = data.role || 'user'
+    this.token = data.token || null // Store the JWT token
   }
 
   /**
@@ -16,7 +17,7 @@ export class UserModel {
    * @returns {boolean} True if valid, false otherwise
    */
   isValid() {
-    return this.nik && this.nik.length > 0
+    return this.id && (this.nik || this.email) && this.token
   }
 
   /**
@@ -31,6 +32,7 @@ export class UserModel {
       name: this.name,
       email: this.email,
       role: this.role,
+      token: this.token, // Include token in storage
     }
   }
 

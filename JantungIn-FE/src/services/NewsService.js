@@ -14,8 +14,13 @@ class NewsService {
     try {
       // Check if we're online
       if (navigator.onLine) {
+        // Endpoint sesuai dengan struktur API
         const response = await apiService.get('/news', params)
-        const newsItems = NewsModel.fromArray(response.data || response)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "News retrieved successfully", data: [...] }
+        const newsData = response.data || response
+        const newsItems = Array.isArray(newsData) ? NewsModel.fromArray(newsData) : []
 
         // Cache for offline mode
         this.cacheNewsForOffline(newsItems)
@@ -41,8 +46,13 @@ class NewsService {
   async getNewsById(id) {
     try {
       if (navigator.onLine) {
+        // Endpoint sesuai dengan struktur API
         const response = await apiService.get(`/news/${id}`)
-        return new NewsModel(response.data || response)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "News retrieved successfully", data: {...} }
+        const newsData = response.data || response
+        return new NewsModel(newsData)
       } else {
         // Try to find in offline cache
         return this.getOfflineNewsById(id)

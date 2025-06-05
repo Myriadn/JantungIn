@@ -13,9 +13,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      strategies: 'generateSW',  // Changed from 'injectManifest' to 'generateSW' for automatic SW generation
+      strategies: 'generateSW', // Changed from 'injectManifest' to 'generateSW' for automatic SW generation
       devOptions: {
-        enabled: true  // Enable PWA in development for testing
+        enabled: true, // Enable PWA in development for testing
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
@@ -35,16 +35,16 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/api\.jantungin\.com\/.*/i,
+            urlPattern: /^https:\/\/jantungin-api\.up\.railway\.app\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
               networkTimeoutSeconds: 5,
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
+                statuses: [0, 200],
+              },
+            },
+          },
         ],
       },
       manifestFilename: 'manifest.webmanifest',
