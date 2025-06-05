@@ -6,6 +6,7 @@ import LazyImage from '@/components/LazyImage.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
 import historyService from '@/services/HistoryService'
 import { handleApiError } from '@/utils/apiErrorHandler'
 import { withCache, createCacheKey } from '@/utils/apiCache'
@@ -895,6 +896,9 @@ const goBack = () => {
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </div>
 </template>
 

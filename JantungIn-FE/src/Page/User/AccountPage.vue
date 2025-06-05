@@ -7,6 +7,7 @@ import apiService from '@/services/ApiService'
 import authService from '@/services/AuthService'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'AccountPage',
@@ -785,6 +786,9 @@ const healthData = ref([
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </div>
 </template>
 

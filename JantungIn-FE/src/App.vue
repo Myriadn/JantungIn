@@ -2,7 +2,6 @@
 import Navbar from '@/components/Navbar.vue'
 import NavbarAdmin from '@/components/Navbar-admin.vue'
 import OfflinePage from '@/components/OfflinePage.vue'
-import InstallPWA from '@/components/InstallPWA.vue'
 import RefreshApp from '@/components/RefreshApp.vue'
 import PWAStatus from '@/components/PWAStatus.vue'
 import AdPopupComponent from '@/components/AdPopupComponent.vue'
@@ -13,7 +12,6 @@ import { preloadCriticalImages } from '@/utils/lazyLoadUtils'
 const route = useRoute()
 const isOnline = ref(navigator.onLine)
 const offlineAlert = ref(false)
-const installPwa = ref(null)
 const hasError = ref(false)
 const errorMessage = ref('')
 
@@ -165,7 +163,6 @@ onUnmounted(() => {
     </footer>
 
     <!-- PWA Components -->
-    <InstallPWA ref="installPwa" />
     <RefreshApp />
     <PWAStatus />
 

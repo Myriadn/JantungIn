@@ -4,6 +4,7 @@ import FooterComponent from '@/components/Footer-component.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import LazyBackground from '@/components/LazyBackground.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'NewsPageAdmin',
@@ -133,9 +134,6 @@ const newsItems = ref([
             </svg>
             All News
           </button>
-         
-              
-
         </div>
 
         <!-- News Cards Section - Enhanced Modern -->
@@ -175,7 +173,9 @@ const newsItems = ref([
               </div>
             </div>
             <div class="p-6 flex flex-col flex-grow">
-              <h2 class="text-xl font-bold mb-3 text-gray-800 h-14 line-clamp-2">{{ item.title }}</h2>
+              <h2 class="text-xl font-bold mb-3 text-gray-800 h-14 line-clamp-2">
+                {{ item.title }}
+              </h2>
               <p class="text-gray-600 line-clamp-3 flex-grow">{{ item.content }}</p>
               <div class="mt-6 flex justify-between items-center">
                 <a :href="item.url" target="_blank" class="read-more-btn flex items-center group">
@@ -219,6 +219,9 @@ const newsItems = ref([
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </div>
 </template>
 

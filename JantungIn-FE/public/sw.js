@@ -23,7 +23,6 @@ const PRECACHE_ASSETS = [
   '/src/registerSW.js',
   '/src/utils/pwaUtils.js',
   '/src/utils/pwaHelper.js',
-  '/src/components/InstallPWA.vue',
   '/src/components/PWAStatus.vue',
   '/src/components/RefreshApp.vue',
   '/src/components/OfflinePage.vue',

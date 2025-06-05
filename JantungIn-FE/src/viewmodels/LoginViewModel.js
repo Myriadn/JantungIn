@@ -82,7 +82,7 @@ export function useLoginViewModel() {
       console.log('Login successful:', user)
 
       // Redirect to news page after successful login
-      router.push('/news')
+      router.push('/home')
     } catch (error) {
       console.error('Login error:', error)
 
