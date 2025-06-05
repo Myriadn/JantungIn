@@ -5,6 +5,8 @@ import FooterComponent from '@/components/Footer-component.vue'
 import LazyBackground from '@/components/LazyBackground.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
+import diagnosisService from '@/services/DiagnosisService'
+import patientService from '@/services/PatientService'
 
 defineOptions({
   name: 'HistoryPageAdmin',
@@ -13,11 +15,13 @@ defineOptions({
 const router = useRouter()
 
 // State for patients and their diagnoses
+const allDiagnoses = ref([])
 const patientDiagnoses = ref({})
 const isLoading = ref(true)
+const errorMessage = ref(null)
 const selectedNik = ref(null)
 const selectedDiagnosis = ref(null)
-const searchQuery = ref('') // New state for search functionality
+const searchQuery = ref('') // State for search functionality
 
 // Send to Patient functionality
 const showSendDialog = ref(false)
@@ -27,29 +31,80 @@ const sendNikError = ref('')
 const sendNameError = ref('')
 const isSending = ref(false)
 
-// Load saved diagnoses from localStorage
-onMounted(() => {
-  setTimeout(() => {
-    try {
-      const savedData = localStorage.getItem('savedDiagnoses')
-      if (savedData) {
-        patientDiagnoses.value = JSON.parse(savedData)
-      }
-    } catch (error) {
-      console.error('Error loading saved diagnoses:', error)
-    } finally {
+// Load diagnoses from API
+onMounted(async () => {
+  try {
+    isLoading.value = true
+    errorMessage.value = null
+
+    // Fetch all diagnoses from admin API
+    console.log('Fetching all diagnoses from API')
+    const diagnoses = await diagnosisService.getAllDiagnoses()
+
+    if (!diagnoses || diagnoses.length === 0) {
+      console.warn('No diagnoses found or empty response from API')
       isLoading.value = false
+      return
     }
-  }, 500) // Simulate loading
+
+    // Store all diagnoses for reference
+    allDiagnoses.value = diagnoses
+    console.log(`Retrieved ${diagnoses.length} diagnoses from API`)
+
+    // Group diagnoses by patient ID
+    const groupedDiagnoses = {}
+
+    // Process each diagnosis
+    for (const diagnosis of diagnoses) {
+      const patientId = diagnosis.userId || diagnosis.patientId
+      if (!patientId) continue
+
+      if (!groupedDiagnoses[patientId]) {
+        groupedDiagnoses[patientId] = []
+
+        // Try to get patient info if not already available
+        try {
+          const patientInfo = await patientService.getPatientById(patientId)
+          if (patientInfo) {
+            // Enrich diagnosis with patient info
+            diagnosis.patientName = patientInfo.name
+            diagnosis.patientNik = patientInfo.nik
+          }
+        } catch (patientError) {
+          console.error(`Error fetching info for patient ${patientId}:`, patientError)
+          // Continue even if patient info fetch fails
+        }
+      }
+
+      // Add to grouped diagnoses
+      groupedDiagnoses[patientId].push(diagnosis)
+    }
+
+    // Update the reactive reference
+    patientDiagnoses.value = groupedDiagnoses
+    console.log('Grouped diagnoses by patient:', Object.keys(groupedDiagnoses).length)
+  } catch (error) {
+    console.error('Error loading diagnoses from API:', error)
+    errorMessage.value = 'Gagal memuat data diagnosis. Silakan coba lagi.'
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // Format functions
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  if (!dateString) return 'N/A'
+
+  try {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return dateString
+  }
 }
 
 const getStatusClass = (percentage) => {
@@ -61,25 +116,44 @@ const getStatusClass = (percentage) => {
 
 const getStatusText = (percentage) => {
   const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'LOW RISK'
-  if (numPercentage < 50) return 'MEDIUM RISK'
-  return 'HIGH RISK'
+  if (numPercentage < 20) return 'RISIKO RENDAH'
+  if (numPercentage < 50) return 'RISIKO SEDANG'
+  return 'RISIKO TINGGI'
 }
 
 // Patient list computed property with search filter
 const patientList = computed(() => {
-  const list = Object.keys(patientDiagnoses.value).map((nik) => {
-    const diagnoses = patientDiagnoses.value[nik]
-    const latestDiagnosis = diagnoses[diagnoses.length - 1]
+  const patientIds = Object.keys(patientDiagnoses.value)
 
-    return {
-      nik,
-      patientName: latestDiagnosis.patientName,
-      diagnosesCount: diagnoses.length,
-      latestDate: new Date(latestDiagnosis.savedAt),
-      latestResult: latestDiagnosis.resultPercentage,
-    }
-  })
+  if (patientIds.length === 0) {
+    return []
+  }
+
+  const list = patientIds
+    .map((patientId) => {
+      const diagnoses = patientDiagnoses.value[patientId]
+      if (!diagnoses || diagnoses.length === 0) return null
+
+      // Get the latest diagnosis for this patient
+      const latestDiagnosis = [...diagnoses].sort(
+        (a, b) =>
+          new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0),
+      )[0]
+
+      // If no valid diagnosis is found, skip this patient
+      if (!latestDiagnosis) return null
+
+      return {
+        id: patientId,
+        nik: latestDiagnosis.patientNik || patientId,
+        patientName: latestDiagnosis.patientName || 'Pasien Tidak Diketahui',
+        diagnosesCount: diagnoses.length,
+        latestDate: new Date(latestDiagnosis.createdAt || latestDiagnosis.updatedAt || Date.now()),
+        latestResult: latestDiagnosis.resultPercentage || 0,
+        latestDiagnosis,
+      }
+    })
+    .filter(Boolean) // Remove null entries
 
   // Apply search filter if search query exists
   if (searchQuery.value.trim()) {
@@ -87,7 +161,7 @@ const patientList = computed(() => {
     return list.filter(
       (patient) =>
         patient.patientName.toLowerCase().includes(query) ||
-        patient.nik.toLowerCase().includes(query),
+        patient.nik.toString().toLowerCase().includes(query),
     )
   }
 
@@ -99,15 +173,29 @@ const clearSearch = () => {
   searchQuery.value = ''
 }
 
-// Handle folder click
-const openPatientFolder = (nik) => {
-  selectedNik.value = nik
+// Handle folder click to view patient diagnoses
+const openPatientFolder = (patientId) => {
+  selectedNik.value = patientId
   selectedDiagnosis.value = null
 }
 
-// Handle diagnosis click
+// Handle diagnosis click to view details
 const viewDiagnosis = (diagnosis) => {
   selectedDiagnosis.value = diagnosis
+}
+
+// View detailed diagnosis report
+const viewDetailedReport = (diagnosisId) => {
+  if (!diagnosisId) {
+    console.error('No diagnosis ID provided for detailed report')
+    return
+  }
+
+  // Navigate to result page with diagnosis ID as query parameter
+  router.push({
+    path: '/result-admin',
+    query: { id: diagnosisId },
+  })
 }
 
 // Close selected diagnosis view
@@ -115,17 +203,82 @@ const closeDiagnosisView = () => {
   selectedDiagnosis.value = null
 }
 
+// Reload diagnoses from API
+const reloadDiagnoses = async () => {
+  try {
+    isLoading.value = true
+    errorMessage.value = null
+
+    // Fetch all diagnoses from admin API
+    console.log('Reloading all diagnoses from API')
+    const diagnoses = await diagnosisService.getAllDiagnoses()
+
+    if (!diagnoses || diagnoses.length === 0) {
+      console.warn('No diagnoses found or empty response from API')
+      patientDiagnoses.value = {}
+      isLoading.value = false
+      return
+    }
+
+    // Store all diagnoses for reference
+    allDiagnoses.value = diagnoses
+
+    // Group diagnoses by patient ID
+    const groupedDiagnoses = {}
+
+    // Process each diagnosis
+    for (const diagnosis of diagnoses) {
+      const patientId = diagnosis.userId || diagnosis.patientId
+      if (!patientId) continue
+
+      if (!groupedDiagnoses[patientId]) {
+        groupedDiagnoses[patientId] = []
+
+        // Try to get patient info if not already available
+        try {
+          const patientInfo = await patientService.getPatientById(patientId)
+          if (patientInfo) {
+            diagnosis.patientName = patientInfo.name
+            diagnosis.patientNik = patientInfo.nik
+          }
+        } catch (patientError) {
+          console.error(`Error fetching info for patient ${patientId}:`, patientError)
+        }
+      }
+
+      groupedDiagnoses[patientId].push(diagnosis)
+    }
+
+    patientDiagnoses.value = groupedDiagnoses
+  } catch (error) {
+    console.error('Error reloading diagnoses from API:', error)
+    errorMessage.value = 'Gagal memuat data diagnosis. Silakan coba lagi.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Handle sending to patient
-const openSendDialog = (nik, name) => {
-  sendPatientNik.value = nik
-  sendPatientName.value = name
+const openSendDialog = (patientId, name) => {
+  // Cari diagnosis untuk pasien ini
+  const patientDiagnosisList = patientDiagnoses.value[patientId] || []
+
+  if (patientDiagnosisList.length > 0) {
+    const latestDiagnosis = patientDiagnosisList[0]
+    sendPatientNik.value = latestDiagnosis.patientNik || ''
+    sendPatientName.value = name || latestDiagnosis.patientName || ''
+  } else {
+    sendPatientNik.value = ''
+    sendPatientName.value = name || ''
+  }
+
   sendNikError.value = ''
   sendNameError.value = ''
   showSendDialog.value = true
 }
 
 // Validate and send to patient
-const sendToPatient = () => {
+const sendToPatient = async () => {
   // Reset errors
   sendNikError.value = ''
   sendNameError.value = ''
@@ -133,47 +286,70 @@ const sendToPatient = () => {
   // Basic validation
   let isValid = true
   if (!sendPatientNik.value) {
-    sendNikError.value = 'Patient identifier is required'
+    sendNikError.value = 'NIK pasien diperlukan'
     isValid = false
   }
   if (!sendPatientName.value) {
-    sendNameError.value = 'Patient name is required'
+    sendNameError.value = 'Nama pasien diperlukan'
     isValid = false
   }
 
   if (isValid) {
     isSending.value = true
 
-    // Simulate sending
-    setTimeout(() => {
+    try {
+      // Prepare data for sending
+      // This would typically call an API endpoint to send the diagnosis to the patient
+      // For example: await apiService.post('/api/v1/diagnosis/share', { ... })
+
+      // For now, we'll simulate API call with a delay
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
       isSending.value = false
       showSendDialog.value = false
 
-      // Show success toast or notification
-      alert(`Successfully shared with ${sendPatientName.value}`)
-    }, 1500)
+      // Show success message
+      alert(`Hasil diagnosis berhasil dibagikan ke ${sendPatientName.value}`)
+    } catch (error) {
+      console.error('Error sending diagnosis to patient:', error)
+      alert('Gagal mengirim diagnosis ke pasien. Silakan coba lagi.')
+      isSending.value = false
+    }
   }
 }
 
-// Delete patient record
-const deletePatientRecord = (nik) => {
+// Delete patient record (for future API implementation)
+const deletePatientRecord = async (patientId) => {
   if (
-    confirm('Are you sure you want to delete this patient record? This action cannot be undone.')
+    confirm(
+      'Apakah Anda yakin ingin menghapus rekam medis pasien ini? Tindakan ini tidak dapat dibatalkan.',
+    )
   ) {
     try {
-      if (patientDiagnoses.value[nik]) {
-        delete patientDiagnoses.value[nik]
+      isLoading.value = true
 
-        // Update localStorage
-        localStorage.setItem('savedDiagnoses', JSON.stringify(patientDiagnoses.value))
+      // In a real implementation, you would call an API to delete the patient record:
+      // await apiService.delete(`/api/v1/admin/patient/${patientId}`)
 
-        if (selectedNik.value === nik) {
+      // For now, we'll just remove from our local state
+      if (patientDiagnoses.value[patientId]) {
+        const newPatientDiagnoses = { ...patientDiagnoses.value }
+        delete newPatientDiagnoses[patientId]
+        patientDiagnoses.value = newPatientDiagnoses
+
+        if (selectedNik.value === patientId) {
           selectedNik.value = null
           selectedDiagnosis.value = null
         }
+
+        // Reload diagnoses to ensure data is in sync
+        await reloadDiagnoses()
       }
     } catch (error) {
       console.error('Error deleting patient record:', error)
+      alert('Gagal menghapus rekam medis pasien. Silakan coba lagi.')
+    } finally {
+      isLoading.value = false
     }
   }
 }
@@ -182,14 +358,16 @@ const deletePatientRecord = (nik) => {
 <template>
   <div class="history-page mt-10">
     <!-- Preload critical images -->
-    <ImagePreloader :images="[
-      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-      'https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      '/images/hostipal.jpg',
-      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      '/images/ike.jpg'
-    ]" />
-    
+    <ImagePreloader
+      :images="[
+        'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+        'https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+        '/images/hostipal.jpg',
+        'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+        '/images/ike.jpg',
+      ]"
+    />
+
     <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background -->
     <section class="relative">
@@ -218,7 +396,7 @@ const deletePatientRecord = (nik) => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search patients by name or ID..."
+              placeholder="Cari pasien berdasarkan nama atau NIK..."
               class="w-full px-4 py-3 pl-10 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <svg
@@ -256,13 +434,70 @@ const deletePatientRecord = (nik) => {
               </svg>
             </button>
           </div>
+
+          <!-- Reload Button -->
+          <button
+            @click="reloadDiagnoses"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            :disabled="isLoading"
+          >
+            <svg
+              v-if="isLoading"
+              class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span>{{ isLoading ? 'Memuat...' : 'Muat Ulang' }}</span>
+          </button>
         </div>
         <div v-if="isLoading" class="flex justify-center py-20">
           <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
         </div>
+        <div v-else-if="errorMessage" class="text-center py-20">
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold text-white mb-2">Terjadi Kesalahan</h2>
+            <p class="text-white/80 mb-6">{{ errorMessage }}</p>
+            <button
+              @click="reloadDiagnoses"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
         <div v-else-if="Object.keys(patientDiagnoses).length === 0" class="text-center py-20">
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
-            <h2 class="text-2xl font-bold text-white mb-2">No Patient Records</h2>
+            <h2 class="text-2xl font-bold text-white mb-2">Tidak Ada Rekam Medis Pasien</h2>
             <div class="flex flex-col items-center text-center">
               <div class="bg-blue-50 rounded-full p-5 mb-6">
                 <svg
@@ -282,14 +517,14 @@ const deletePatientRecord = (nik) => {
               </div>
             </div>
             <p class="text-white/80 mb-6">
-              There are no patient diagnosis records in the system yet. Create a new diagnosis to
-              start building your patient database.
+              Belum ada rekam diagnosis pasien di sistem. Buat diagnosis baru untuk mulai membangun
+              database pasien Anda.
             </p>
             <button
               @click="router.push('/diagnose-admin')"
               class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all"
             >
-              Start New Diagnosis
+              Mulai Diagnosis Baru
             </button>
           </div>
         </div>
@@ -299,7 +534,7 @@ const deletePatientRecord = (nik) => {
           <div class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden">
             <div class="p-4 border-b border-white/20">
               <h2 class="text-xl font-semibold text-white">
-                Patients
+                Pasien
                 <span v-if="patientList.length" class="text-sm font-normal text-white/60 ml-2"
                   >({{ patientList.length }})</span
                 >
@@ -308,14 +543,14 @@ const deletePatientRecord = (nik) => {
 
             <div class="max-h-[70vh] overflow-y-auto">
               <div v-if="patientList.length === 0" class="p-6 text-center text-white/70">
-                No matching patients found.
+                Tidak ada pasien yang sesuai dengan pencarian.
               </div>
 
               <div
                 v-for="patient in patientList"
-                :key="patient.nik"
-                @click="openPatientFolder(patient.nik)"
-                :class="`p-4 border-b border-white/10 cursor-pointer transition-colors hover:bg-white/5 ${selectedNik === patient.nik ? 'bg-white/20' : ''}`"
+                :key="patient.id"
+                @click="openPatientFolder(patient.id)"
+                :class="`p-4 border-b border-white/10 cursor-pointer transition-colors hover:bg-white/5 ${selectedNik === patient.id ? 'bg-white/20' : ''}`"
               >
                 <div class="flex justify-between items-start mb-1">
                   <h3 class="text-lg font-medium text-white">{{ patient.patientName }}</h3>
@@ -332,7 +567,7 @@ const deletePatientRecord = (nik) => {
                   </div>
                   <div class="text-white/60">
                     {{ patient.diagnosesCount }}
-                    {{ patient.diagnosesCount > 1 ? 'records' : 'record' }}
+                    {{ patient.diagnosesCount > 1 ? 'hasil diagnosa' : 'hasil diagnosa' }}
                   </div>
                 </div>
               </div>
@@ -346,13 +581,15 @@ const deletePatientRecord = (nik) => {
           >
             <div class="p-4 border-b border-white/20 flex justify-between items-center">
               <h2 class="text-xl font-semibold text-white">
-                {{ patientDiagnoses[selectedNik][0].patientName }}'s Records
+                Riwayat {{ patientDiagnoses[selectedNik][0]?.patientName || 'Pasien' }}
               </h2>
               <div class="flex gap-2">
                 <button
-                  @click="openSendDialog(selectedNik, patientDiagnoses[selectedNik][0].patientName)"
+                  @click="
+                    openSendDialog(selectedNik, patientDiagnoses[selectedNik][0]?.patientName)
+                  "
                   class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
-                  title="Share with patient"
+                  title="Bagikan ke pasien"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -372,7 +609,7 @@ const deletePatientRecord = (nik) => {
                 <button
                   @click="deletePatientRecord(selectedNik)"
                   class="p-2 text-red-400 hover:text-red-300 hover:bg-white/10 rounded-lg"
-                  title="Delete patient record"
+                  title="Hapus riwayat pasien"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +639,7 @@ const deletePatientRecord = (nik) => {
               >
                 <div class="flex justify-between items-center mb-2">
                   <div class="text-sm text-white/70">
-                    {{ formatDate(diagnosis.savedAt) }}
+                    {{ formatDate(diagnosis.createdAt) }}
                   </div>
                   <div
                     :class="`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusClass(diagnosis.resultPercentage)}`"
@@ -427,7 +664,7 @@ const deletePatientRecord = (nik) => {
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                       />
                     </svg>
-                    <span class="text-white">Risk: {{ diagnosis.resultPercentage }}%</span>
+                    <span class="text-white">Risiko: {{ diagnosis.resultPercentage || 0 }}%</span>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +691,7 @@ const deletePatientRecord = (nik) => {
             class="bg-white/10 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden"
           >
             <div class="p-4 border-b border-white/20 flex justify-between items-center">
-              <h2 class="text-xl font-semibold text-white">Diagnosis Details</h2>
+              <h2 class="text-xl font-semibold text-white">Detail Diagnosis</h2>
               <button @click="closeDiagnosisView" class="text-white/70 hover:text-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -480,14 +717,14 @@ const deletePatientRecord = (nik) => {
                   :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl font-bold text-white
                   ${getStatusClass(selectedDiagnosis.resultPercentage)}`"
                 >
-                  {{ selectedDiagnosis.resultPercentage }}%
+                  {{ selectedDiagnosis.resultPercentage || 0 }}%
                 </div>
                 <div class="mt-2 text-center">
                   <h3 class="text-lg font-semibold text-white">
                     {{ getStatusText(selectedDiagnosis.resultPercentage) }}
                   </h3>
                   <p class="text-white/70 text-sm">
-                    Diagnosis Date: {{ formatDate(selectedDiagnosis.savedAt) }}
+                    Tanggal Diagnosis: {{ formatDate(selectedDiagnosis.createdAt) }}
                   </p>
                 </div>
               </div>
@@ -497,20 +734,30 @@ const deletePatientRecord = (nik) => {
                 <h3
                   class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2"
                 >
-                  Patient Information
+                  Informasi Pasien
                 </h3>
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <p class="text-white/70 text-sm">Name</p>
-                    <p class="text-white">{{ selectedDiagnosis.patientName }}</p>
+                    <p class="text-white/70 text-sm">Nama</p>
+                    <p class="text-white">
+                      {{ selectedDiagnosis.patientName || 'Tidak diketahui' }}
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Age</p>
-                    <p class="text-white">{{ selectedDiagnosis.age }} years</p>
+                    <p class="text-white/70 text-sm">Usia</p>
+                    <p class="text-white">{{ selectedDiagnosis.age || 'N/A' }} tahun</p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Sex</p>
-                    <p class="text-white">{{ selectedDiagnosis.sex }}</p>
+                    <p class="text-white/70 text-sm">Jenis Kelamin</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.sex === 'Male'
+                          ? 'Laki-laki'
+                          : selectedDiagnosis.sex === 'Female'
+                            ? 'Perempuan'
+                            : 'N/A'
+                      }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -520,32 +767,51 @@ const deletePatientRecord = (nik) => {
                 <h3
                   class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2"
                 >
-                  Clinical Assessment
+                  Penilaian Klinis
                 </h3>
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <p class="text-white/70 text-sm">Chest Pain Type</p>
-                    <p class="text-white">{{ selectedDiagnosis.chestPainType }}</p>
+                    <p class="text-white/70 text-sm">Tipe Nyeri Dada</p>
+                    <p class="text-white">{{ selectedDiagnosis.chestPainType || 'N/A' }}</p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Resting BP</p>
-                    <p class="text-white">{{ selectedDiagnosis.restingBloodPressure }} mm Hg</p>
+                    <p class="text-white/70 text-sm">Tekanan Darah Istirahat</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.restingBP ||
+                        selectedDiagnosis.restingBloodPressure ||
+                        'N/A'
+                      }}
+                      mm Hg
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Cholesterol</p>
-                    <p class="text-white">{{ selectedDiagnosis.serumCholesterol }} mg/dl</p>
+                    <p class="text-white/70 text-sm">Kolesterol</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.serumCholesterol || selectedDiagnosis.cholesterol || 'N/A'
+                      }}
+                      mg/dl
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Blood Sugar</p>
-                    <p class="text-white">{{ selectedDiagnosis.fastingBloodSugar }}</p>
+                    <p class="text-white/70 text-sm">Gula Darah</p>
+                    <p class="text-white">{{ selectedDiagnosis.fastingBloodSugar || 'N/A' }}</p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">ECG Results</p>
-                    <p class="text-white">{{ selectedDiagnosis.restingEcgResults }}</p>
+                    <p class="text-white/70 text-sm">Hasil ECG</p>
+                    <p class="text-white">{{ selectedDiagnosis.restingEcgResults || 'N/A' }}</p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Max Heart Rate</p>
-                    <p class="text-white">{{ selectedDiagnosis.maxHeartRate }} bpm</p>
+                    <p class="text-white/70 text-sm">Detak Jantung Maksimum</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.maxHeartRate ||
+                        selectedDiagnosis.maximumHeartRate ||
+                        'N/A'
+                      }}
+                      bpm
+                    </p>
                   </div>
                 </div>
               </div>
@@ -555,28 +821,44 @@ const deletePatientRecord = (nik) => {
                 <h3
                   class="text-white text-sm font-medium uppercase tracking-wider mb-3 border-b border-white/20 pb-2"
                 >
-                  Additional Data
+                  Data Tambahan
                 </h3>
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <p class="text-white/70 text-sm">Exercise Angina</p>
-                    <p class="text-white">{{ selectedDiagnosis.exerciseInducedAngina }}</p>
+                    <p class="text-white/70 text-sm">Angina Akibat Olahraga</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.exerciseInducedAngina === 'Yes'
+                          ? 'Ya'
+                          : selectedDiagnosis.exerciseInducedAngina === 'No'
+                            ? 'Tidak'
+                            : 'N/A'
+                      }}
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">ST Depression</p>
-                    <p class="text-white">{{ selectedDiagnosis.stDepression }}</p>
+                    <p class="text-white/70 text-sm">Depresi ST</p>
+                    <p class="text-white">{{ selectedDiagnosis.stDepression || 'N/A' }}</p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">ST Slope</p>
-                    <p class="text-white">{{ selectedDiagnosis.stSlope }}</p>
+                    <p class="text-white/70 text-sm">Kemiringan ST</p>
+                    <p class="text-white">
+                      {{ selectedDiagnosis.stSegment || selectedDiagnosis.stSlope || 'N/A' }}
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Major Vessels</p>
-                    <p class="text-white">{{ selectedDiagnosis.numberOfMajorVessels }}</p>
+                    <p class="text-white/70 text-sm">Pembuluh Utama</p>
+                    <p class="text-white">
+                      {{
+                        selectedDiagnosis.majorVessels ||
+                        selectedDiagnosis.numberOfMajorVessels ||
+                        'N/A'
+                      }}
+                    </p>
                   </div>
                   <div>
-                    <p class="text-white/70 text-sm">Thalassemia</p>
-                    <p class="text-white">{{ selectedDiagnosis.thalassemia }}</p>
+                    <p class="text-white/70 text-sm">Talasemia</p>
+                    <p class="text-white">{{ selectedDiagnosis.thalassemia || 'N/A' }}</p>
                   </div>
                 </div>
               </div>
@@ -584,7 +866,7 @@ const deletePatientRecord = (nik) => {
               <!-- Action Buttons -->
               <div class="mt-8 flex justify-between">
                 <button
-                  @click="router.push('/result-admin')"
+                  @click="viewDetailedReport(selectedDiagnosis.id)"
                   class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all flex items-center"
                 >
                   <svg
@@ -601,7 +883,7 @@ const deletePatientRecord = (nik) => {
                       d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  View Full Report
+                  Lihat Laporan Lengkap
                 </button>
                 <button
                   @click="openSendDialog(selectedNik, selectedDiagnosis.patientName)"
@@ -621,7 +903,7 @@ const deletePatientRecord = (nik) => {
                       d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                     />
                   </svg>
-                  Send to Patient
+                  Kirim ke Pasien
                 </button>
               </div>
             </div>
@@ -638,13 +920,13 @@ const deletePatientRecord = (nik) => {
               <div class="text-center max-w-lg">
                 <img
                   src="https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                  alt="Select patient"
+                  alt="Pilih pasien"
                   class="w-32 h-32 object-cover rounded-full mx-auto mb-6"
                 />
-                <h2 class="text-2xl font-bold text-white mb-2">Select a Patient</h2>
+                <h2 class="text-2xl font-bold text-white mb-2">Pilih Pasien</h2>
                 <p class="text-white/80 mb-6">
-                  Select a patient from the list on the left to view their diagnosis history and
-                  details.
+                  Pilih pasien dari daftar di sebelah kiri untuk melihat riwayat dan detail
+                  diagnosis mereka.
                 </p>
               </div>
             </div>
@@ -658,7 +940,7 @@ const deletePatientRecord = (nik) => {
         >
           <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4">
             <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-bold text-gray-800">Share with Patient</h2>
+              <h2 class="text-xl font-bold text-gray-800">Bagikan ke Pasien</h2>
               <button @click="showSendDialog = false" class="text-gray-500 hover:text-gray-700">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -679,14 +961,14 @@ const deletePatientRecord = (nik) => {
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-medium mb-2" for="sendPatientNik">
-                Patient ID/NIK
+                NIK Pasien
               </label>
               <input
                 id="sendPatientNik"
                 v-model="sendPatientNik"
                 type="text"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter patient ID"
+                placeholder="Masukkan NIK pasien"
                 :disabled="isSending"
               />
               <p v-if="sendNikError" class="text-red-500 text-xs mt-1">{{ sendNikError }}</p>
@@ -694,14 +976,14 @@ const deletePatientRecord = (nik) => {
 
             <div class="mb-6">
               <label class="block text-gray-700 text-sm font-medium mb-2" for="sendPatientName">
-                Patient Name
+                Nama Pasien
               </label>
               <input
                 id="sendPatientName"
                 v-model="sendPatientName"
                 type="text"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter patient name"
+                placeholder="Masukkan nama pasien"
                 :disabled="isSending"
               />
               <p v-if="sendNameError" class="text-red-500 text-xs mt-1">{{ sendNameError }}</p>
@@ -713,7 +995,7 @@ const deletePatientRecord = (nik) => {
                 class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
                 :disabled="isSending"
               >
-                Cancel
+                Batal
               </button>
               <button
                 @click="sendToPatient"
@@ -741,7 +1023,7 @@ const deletePatientRecord = (nik) => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span>{{ isSending ? 'Sending...' : 'Share' }}</span>
+                <span>{{ isSending ? 'Mengirim...' : 'Bagikan' }}</span>
               </button>
             </div>
           </div>

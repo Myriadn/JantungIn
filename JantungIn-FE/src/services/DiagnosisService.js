@@ -207,8 +207,8 @@ class DiagnosisService {
   async getDiagnosisHistory() {
     try {
       if (navigator.onLine) {
-        // Endpoint sesuai dengan API docs: GET /api/diagnosis/history
-        const response = await apiService.get('/diagnosis/history')
+        // Endpoint sesuai dengan API docs: GET /api/v1/diagnosis/history
+        const response = await apiService.get('/api/v1/diagnosis/history')
 
         // Struktur response sesuai dengan API docs:
         // { statusCode: 200, message: "Diagnoses retrieved successfully", data: [...] }
@@ -241,8 +241,8 @@ class DiagnosisService {
   async getDiagnosisById(id) {
     try {
       if (navigator.onLine) {
-        // Endpoint sesuai dengan API docs: GET /api/diagnosis/{id}
-        const response = await apiService.get(`/diagnosis/${id}`)
+        // Endpoint sesuai dengan API docs: GET /api/v1/diagnosis/{id}
+        const response = await apiService.get(`/api/v1/diagnosis/${id}`)
 
         // Struktur response sesuai dengan API docs:
         // { statusCode: 200, message: "Diagnosis retrieved successfully", data: {...} }
@@ -257,6 +257,66 @@ class DiagnosisService {
 
       // Try to find in offline cache
       return this.getOfflineDiagnosisById(id)
+    }
+  }
+
+  /**
+   * Get all diagnoses for admin
+   * @returns {Promise<Array<DiagnosisModel>>} Array of diagnosis models
+   */
+  async getAllDiagnoses() {
+    try {
+      if (navigator.onLine) {
+        // Endpoint sesuai dengan API docs: GET /api/v1/admin/diagnosis/all
+        const response = await apiService.get('/api/v1/admin/diagnosis/all')
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "All diagnoses retrieved successfully", data: [...] }
+        const responseData = response.data || response
+        const diagnosesData = responseData.data || responseData
+
+        const allDiagnoses = Array.isArray(diagnosesData)
+          ? diagnosesData.map((item) => new DiagnosisModel(item))
+          : []
+
+        console.log(`Retrieved ${allDiagnoses.length} diagnoses from admin API`)
+        return allDiagnoses
+      } else {
+        console.warn('Cannot fetch admin diagnoses in offline mode')
+        return []
+      }
+    } catch (error) {
+      console.error('Error fetching all diagnoses:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get diagnoses for a specific patient (admin only)
+   * @param {string} patientId - Patient ID
+   * @returns {Promise<Array<DiagnosisModel>>} Array of diagnosis models
+   */
+  async getPatientDiagnoses(patientId) {
+    try {
+      if (navigator.onLine) {
+        // Endpoint sesuai dengan API docs: GET /api/v1/admin/diagnosis/patient/{patientId}
+        const response = await apiService.get(`/api/v1/admin/diagnosis/patient/${patientId}`)
+
+        // Struktur response sesuai dengan API docs:
+        // { statusCode: 200, message: "Patient diagnoses retrieved successfully", data: [...] }
+        const responseData = response.data || response
+        const diagnosesData = responseData.data || responseData
+
+        return Array.isArray(diagnosesData)
+          ? diagnosesData.map((item) => new DiagnosisModel(item))
+          : []
+      } else {
+        console.warn('Cannot fetch patient diagnoses in offline mode')
+        return []
+      }
+    } catch (error) {
+      console.error(`Error fetching diagnoses for patient ${patientId}:`, error)
+      return []
     }
   }
 
