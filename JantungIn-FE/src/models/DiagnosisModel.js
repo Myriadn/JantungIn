@@ -3,16 +3,21 @@
  */
 export class DiagnosisModel {
   constructor(data = {}) {
+    // Handle nested data structure from API response
+    if (data.data && typeof data.data === 'object') {
+      data = data.data
+    }
+
     this.id = data.id || null
     this.userId = data.userId || null
     this.age = data.age || 0
     this.sex = data.sex || ''
     this.chestPainType = data.chestPainType || ''
-    this.restingBP = data.restingBP || 0
+    this.restingBP = data.restingBP || data.restingBloodPressure || 0
     this.serumCholesterol = data.serumCholesterol || 0
     this.fastingBloodSugar = data.fastingBloodSugar || 0
     this.restingEcgResults = data.restingEcgResults || ''
-    this.maxHeartRate = data.maxHeartRate || 0
+    this.maxHeartRate = data.maxHeartRate || data.maximumHeartRate || 0
     this.exerciseInducedAngina = data.exerciseInducedAngina || ''
     this.stDepression = data.stDepression || 0
     this.stSegment = data.stSegment || ''

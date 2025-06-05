@@ -14,7 +14,7 @@ class HistoryService {
     try {
       // Check if we're online
       if (navigator.onLine) {
-        // Endpoint sesuai dengan API docs: GET /api/diagnosis/history
+        // Endpoint sesuai dengan API docs: GET /api/v1/diagnosis/history
         const response = await apiService.get('/api/v1/diagnosis/history', params)
 
         // Struktur response sesuai dengan API docs:
@@ -50,7 +50,7 @@ class HistoryService {
   async getDiagnosisById(id) {
     try {
       if (navigator.onLine) {
-        // Endpoint sesuai dengan API docs: GET /api/diagnosis/{id}
+        // Endpoint sesuai dengan API docs: GET /api/v1/diagnosis/{id}
         const response = await apiService.get(`/api/v1/diagnosis/${id}`)
 
         // Struktur response sesuai dengan API docs:

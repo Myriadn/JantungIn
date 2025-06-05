@@ -1,10 +1,14 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
 import LazyBackground from '@/components/LazyBackground.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
+import PatientSearchSelector from '@/components/PatientSearchSelector.vue'
+import diagnosisService from '@/services/DiagnosisService'
+import historyService from '@/services/HistoryService'
+import patientService from '@/services/PatientService'
 
 const router = useRouter()
 
@@ -15,6 +19,7 @@ defineOptions({
 // Form data
 const diagnosisForm = ref({
   patientName: '',
+  patientId: '', // Add patient ID field
   age: '',
   sex: '',
   cp: '', // Chest Pain Type
@@ -29,6 +34,9 @@ const diagnosisForm = ref({
   ca: '', // Number of Major Vessels
   thal: '', // Thallassemia
 })
+
+// Selected patient object for the PatientSearchSelector component
+const selectedPatient = ref({ id: '', name: '' })
 
 // Form options - Values match those needed by the ML model
 const sexOptions = [
@@ -79,11 +87,46 @@ const yesNoOptions = [
   { text: 'Yes', value: '1' },
 ]
 
+// Current step for multi-step form
+const currentStep = ref(1)
+const totalSteps = 4
+
 // Refs for the result
 const isLoading = ref(false)
 const predictionResult = ref(null)
 const resultPercentage = ref(null)
 const showResult = ref(false)
+
+// Update patient information when selected
+const updatePatientInfo = (patient) => {
+  console.log('Patient selected:', patient)
+  if (patient && patient.id) {
+    diagnosisForm.value.patientName = patient.name
+    diagnosisForm.value.patientId = patient.id
+
+    // Also update the selectedPatient ref to keep UI in sync
+    selectedPatient.value = {
+      id: patient.id || '',
+      name: patient.name || '',
+    }
+
+    // Optionally, try to fetch more details about the patient
+    fetchPatientDetails(patient.id)
+  }
+}
+
+// Fetch additional patient details if needed
+const fetchPatientDetails = async (patientId) => {
+  try {
+    // This could load more detailed patient information from backend if needed
+    const details = await patientService.getPatientById(patientId)
+    console.log('Fetched patient details:', details)
+    // You could update the UI with more patient information here
+  } catch (error) {
+    console.error('Error fetching patient details:', error)
+    // Silent fail - we already have basic patient info
+  }
+}
 
 // Function to handle form submission
 const handleSubmit = async () => {
@@ -115,59 +158,82 @@ const handleSubmit = async () => {
     }
 
     // Prepare data for API - map numeric codes to human-readable values for the backend
+    // Store patient information locally but don't send patientName to API
+    const patientInfo = {
+      id: diagnosisForm.value.patientId,
+      name: diagnosisForm.value.patientName || 'Unknown',
+    }
+
+    // The actual data to send to the API (without patientName)
     const apiFormData = {
-      patientName: diagnosisForm.value.patientName,
+      patientId: diagnosisForm.value.patientId, // Include only patient ID, not name
       age: numericFormData.age,
       sex: numericFormData.sex === 1 ? 'Male' : 'Female',
       chestPainType: getChestPainTypeText(numericFormData.cp),
       restingBloodPressure: numericFormData.trestbps,
       serumCholesterol: numericFormData.chol,
-      fastingBloodSugar: numericFormData.fbs === 1 ? '>120 mg/dl' : '<120 mg/dl',
+      fastingBloodSugar: numericFormData.fbs === 1 ? 120 : 80,
       restingEcgResults: getEcgResultsText(numericFormData.restecg),
-      maxHeartRate: numericFormData.thalach,
+      maximumHeartRate: numericFormData.thalach,
       exerciseInducedAngina: numericFormData.exang === 1 ? 'Yes' : 'No',
       stDepression: numericFormData.oldpeak,
-      stSlope: getStSlopeText(numericFormData.slope),
-      numberOfMajorVessels: numericFormData.ca.toString(),
+      stSegment: getStSlopeText(numericFormData.slope),
+      majorVessels: parseInt(numericFormData.ca),
       thalassemia: getThalassemiaText(numericFormData.thal),
     }
+
+    // Log patient info separately (kept only for UI)
+    console.log(`Processing diagnosis for patient: ${patientInfo.name} (ID: ${patientInfo.id})`)
+
+    // Log detailed request data for debugging
+    console.log('API form data with field validation:')
+    Object.entries(apiFormData).forEach(([key, value]) => {
+      console.log(`${key}: ${value} (${typeof value})`)
+    })
 
     console.log('Diagnosis form submitted to API:', apiFormData)
 
     try {
-      // In a real implementation, this would call your actual API
-      // const response = await fetch('/api/diagnoses', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   },
-      //   body: JSON.stringify(apiFormData)
-      // })
-      //
-      // if (!response.ok) {
-      //   throw new Error(`API error: ${response.status}`)
-      // }
-      //
-      // const result = await response.json()
-      // resultPercentage.value = result.data.resultPercentage.toFixed(2)
-      // predictionResult.value = result.data.cardiovascularRisk.toLowerCase()
+      // Log for debugging
+      console.log('About to submit diagnosis to service with data:', apiFormData)
 
-      // For demo purposes, simulate a response
-      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
+      // Create a copy of apiFormData and explicitly remove patientName just to be safe
+      const apiDataForSubmission = { ...apiFormData }
+      if (apiDataForSubmission.patientName) {
+        delete apiDataForSubmission.patientName
+      }
 
-      // Use deterministic prediction based on age and cholesterol for demo
-      const riskScore =
-        (numericFormData.age > 50 ? 30 : 10) +
-        (numericFormData.chol > 240 ? 20 : 5) +
-        (numericFormData.exang === 1 ? 15 : 0)
+      // Use the DiagnosisService to submit the diagnosis
+      const result = await diagnosisService.submitDiagnosis(apiDataForSubmission)
+      console.log('Diagnosis API response:', result)
 
-      const simulatedProbability = riskScore / 100
-      resultPercentage.value = (simulatedProbability * 100).toFixed(2)
-      predictionResult.value = simulatedProbability >= 0.5 ? 'high' : 'low'
+      // Use the result data from the diagnosis service
+      resultPercentage.value = result.resultPercentage ? result.resultPercentage.toFixed(2) : '0.00'
+      predictionResult.value = result.cardiovascularRisk
+        ? result.cardiovascularRisk.toLowerCase()
+        : 'unknown'
+
+      // Save to history if we have a valid result
+      if (result && result.id) {
+        await historyService.cacheHistoryForOffline([result])
+        console.log('Diagnosis saved to history cache')
+      }
     } catch (apiError) {
       console.error('API error:', apiError)
-      alert('Error communicating with diagnosis service. Please try again.')
+
+      // Better error messaging based on error type
+      if (apiError.data && apiError.data.message) {
+        alert(`Error: ${apiError.data.message}`)
+      } else if (apiError.message) {
+        alert(`Error: ${apiError.message}`)
+      } else {
+        alert('Error communicating with diagnosis service. Please try again.')
+      }
+
+      // Reset loading state and hide result
+      isLoading.value = false
+      showResult.value = false
+      return // Stop execution here after handling error
     }
 
     isLoading.value = false
@@ -201,13 +267,37 @@ function getThalassemiaText(value) {
 
 // Function to validate the form
 const validateForm = () => {
-  // Basic validation - check if all fields have values
-  return Object.values(diagnosisForm.value).every((val) => val !== '')
-}
+  // Check for required fields
+  if (!diagnosisForm.value.patientId) {
+    alert('Please select a patient before proceeding')
+    return false
+  }
 
-// Current step for multi-step form
-const currentStep = ref(1)
-const totalSteps = 3
+  // Check that all form fields have values
+  const requiredFields = [
+    'age',
+    'sex',
+    'cp',
+    'trestbps',
+    'chol',
+    'fbs',
+    'restecg',
+    'thalach',
+    'exang',
+    'oldpeak',
+    'slope',
+    'ca',
+    'thal',
+  ]
+
+  for (const field of requiredFields) {
+    if (!diagnosisForm.value[field]) {
+      return false
+    }
+  }
+
+  return true
+}
 
 // Function to go to next step
 const nextStep = () => {
@@ -228,9 +318,7 @@ const prevStep = () => {
 // Function to check if step is complete
 const isStepComplete = (step) => {
   if (step === 1) {
-    return (
-      !!diagnosisForm.value.patientName && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
-    )
+    return !!selectedPatient.value.id && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
   } else if (step === 2) {
     return (
       !!diagnosisForm.value.cp &&
@@ -251,19 +339,42 @@ const isStepComplete = (step) => {
   }
   return false
 }
+
+// Prefetch patients data
+const prefetchPatients = async () => {
+  try {
+    console.log('Prefetching patients data for offline use')
+    const patients = await patientService.getAllPatients(1, 100)
+
+    if (patients && patients.length > 0) {
+      patientService.cachePatients(patients)
+      console.log(`Prefetched and cached ${patients.length} patients`)
+    }
+  } catch (error) {
+    console.error('Error prefetching patients:', error)
+    // Silent fail - will fall back to online search when needed
+  }
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  prefetchPatients()
+})
 </script>
 
 <template>
   <div class="diagnose-page mt-16">
     <!-- Preload critical images -->
-    <ImagePreloader :images="[
-      '/images/picu.jpg',
-      'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      'https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      'https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
-    ]" />
-    
+    <ImagePreloader
+      :images="[
+        '/images/picu.jpg',
+        'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      ]"
+    />
+
     <!-- Added mt-16 for navbar spacing -->
     <!-- Hero Banner with Medical Background -->
     <section class="relative">
@@ -322,14 +433,27 @@ const isStepComplete = (step) => {
             <h2 class="text-2xl font-bold text-white mb-6">Patient Information</h2>
             <div class="space-y-5">
               <div>
-                <label class="block text-white mb-2" for="patientName">Patient Name</label>
-                <input
-                  id="patientName"
-                  v-model="diagnosisForm.patientName"
-                  type="text"
-                  class="w-full px-4 py-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Enter patient's full name"
+                <label class="block text-white mb-2" for="patientName">Patient Information</label>
+                <PatientSearchSelector
+                  v-model="selectedPatient"
+                  @update:modelValue="updatePatientInfo"
                 />
+                <div
+                  v-if="diagnosisForm.patientId"
+                  class="mt-2 p-3 bg-white/10 rounded-lg border border-white/20"
+                >
+                  <div class="text-white/80 text-sm">
+                    <span class="font-semibold text-white">Selected Patient:</span>
+                  </div>
+                  <div class="text-white/80 text-sm mt-1">
+                    <span class="inline-block w-24">Patient ID:</span>
+                    <span class="font-semibold text-white">{{ diagnosisForm.patientId }}</span>
+                  </div>
+                  <div class="text-white/80 text-sm mt-1">
+                    <span class="inline-block w-24">Name:</span>
+                    <span class="font-semibold text-white">{{ diagnosisForm.patientName }}</span>
+                  </div>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -59,6 +59,19 @@ module.exports = {
           description: 'Mencari pasien berdasarkan NIK',
           app: {
             requiredRoles: ['admin', 'dokter'],
+          },
+        },
+      },
+      {
+        method: 'GET',
+        path: '/api/v1/admin/patients/search',
+        handler: adminController.searchPatients,
+        options: {
+          auth: 'jwt',
+          tags: ['api', 'admin'],
+          description: 'Mencari pasien berdasarkan nama atau NIK',
+          app: {
+            requiredRoles: ['admin', 'dokter'],
             // localhostOnly: true, // Dinonaktifkan untuk presentasi
           },
         },

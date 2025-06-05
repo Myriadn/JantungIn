@@ -231,14 +231,31 @@ class ApiService {
    */
   getStoredToken() {
     try {
+      // First check for direct token storage
+      let token = localStorage.getItem('token') || localStorage.getItem('jantungin_token')
+      if (token) {
+        console.log('Found token in direct storage')
+        return token
+      }
+
+      // Then check in user data
       const userData = localStorage.getItem('jantungin_user')
       if (userData) {
-        const { token } = JSON.parse(userData)
-        return token
+        try {
+          const parsedData = JSON.parse(userData)
+          if (parsedData && parsedData.token) {
+            console.log('Found token in user data')
+            return parsedData.token
+          }
+        } catch (e) {
+          console.error('Error parsing user data:', e)
+        }
       }
     } catch (error) {
       console.error('Error reading token:', error)
     }
+
+    console.warn('No authentication token found in storage')
     return null
   }
 
@@ -264,7 +281,10 @@ class ApiService {
 
     // Log full URL for debugging in development
     if (import.meta.env.DEV) {
-      console.log('GET request to:', `${this.baseUrl}${endpoint}`)
+      const queryString = new URLSearchParams(params).toString()
+      const fullUrl = `${this.baseUrl}${endpoint}${queryString ? `?${queryString}` : ''}`
+      console.log('GET request to:', fullUrl)
+      console.log('GET params:', params)
     }
 
     // Check network availability before attempting the request
@@ -278,7 +298,30 @@ class ApiService {
     return this.retryRequest(
       async () => {
         try {
-          return await this.axios.get(endpoint, { params })
+          // Make sure token is in the headers
+          this.ensureAuthToken()
+
+          // Make the request with parameters
+          const response = await this.axios.get(endpoint, { params })
+
+          // Check response format
+          if (response && response.data && response.data.statusCode) {
+            if (response.data.statusCode >= 400) {
+              const apiError = new Error(response.data.message || 'API Error')
+              apiError.status = response.data.statusCode
+              apiError.data = response.data
+              throw apiError
+            }
+
+            // Extract actual data if it exists
+            if (response.data.data !== undefined) {
+              // Keep the original response, but replace data with the nested data
+              const enrichedResponse = { ...response, data: response.data.data }
+              return enrichedResponse
+            }
+          }
+
+          return response
         } catch (error) {
           // If it's a network error, we'll let the retry mechanism handle it
           if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
@@ -297,6 +340,19 @@ class ApiService {
         operationName,
       },
     )
+  }
+
+  /**
+   * Ensure authorization token is set if available
+   */
+  ensureAuthToken() {
+    // Check if we already have a token in headers
+    if (!this.axios.defaults.headers.common['Authorization']) {
+      const token = this.getStoredToken()
+      if (token) {
+        this.setToken(token)
+      }
+    }
   }
 
   /**
