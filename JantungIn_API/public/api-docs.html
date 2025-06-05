@@ -380,11 +380,10 @@
 
       <section id="authentication">
         <h2>Authentication</h2>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/auth/register</span>
+            <span class="path">/api/v1/auth/register</span>
           </div>
           <div class="description">Mendaftarkan pengguna baru (user/pasien).</div>
 
@@ -445,11 +444,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/auth/login</span>
+            <span class="path">/api/v1/auth/login</span>
           </div>
           <div class="description">Login menggunakan NIK dan password.</div>
 
@@ -492,11 +490,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/auth/login-email</span>
+            <span class="path">/api/v1/auth/login-email</span>
           </div>
           <div class="description">Login alternatif menggunakan email dan password.</div>
 
@@ -539,11 +536,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/auth/profile</span>
+            <span class="path">/api/v1/auth/profile</span>
           </div>
           <div class="description">Mendapatkan profil pengguna yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -563,11 +559,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method put">PUT</span>
-            <span class="path">/api/auth/profile</span>
+            <span class="path">/api/v1/auth/profile</span>
           </div>
           <div class="description">Memperbarui profil pengguna.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -619,11 +614,10 @@
           <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT.
           Pengguna dengan role "user" hanya dapat mengakses data mereka sendiri.
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/diagnosis/history</span>
+            <span class="path">/api/v1/diagnosis/history</span>
           </div>
           <div class="description">Mendapatkan riwayat diagnosis pengguna.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -658,11 +652,10 @@
   ]
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/diagnosis/{id}</span>
+            <span class="path">/api/v1/diagnosis/{id}</span>
           </div>
           <div class="description">Mendapatkan detail diagnosis berdasarkan ID.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -721,11 +714,10 @@
           <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT dengan
           role "admin" atau "dokter".
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/admin/login</span>
+            <span class="path">/api/v1/admin/login</span>
           </div>
           <div class="description">Login khusus untuk admin/dokter.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -769,11 +761,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/profile</span>
+            <span class="path">/api/v1/admin/profile</span>
           </div>
           <div class="description">Mendapatkan profil admin/dokter yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -794,11 +785,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/admin/change-password</span>
+            <span class="path">/api/v1/admin/change-password</span>
           </div>
           <div class="description">Mengganti password admin/dokter yang sedang login.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -837,11 +827,10 @@
   "message": "Password berhasil diubah"
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/patients</span>
+            <span class="path">/api/v1/admin/patients</span>
           </div>
           <div class="description">Mendapatkan semua data pasien (user).</div>
           <span class="tag auth-required">Auth Required</span>
@@ -865,11 +854,10 @@
   ]
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/patients/{id}</span>
+            <span class="path">/api/v1/admin/patients/{id}</span>
           </div>
           <div class="description">Mendapatkan data pasien berdasarkan ID.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -909,11 +897,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/admin/patients/find</span>
+            <span class="path">/api/v1/admin/patients/find</span>
           </div>
           <div class="description">Mencari pasien berdasarkan NIK.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -952,11 +939,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/admins</span>
+            <span class="path">/api/v1/admin/admins</span>
           </div>
           <div class="description">Mendapatkan semua data admin/dokter.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -980,11 +966,10 @@
   ]
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/admin/admins</span>
+            <span class="path">/api/v1/admin/admins</span>
           </div>
           <div class="description">Membuat user admin/dokter baru.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1053,11 +1038,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method put">PUT</span>
-            <span class="path">/api/admin/users/{id}</span>
+            <span class="path">/api/v1/admin/users/{id}</span>
           </div>
           <div class="description">Mengubah data user.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1133,11 +1117,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method delete">DELETE</span>
-            <span class="path">/api/admin/users/{id}</span>
+            <span class="path">/api/v1/admin/users/{id}</span>
           </div>
           <div class="description">Menghapus user.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1168,11 +1151,10 @@
   "message": "User berhasil dihapus"
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/admin/users/{id}/reset-password</span>
+            <span class="path">/api/v1/admin/users/{id}/reset-password</span>
           </div>
           <div class="description">Reset password user.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1223,11 +1205,10 @@
   "message": "Password user berhasil direset"
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/statistics/diagnosis</span>
+            <span class="path">/api/v1/admin/statistics/diagnosis</span>
           </div>
           <div class="description">Mendapatkan statistik diagnosa.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1254,11 +1235,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/dashboard</span>
+            <span class="path">/api/v1/admin/dashboard</span>
           </div>
           <div class="description">Mendapatkan data dashboard admin.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1327,11 +1307,10 @@
           <strong>Catatan:</strong> Semua endpoint di bagian ini memerlukan autentikasi JWT.
           Pembuatan diagnosis baru hanya dapat dilakukan oleh admin atau dokter.
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/diagnosis</span>
+            <span class="path">/api/v1/diagnosis</span>
           </div>
           <div class="description">Membuat diagnosis baru untuk pasien.</div>
           <span class="tag auth-required">Auth Required</span>
@@ -1448,11 +1427,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/diagnosis/{id}</span>
+            <span class="path">/api/v1/diagnosis/{id}</span>
           </div>
           <div class="description">
             Mendapatkan detail diagnosis berdasarkan ID. User biasa hanya dapat melihat diagnosis
@@ -1570,11 +1548,10 @@
   ]
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/diagnosis/all</span>
+            <span class="path">/api/v1/admin/diagnosis/all</span>
           </div>
           <div class="description">
             Mendapatkan semua data diagnosis (hanya untuk admin/dokter).
@@ -1612,11 +1589,10 @@
   ]
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/admin/diagnosis/patient/{patientId}</span>
+            <span class="path">/api/v1/admin/diagnosis/patient/{patientId}</span>
           </div>
           <div class="description">
             Mendapatkan riwayat diagnosis untuk pasien tertentu (hanya untuk admin/dokter).
@@ -1686,7 +1662,7 @@
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method post">POST</span>
-            <span class="path">/api/setup/admin</span>
+            <span class="path">/api/v1/setup/admin</span>
           </div>
           <div class="description">Setup akun admin pertama.</div>
           <span class="tag localhost-only">Localhost Only</span>
@@ -1741,11 +1717,10 @@
   }
 }</code></pre>
         </div>
-
         <div class="endpoint">
           <div class="endpoint-title">
             <span class="method get">GET</span>
-            <span class="path">/api/setup/admin-check</span>
+            <span class="path">/api/v1/setup/admin-check</span>
           </div>
           <div class="description">Memeriksa akun admin yang sudah ada.</div>
           <span class="tag localhost-only">Localhost Only</span>

@@ -1,55 +1,81 @@
-# Inference Model Project
+# JantungIn Inference Model
 
-This project is a simple inference model utilizing the MLP (Multilayer Perceptron) algorithm for form detection, distinguishing between **Normal** and **Heart Disease** based on input data.
+Komponen Machine Learning dari aplikasi JantungIn yang menggunakan algoritma MLP (Multilayer Perceptron) untuk memprediksi risiko penyakit jantung berdasarkan data input pengguna.
 
-## Getting Started
+## Deskripsi
 
-To get started with this project, follow the steps below to set up and run the application locally.
+Model inferensi ini dirancang untuk mengklasifikasikan status kesehatan kardiovaskular pengguna ke dalam kategori **Normal** atau **Risiko Penyakit Jantung** berdasarkan faktor-faktor risiko yang dimasukkan. Komponen ini diintegrasikan dengan JantungIn API untuk memproses data dan mengembalikan hasil prediksi.
 
-### Prerequisites
+## Teknologi
 
-Make sure you have the following installed:
+- **TensorFlow.js**: Library machine learning untuk JavaScript
+- **Vite**: Build tool untuk aplikasi web modern
+- **Tailwind CSS**: Utility-first CSS framework
+- **Python**: Untuk pengembangan dan ekspor model
 
-* **Node.js** (v14 or later)
-* **npm** (comes with Node.js)
+## Struktur Proyek
 
-### Installation
+```
+Inference/
+├── model/                 # Model ML yang telah dilatih
+│   ├── group1-shard1of1.bin  # File binary model
+│   ├── model.json         # Konfigurasi model
+│   └── scaler_info.json   # Informasi normalisasi
+├── python/                # Script Python untuk pembuatan model
+│   ├── export_model.py    # Skrip untuk mengekspor model ke format TensorFlow.js
+│   └── untitled17.py      # Notebook untuk pemodelan
+├── src/                   # Kode sumber frontend
+├── public/                # File statis
+├── image/                 # Aset gambar
+└── data clean.csv         # Dataset untuk pengujian
+```
 
-1. Clone the repository to your local machine:
+## Instalasi
 
-   ```bash
-   git clone https://github.com/your-repository-url.git
-   cd your-repository-folder
-   ```
+1. Pastikan Anda memiliki Node.js (v14 atau lebih baru) dan npm.
 
-2. Install the required dependencies:
+2. Instal dependensi yang diperlukan:
 
    ```bash
    npm install
    ```
 
-### Running the Development Server
+3. Jalankan server pengembangan:
 
-After the installation is complete, run the following command to start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-```
+   Aplikasi akan tersedia di `http://localhost:3000`
 
-This will start the application, and you can access it on your browser at:
+## Performa Model
 
-```
-http://localhost:3000
-```
+- Model MLP yang diimplementasikan mencapai akurasi pengujian **94.67%** dalam membedakan kasus Normal dan Penyakit Jantung.
+- Model telah dioptimalkan, dan peningkatan akurasi lebih lanjut sulit dicapai pada tahap ini.
+- Peningkatan UI/UX direncanakan dan akan diimplementasikan segera.
 
-### Model Performance
+## Integrasi dengan JantungIn
 
-* The MLP model implemented in this project achieves an accuracy testing of **94.67%** in distinguishing between Normal and Heart Disease cases.
-* The model has already been tuned, and further improvements in accuracy cannot be achieved at this stage.
-* UI/UX improvements are planned and will be implemented soon.
+Model inferensi ini terintegrasi dengan komponen lain dari aplikasi JantungIn:
 
-### Authors
+1. **Integrasi dengan Backend**: Model ini diakses oleh JantungIn API untuk memproses prediksi
+2. **Akses Data**: Menggunakan data yang dikirimkan dari frontend melalui API
+3. **Hasil Prediksi**: Mengembalikan hasil prediksi yang ditampilkan di frontend
 
-* Ridho Alkhoiri
-* Muhammad Rizqy Hidayah
-* Farhan Abdul Mukhlis
+## Pengembangan Model
+
+Untuk mengembangkan model lebih lanjut:
+
+1. Gunakan skrip Python di direktori `/python` untuk melatih model baru
+2. Ekspor model ke format TensorFlow.js menggunakan `export_model.py`
+3. Ganti file model di direktori `/model`
+
+## Kontributor
+
+- Ridho Alkhoiri
+- Muhammad Rizqy Hidayah
+- Farhan Abdul Mukhlis
+
+## Lisensi
+
+Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE)

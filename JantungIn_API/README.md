@@ -24,8 +24,12 @@ JantungIn API adalah layanan backend RESTful untuk aplikasi JantungIn yang berfo
 - **Node.js** - Lingkungan runtime JavaScript
 - **Hapi.js** - Framework web yang kuat dan fleksibel
 - **PostgreSQL** - Sistem manajemen database relasional
-- **JWT** - JSON Web Token untuk otentikasi yang aman
+- **Sequelize** - ORM untuk PostgreSQL
+- **JWT** - JSON Web Token untuk autentikasi yang aman
 - **TensorFlow.js** - Library pembelajaran mesin untuk prediksi
+- **Bcrypt** - Enkripsi password
+- **Winston** - Logging library
+- **Jest** - Framework pengujian
 
 ## 📋 Prasyarat
 
@@ -54,7 +58,12 @@ npm install
 cp .env.example .env
 ```
 
-Edit file `.env` untuk mengatur kredensial database dan opsi konfigurasi lainnya.
+Edit file `.env` untuk mengatur kredensial database dan opsi konfigurasi lainnya termasuk:
+
+- `PORT` (default: 3000)
+- `JWT_SECRET` untuk enkripsi token
+- `NODE_ENV` (development/production)
+- `ALLOWED_ORIGINS` untuk konfigurasi CORS
 
 ## 💾 Konfigurasi Database
 
@@ -81,38 +90,55 @@ DB_PASSWORD=password_anda
 npm run dev
 ```
 
+Server akan berjalan di `http://localhost:3000` secara default.
+
 ### Mode Produksi
 
 ```bash
 npm start
 ```
 
+Untuk produksi dengan variabel lingkungan langsung:
+
+```bash
+npm run production
+```
+
 ## 📡 Endpoint API
 
 ### 🔐 Autentikasi
 
-- `POST /api/auth/register` - Mendaftarkan pengguna baru
-- `POST /api/auth/login` - Login pengguna
-- `GET /api/auth/profile` - Mendapatkan profil pengguna
-- `PUT /api/auth/profile` - Memperbarui profil pengguna
+- `POST /api/v1/auth/register` - Mendaftarkan pengguna baru
+- `POST /api/v1/auth/login` - Login pengguna
+- `GET /api/v1/auth/profile` - Mendapatkan profil pengguna
+- `PUT /api/v1/auth/profile` - Memperbarui profil pengguna
 
 ### 🩺 Diagnosis
 
-- `POST /api/diagnosis` - Membuat diagnosis baru
-- `GET /api/diagnosis/history` - Mendapatkan riwayat diagnosis pengguna
-- `GET /api/diagnosis/{id}` - Mendapatkan diagnosis spesifik
+- `POST /api/v1/diagnosis` - Membuat diagnosis baru
+- `GET /api/v1/diagnosis/history` - Mendapatkan riwayat diagnosis pengguna
+- `GET /api/v1/diagnosis/{id}` - Mendapatkan diagnosis spesifik
 
 ### 👩‍💼 Admin (Khusus Dokter)
 
-- `GET /api/admin/users` - Mendapatkan daftar semua pengguna
-- `GET /api/admin/diagnoses` - Mendapatkan semua data diagnosis
-- `PUT /api/admin/users/{id}` - Memperbarui data pengguna
+- `POST /api/v1/admin/login` - Login khusus admin/dokter
+- `GET /api/v1/admin/patients` - Mendapatkan daftar semua pasien
+- `GET /api/v1/admin/diagnoses` - Mendapatkan semua data diagnosis
+- `PUT /api/v1/admin/patients/{id}` - Memperbarui data pasien
 
 ## 🧪 Pengujian
 
 ```bash
 npm test
 ```
+
+### Pengujian dengan Postman
+
+Koleksi Postman tersedia di direktori `/postman` untuk menguji semua endpoint API:
+
+1. Impor `JantungIn APi.postman_collection.json` ke Postman
+2. Impor `JantungIn Variabel.postman_environment.json` untuk variabel lingkungan
+3. Sesuaikan variabel lingkungan jika diperlukan (URL, token, dll.)
 
 ## 🚀 Deployment
 
@@ -193,3 +219,13 @@ Proyek ini dilisensikan di bawah Lisensi ISC.
 ## 👨‍💻 Kontributor
 
 - Myriadn - Pengembangan awal dan desain API
+
+## 📚 Dokumentasi API
+
+Dokumentasi API tersedia secara langsung melalui:
+
+```
+http://localhost:3000/public/api-docs.html
+```
+
+Dokumentasi ini memberikan informasi lengkap tentang semua endpoint API, parameter yang diperlukan, dan contoh respons.
