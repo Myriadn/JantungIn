@@ -7,7 +7,7 @@ import { generateOperationId } from '@/utils/notifications'
 class ApiService {
   constructor() {
     // Use environment variable for API URL with fallback
-    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    this.baseUrl = import.meta.env.VITE_API_URL || 'https://jantungin-api.up.railway.app'
     console.log('API Service initialized with baseURL:', this.baseUrl)
 
     // Timeout configuration
