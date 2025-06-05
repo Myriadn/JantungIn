@@ -934,7 +934,7 @@ const generateReportId = () => {
 }
 
 const goBack = () => {
-  router.push('/admin/diagnoses')
+  router.push('/diagnose-admin')
 }
 
 // Send to Patient functionality

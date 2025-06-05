@@ -129,11 +129,11 @@ const loadProfileData = async () => {
 
     // Load activities
     const activitiesResponse = await profileService.getRecentActivities()
-    // Handle responseData yang bisa ada di data.data atau langsung di data
-    const activitiesData = activitiesResponse.data?.data || activitiesResponse.data
+    // Data langsung dalam format array dari hasil implementasi baru
+    const activitiesData = activitiesResponse.data
 
     if (Array.isArray(activitiesData)) {
-      console.log('Activities loaded:', activitiesData)
+      console.log('Activities loaded from diagnosis data:', activitiesData)
       recentActivities.value = activitiesData.map((activity) => ({
         type: activity.type,
         patientId: activity.patientId,
@@ -143,7 +143,7 @@ const loadProfileData = async () => {
           hour: '2-digit',
           minute: '2-digit',
         }),
-        status: activity.status,
+        status: 'Completed', // Semua aktivitas diagnosis memiliki status Completed
       }))
     } else {
       console.warn('No activities found in response or invalid format')
@@ -605,21 +605,34 @@ onMounted(() => {
                 </div>
 
                 <div class="p-6">
-                  <div class="space-y-4">
+                  <div v-if="recentActivities.length === 0" class="text-center py-8">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-12 w-12 mx-auto text-gray-400 mb-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <h3 class="text-gray-600 font-medium">Belum Ada Aktivitas</h3>
+                    <p class="text-gray-500 text-sm mt-1">
+                      Aktivitas diagnosis akan muncul di sini
+                    </p>
+                  </div>
+                  <div v-else class="space-y-4">
                     <div
                       v-for="(activity, index) in recentActivities"
                       :key="index"
                       class="activity-item"
                     >
-                      <div
-                        class="activity-icon"
-                        :class="{
-                          'bg-blue-100 text-blue-600': activity.type === 'diagnosis',
-                          'bg-purple-100 text-purple-600': activity.type === 'review',
-                        }"
-                      >
+                      <div class="activity-icon bg-blue-100 text-blue-600">
                         <svg
-                          v-if="activity.type === 'diagnosis'"
                           xmlns="http://www.w3.org/2000/svg"
                           class="h-5 w-5"
                           fill="none"
@@ -631,21 +644,6 @@ onMounted(() => {
                             stroke-linejoin="round"
                             stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          />
-                        </svg>
-                        <svg
-                          v-if="activity.type === 'review'"
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
                       </div>
@@ -661,24 +659,10 @@ onMounted(() => {
                             >{{ activity.date }}, {{ activity.time }}</span
                           >
                         </div>
-                        <p class="text-sm text-gray-600 mt-1">
-                          {{
-                            activity.type === 'diagnosis'
-                              ? 'Performed diagnosis'
-                              : 'Medical record review'
-                          }}
-                        </p>
+                        <p class="text-sm text-gray-600 mt-1">Performed diagnosis</p>
                       </div>
                       <div class="ml-2">
-                        <span
-                          class="status-badge"
-                          :class="{
-                            'bg-green-100 text-green-800': activity.status === 'completed',
-                            'bg-blue-100 text-blue-800': activity.status === 'scheduled',
-                          }"
-                        >
-                          {{ activity.status }}
-                        </span>
+                        <span class="status-badge bg-green-100 text-green-800"> Completed </span>
                       </div>
                     </div>
                   </div>

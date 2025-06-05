@@ -89,13 +89,14 @@ const yesNoOptions = [
 
 // Current step for multi-step form
 const currentStep = ref(1)
-const totalSteps = 4
+const totalSteps = 3
 
 // Refs for the result
 const isLoading = ref(false)
 const predictionResult = ref(null)
 const resultPercentage = ref(null)
 const showResult = ref(false)
+const diagnosisId = ref(null) // Tambahkan ref untuk menyimpan ID diagnosis
 
 // Update patient information when selected
 const updatePatientInfo = (patient) => {
@@ -209,9 +210,17 @@ const handleSubmit = async () => {
 
       // Use the result data from the diagnosis service
       resultPercentage.value = result.resultPercentage ? result.resultPercentage.toFixed(2) : '0.00'
-      predictionResult.value = result.cardiovascularRisk
-        ? result.cardiovascularRisk.toLowerCase()
-        : 'unknown'
+
+      // Simpan ID diagnosis untuk navigasi ke halaman detail
+      diagnosisId.value = result.id
+
+      // Ubah menjadi hanya 2 kategori risiko: Low Risk (<=49%) dan High Risk (>=50%)
+      const percentage = parseFloat(resultPercentage.value)
+      predictionResult.value = percentage >= 50 ? 'high' : 'low'
+
+      console.log(
+        `Diagnosis result: ${percentage}% risk, category: ${predictionResult.value}, ID: ${diagnosisId.value}`,
+      )
 
       // Save to history if we have a valid result
       if (result && result.id) {
@@ -312,6 +321,20 @@ const prevStep = () => {
   if (currentStep.value > 1) {
     currentStep.value--
     window.scrollTo(0, 0) // Scroll to top for better UX
+  }
+}
+
+// Function to navigate to the detailed diagnosis report
+const viewDetailedReport = () => {
+  if (diagnosisId.value) {
+    console.log(`Navigating to detailed report for diagnosis ID: ${diagnosisId.value}`)
+    router.push({
+      path: '/result-admin',
+      query: { id: diagnosisId.value },
+    })
+  } else {
+    console.error('No diagnosis ID available for detailed report')
+    alert('Error: Diagnosis ID not found. Please try again.')
   }
 }
 
@@ -818,25 +841,13 @@ onMounted(() => {
             <div class="flex flex-col items-center justify-center text-center">
               <div
                 :class="`h-24 w-24 rounded-full flex items-center justify-center text-2xl
-                ${
-                  predictionResult === 'high'
-                    ? 'bg-red-500'
-                    : predictionResult === 'moderate'
-                      ? 'bg-yellow-500'
-                      : 'bg-green-500'
-                } text-white mb-4`"
+                ${predictionResult === 'high' ? 'bg-red-500' : 'bg-green-500'} text-white mb-4`"
               >
                 {{ resultPercentage }}%
               </div>
 
               <h2 class="text-3xl font-bold text-white mb-2">
-                {{
-                  predictionResult === 'high'
-                    ? 'High Risk'
-                    : predictionResult === 'moderate'
-                      ? 'Moderate Risk'
-                      : 'Low Risk'
-                }}
+                {{ predictionResult === 'high' ? 'High Risk' : 'Low Risk' }}
               </h2>
 
               <p class="text-white/80 mb-6">
@@ -847,7 +858,7 @@ onMounted(() => {
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
                 <button
-                  @click="router.push('/result-admin')"
+                  @click="viewDetailedReport"
                   class="px-5 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-all"
                 >
                   View Detailed Report

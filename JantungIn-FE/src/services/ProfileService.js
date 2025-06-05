@@ -88,48 +88,106 @@ class ProfileService {
 
   /**
    * Get admin recent activities
-   * @returns {Promise} Recent activities data
+   * Data diambil dari endpoint diagnosa: /api/v1/admin/diagnosis/all
+   * Hanya menampilkan 3 diagnosa terbaru sebagai aktivitas
+   * @returns {Promise} Recent activities data (array of 3 most recent diagnoses)
    */
   async getRecentActivities() {
     try {
       try {
-        // Coba kesiapan endpoint untuk fitur baru
-        console.log('Checking if activities endpoint available...')
-        const response = await apiService.get('/api/v1/admin/activities/recent')
-        console.log('Activities response:', response)
-        return response
+        // Import patientService untuk mengambil data pasien
+        const patientService = (await import('./PatientService')).default
+
+        // Ambil data diagnosa dari endpoint /api/v1/admin/diagnosis/all
+        console.log('Fetching recent activities from diagnoses endpoint...')
+
+        // Memanfaatkan endpoint diagnosis yang sudah tersedia
+        const response = await apiService.get('/api/v1/admin/diagnosis/all')
+
+        console.log('Diagnoses API response for activities:', response)
+
+        // Ekstrak data diagnosa
+        const responseData = response.data || response
+        const diagnosesData = responseData.data || responseData
+
+        if (!Array.isArray(diagnosesData)) {
+          throw new Error('Invalid diagnoses data format')
+        }
+
+        // Urutkan berdasarkan tanggal terbaru
+        const sortedDiagnoses = [...diagnosesData].sort((a, b) => {
+          // Gunakan createdAt atau updatedAt untuk mengurutkan
+          const dateA = new Date(a.createdAt || a.updatedAt || 0)
+          const dateB = new Date(b.createdAt || b.updatedAt || 0)
+          return dateB - dateA // Descending order (terbaru dulu)
+        })
+
+        // Ambil hanya 3 diagnosa terbaru
+        const recentDiagnoses = sortedDiagnoses.slice(0, 3)
+
+        // Format data untuk aktivitas dan tambahkan nama pasien
+        const activities = []
+
+        for (const diagnosis of recentDiagnoses) {
+          const patientId = diagnosis.userId || diagnosis.patientId
+          let patientName = diagnosis.patientName || 'Pasien Tidak Diketahui'
+
+          // Coba ambil data pasien jika patientId tersedia
+          if (patientId) {
+            try {
+              const patientData = await patientService.getPatientById(patientId)
+              if (patientData && patientData.name) {
+                patientName = patientData.name
+              }
+            } catch (err) {
+              console.warn(`Could not fetch patient name for ID ${patientId}:`, err.message)
+              // Jika gagal, gunakan nama yang ada di diagnosis atau default
+            }
+          }
+
+          activities.push({
+            type: 'diagnosis',
+            patientId: patientId || 'Unknown',
+            patientName: patientName,
+            createdAt: diagnosis.createdAt || diagnosis.updatedAt || new Date().toISOString(),
+            status: 'Completed',
+          })
+        }
+
+        return {
+          data: activities,
+        }
       } catch (apiError) {
-        console.warn('API activities tidak tersedia, menggunakan data dummy:', apiError.message)
+        console.warn(
+          'API diagnoses tidak tersedia untuk aktivitas, menggunakan data dummy:',
+          apiError.message,
+        )
 
         // Return dummy data untuk sementara dengan format yang kompatibel dengan hasil dari axios
         return {
-          data: {
-            statusCode: 200,
-            message: 'Data aktivitas berhasil diambil (fallback)',
-            data: [
-              {
-                type: 'diagnosis',
-                patientId: 'P-001',
-                patientName: 'Ahmad Saputra',
-                createdAt: new Date(Date.now() - 3600000).toISOString(),
-                status: 'Completed',
-              },
-              {
-                type: 'consultation',
-                patientId: 'P-002',
-                patientName: 'Budi Santoso',
-                createdAt: new Date(Date.now() - 86400000).toISOString(),
-                status: 'Scheduled',
-              },
-              {
-                type: 'review',
-                patientId: 'P-003',
-                patientName: 'Citra Dewi',
-                createdAt: new Date(Date.now() - 172800000).toISOString(),
-                status: 'Completed',
-              },
-            ],
-          },
+          data: [
+            {
+              type: 'diagnosis',
+              patientId: 'P-001',
+              patientName: 'Ahmad Saputra',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              status: 'Completed',
+            },
+            {
+              type: 'diagnosis',
+              patientId: 'P-002',
+              patientName: 'Budi Santoso',
+              createdAt: new Date(Date.now() - 86400000).toISOString(),
+              status: 'Completed',
+            },
+            {
+              type: 'diagnosis',
+              patientId: 'P-003',
+              patientName: 'Citra Dewi',
+              createdAt: new Date(Date.now() - 172800000).toISOString(),
+              status: 'Completed',
+            },
+          ],
         }
       }
     } catch (error) {
