@@ -5,7 +5,7 @@ JantungIn ML adalah sistem prediksi penyakit jantung menggunakan **Multi-Layer P
 
 ## Dataset
 - **Sumber**: [UCI Heart Disease Dataset](https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data)
-- **Jumlah Sampel**: 303 pasien (setelah preprocessing: 297 sampel)
+- **Jumlah Sampel**: 303 pasien (setelah preprocessing: 291 sampel)
 - **Jumlah Fitur**: 13 parameter medis
 - **Target**: Binary classification (0: Tidak ada penyakit jantung, 1: Ada penyakit jantung)
 
