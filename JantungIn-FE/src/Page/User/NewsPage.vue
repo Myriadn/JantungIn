@@ -4,7 +4,6 @@ import FooterComponent from '@/components/Footer-component.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import LazyBackground from '@/components/LazyBackground.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
-import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'NewsPageAdmin',
@@ -220,8 +219,6 @@ const newsItems = ref([
     <!-- Footer Component -->
     <FooterComponent />
 
-    <!-- Chatbot Component -->
-    <ChatbotComponent />
   </div>
 </template>
 

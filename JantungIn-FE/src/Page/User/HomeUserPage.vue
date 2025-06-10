@@ -6,7 +6,6 @@ import LazyImage from '@/components/LazyImage.vue'
 import ImagePreloader from '@/components/ImagePreloader.vue'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
-import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'HomeUserPage',
@@ -343,6 +342,7 @@ onMounted(() => {
     </div>
 
     <!-- Need Help Section with Chatbot Introduction -->
+    <!--
     <div class="bg-white py-16 px-4">
       <div class="max-w-4xl mx-auto text-center">
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Need Assistance?</h2>
@@ -446,12 +446,12 @@ onMounted(() => {
           </div>
         </div>
       </div>
+    
     </div>
+  -->
     <!-- Footer Component -->
     <FooterComponent />
 
-    <!-- Chatbot Component -->
-    <ChatbotComponent />
   </div>
 </template>
 
