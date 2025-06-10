@@ -4,7 +4,7 @@
     class="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-60 backdrop-blur-md"
   >
     <div
-      class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden w-[85%] h-[85%] max-w-5xl max-h-[80vh] popup-container relative border border-blue-100 transform transition-all duration-500"
+      class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden w-[90%] max-w-5xl max-h-[90vh] popup-container relative border border-blue-100 transform transition-all duration-500"
       :class="{ 'scale-100 opacity-100': showPopup, 'scale-90 opacity-0': !showPopup }"
     >
       <!-- Decorative elements -->
@@ -35,13 +35,13 @@
       <!-- Ad content -->
       <div class="flex flex-col md:flex-row h-full relative">
         <!-- Ad image - left side with overlay and heartbeat animation -->
-        <div class="w-full md:w-1/2 h-1/3 md:h-full relative overflow-hidden">
+        <div class="p-6 md:p-8 flex flex-col justify-start w-full md:w-1/2 relative max-h-[90vh]">
           <div class="absolute inset-0 bg-gradient-to-tr from-blue-600/40 to-transparent z-10"></div>
           <div class="heartbeat-pulse absolute inset-0 z-0"></div>
           <img
             src="/images/cegah.jpg"
             alt="Heart Health Advertisement"
-            class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 z-0"
+            class="w-full h-full object-contain md:object-cover p-2 transition-transform duration-700 hover:scale-105 z-0"
           />
           <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
             <div class="flex items-center space-x-2">
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Ad text - right side -->
-        <div class="p-8 md:p-10 flex flex-col justify-center w-full md:w-1/2 relative">
+        <div class="p-6 md:p-8 flex flex-col justify-start w-full md:w-1/2 relative overflow-y-auto max-h-[90vh]">
           <div class="mb-6 flex items-center">
             <span class="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1.5 rounded-full flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -72,13 +72,13 @@
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">Take Care of Your Heart Health!</span>
           </h3>
           
-          <div class="pl-4 border-l-4 border-blue-500 mb-8">
+          <div class="pl-4 border-l-4 border-blue-500 mb-4">
             <p class="text-xl text-gray-600">
               Check your heart health regularly to prevent heart problems in the future.
             </p>
           </div>
           
-          <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="flex items-center bg-indigo-50 p-4 rounded-lg">
               <div class="bg-indigo-100 rounded-full p-3 mr-3">
                 <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +103,7 @@
             </div>
           </div>
 
-          <div class="flex space-x-4 mb-8">
+          <div class="flex space-x-4 mb-4">
             <a
               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
@@ -121,13 +121,11 @@
                 />
               </svg>
             </a>
-            
-           
           </div>
 
           <!-- Sponsor logos section - redesigned -->
-          <div class="mt-auto pt-4 border-t border-blue-100">
-            <p class="text-base font-medium text-gray-600 mb-4 flex items-center">
+          <div class="pt-4 border-t border-blue-100 mb-4">
+            <p class="text-base font-medium text-gray-600 mb-3 flex items-center">
               <svg class="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
               </svg>
@@ -138,9 +136,9 @@
                 <img
                   src="/images/ridho.jpg"
                   alt="Sponsor Ridho"
-                  class="w-16 h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all duration-300 shadow-md"
+                  class="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all duration-300 shadow-md"
                 />
-                <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="ml-2">
                   <p class="text-sm font-medium text-gray-800">Ridho</p>
                   <p class="text-sm text-gray-500">Honey</p>
                 </div>
@@ -149,9 +147,9 @@
                 <img
                   src="/images/haidar.jpg"
                   alt="Sponsor Haidar"
-                  class="w-16 h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all duration-300 shadow-md"
+                  class="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all duration-300 shadow-md"
                 />
-                <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="ml-2">
                   <p class="text-sm font-medium text-gray-800">Haidar</p>
                   <p class="text-sm text-gray-500">plastic shop</p>
                 </div>
@@ -250,19 +248,31 @@ a, button {
   transition: all 0.3s ease;
 }
 
-/* Add better responsiveness for mobile devices */
-@media (max-width: 640px) {
+/* Add better responsiveness for devices */
+@media (max-width: 768px) {
   .popup-container {
-    max-height: 90vh;
     width: 95%;
+    max-height: 95vh;
   }
-  
-  h3 {
-    font-size: 1.5rem;
-  }
-  
-  .grid {
-    grid-template-columns: 1fr;
-  }
+}
+
+/* Ensure content is scrollable but partners stay visible */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(219, 234, 254, 0.4);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(219, 234, 254, 0.4);
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 10px;
 }
 </style>

@@ -227,24 +227,7 @@ const handleResetPassword = () => {
 
           <form class="login-form" @submit.prevent="submitLogin">
             <!-- Login Method Toggle -->
-            <div class="login-toggle">
-              <button
-                type="button"
-                class="toggle-btn"
-                :class="{ active: loginMethod === 'nik' }"
-                @click="loginMethod = 'nik'"
-              >
-                Login with NIK
-              </button>
-              <button
-                type="button"
-                class="toggle-btn"
-                :class="{ active: loginMethod === 'email' }"
-                @click="loginMethod = 'email'"
-              >
-                Login with Email
-              </button>
-            </div>
+            
 
             <!-- NIK Input Field (shown when loginMethod is 'nik') -->
             <div v-if="loginMethod === 'nik'" class="form-group">
