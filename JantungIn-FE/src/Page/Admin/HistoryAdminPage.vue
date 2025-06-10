@@ -109,15 +109,13 @@ const formatDate = (dateString) => {
 
 const getStatusClass = (percentage) => {
   const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'bg-green-500'
-  if (numPercentage < 50) return 'bg-yellow-500'
+  if (numPercentage < 50) return 'bg-green-500'
   return 'bg-red-500'
 }
 
 const getStatusText = (percentage) => {
   const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'RISIKO RENDAH'
-  if (numPercentage < 50) return 'RISIKO SEDANG'
+  if (numPercentage < 50) return 'RISIKO RENDAH'
   return 'RISIKO TINGGI'
 }
 

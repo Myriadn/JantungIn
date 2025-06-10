@@ -892,20 +892,17 @@ const updateRiskFactors = (diagnosisData) => {
 
 // Computed properties for styling based on result percentage
 const resultColorClass = computed(() => {
-  if (resultPercentage.value < 20) return '#22c55e' // Green (low risk)
-  if (resultPercentage.value < 50) return '#eab308' // Yellow (medium risk)
+  if (resultPercentage.value < 50) return '#22c55e' // Green (low risk)
   return '#ef4444' // Red (high risk)
 })
 
 const textColorClass = computed(() => {
-  if (resultPercentage.value < 20) return 'text-green-600'
-  if (resultPercentage.value < 50) return 'text-yellow-500'
+  if (resultPercentage.value < 50) return 'text-green-500'
   return 'text-red-600'
 })
 
 const resultText = computed(() => {
-  if (resultPercentage.value < 20) return 'RISIKO RENDAH'
-  if (resultPercentage.value < 50) return 'RISIKO SEDANG'
+  if (resultPercentage.value < 50) return 'RISIKO RENDAH'
   return 'RISIKO TINGGI'
 })
 

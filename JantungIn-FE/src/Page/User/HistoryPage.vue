@@ -80,8 +80,7 @@ const formatDate = (dateString) => {
 
 const getStatusClass = (percentage) => {
   const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'bg-green-500'
-  if (numPercentage < 50) return 'bg-yellow-500'
+  if (numPercentage < 50) return 'bg-green-500'
   return 'bg-red-500'
 }
 
@@ -92,8 +91,7 @@ onMounted(() => {
 
 const getStatusText = (percentage) => {
   const numPercentage = parseFloat(percentage)
-  if (numPercentage < 20) return 'LOW RISK'
-  if (numPercentage < 50) return 'MEDIUM RISK'
+  if (numPercentage < 50) return 'LOW RISK'
   return 'HIGH RISK'
 }
 
@@ -338,9 +336,7 @@ const goBack = () => {
                       <div
                         :class="{
                           'bg-green-100 text-green-800 border-green-200':
-                            diagnosis.resultPercentage < 20,
-                          'bg-yellow-100 text-yellow-800 border-yellow-200':
-                            diagnosis.resultPercentage >= 20 && diagnosis.resultPercentage < 50,
+                            diagnosis.resultPercentage < 50,
                           'bg-red-100 text-red-800 border-red-200':
                             diagnosis.resultPercentage >= 50,
                         }"
@@ -365,7 +361,6 @@ const goBack = () => {
                       </div>
                       <div class="flex justify-between text-xs text-gray-500">
                         <span>Low Risk</span>
-                        <span>Medium Risk</span>
                         <span>High Risk</span>
                       </div>
                     </div>
@@ -399,9 +394,7 @@ const goBack = () => {
           <!-- Top banner with risk level -->
           <div
             :class="{
-              'from-green-400 to-green-600': selectedDiagnosis.resultPercentage < 20,
-              'from-yellow-400 to-yellow-600':
-                selectedDiagnosis.resultPercentage >= 20 && selectedDiagnosis.resultPercentage < 50,
+              'from-green-400 to-green-600': selectedDiagnosis.resultPercentage < 50,
               'from-red-400 to-red-600': selectedDiagnosis.resultPercentage >= 50,
             }"
             class="bg-gradient-to-r text-white p-6"
@@ -483,9 +476,6 @@ const goBack = () => {
                 <div
                   :class="{
                     'bg-green-100 text-green-800 border-green-200':
-                      selectedDiagnosis.resultPercentage < 20,
-                    'bg-yellow-100 text-yellow-800 border-yellow-200':
-                      selectedDiagnosis.resultPercentage >= 20 &&
                       selectedDiagnosis.resultPercentage < 50,
                     'bg-red-100 text-red-800 border-red-200':
                       selectedDiagnosis.resultPercentage >= 50,
@@ -503,10 +493,7 @@ const goBack = () => {
                       <div>
                         <span
                           :class="{
-                            'text-green-800': selectedDiagnosis.resultPercentage < 20,
-                            'text-yellow-800':
-                              selectedDiagnosis.resultPercentage >= 20 &&
-                              selectedDiagnosis.resultPercentage < 50,
+                            'text-green-800': selectedDiagnosis.resultPercentage < 50,
                             'text-red-800': selectedDiagnosis.resultPercentage >= 50,
                           }"
                           class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full"
@@ -530,22 +517,17 @@ const goBack = () => {
 
                       <!-- Risk markers -->
                       <div
-                        class="absolute top-0 bottom-0 left-[20%] w-px bg-gray-400 opacity-70"
-                      ></div>
-                      <div
                         class="absolute top-0 bottom-0 left-[50%] w-px bg-gray-400 opacity-70"
                       ></div>
                     </div>
 
                     <div class="flex justify-between text-xs text-gray-600 mt-1">
                       <span>0%</span>
-                      <span class="ml-[16%]">20%</span>
-                      <span class="ml-[26%]">50%</span>
+                      <span class="ml-[46%]">50%</span>
                       <span>100%</span>
                     </div>
                     <div class="flex justify-between text-xs text-gray-500 mt-px">
                       <span>Low Risk</span>
-                      <span class="ml-20">Medium</span>
                       <span>High Risk</span>
                     </div>
                   </div>
@@ -556,9 +538,6 @@ const goBack = () => {
                     <div
                       :class="{
                         'bg-green-100 text-green-700 border-green-200':
-                          selectedDiagnosis.resultPercentage < 20,
-                        'bg-yellow-100 text-yellow-700 border-yellow-200':
-                          selectedDiagnosis.resultPercentage >= 20 &&
                           selectedDiagnosis.resultPercentage < 50,
                         'bg-red-100 text-red-700 border-red-200':
                           selectedDiagnosis.resultPercentage >= 50,
@@ -583,22 +562,13 @@ const goBack = () => {
                     <div>
                       <h4 class="font-medium mb-1">Doctor's Interpretation</h4>
                       <p
-                        v-if="selectedDiagnosis.resultPercentage < 20"
+                        v-if="selectedDiagnosis.resultPercentage < 50"
                         class="text-sm text-gray-700"
                       >
                         <span class="font-medium text-green-700">Low risk</span> of cardiovascular
                         disease. Your heart health indicators are within normal ranges. Continue
                         maintaining your healthy lifestyle and schedule regular check-ups to monitor
                         your health.
-                      </p>
-                      <p
-                        v-else-if="selectedDiagnosis.resultPercentage < 50"
-                        class="text-sm text-gray-700"
-                      >
-                        <span class="font-medium text-yellow-700">Moderate risk</span> of
-                        cardiovascular disease. Consider lifestyle modifications such as improved
-                        diet, increased physical activity, and stress management. Regular follow-ups
-                        with your healthcare provider are recommended.
                       </p>
                       <p v-else class="text-sm text-gray-700">
                         <span class="font-medium text-red-700">High risk</span> of cardiovascular
