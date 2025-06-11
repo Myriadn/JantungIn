@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./JantungIn_API/public/logo.png" alt="JantungIn Logo" width="300"/>
+  <img src="./JantungIn_API/public/logo.png" alt="JantungIn Logo" width="200"/>
 </p>
 
 <p align="center">
