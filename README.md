@@ -1,6 +1,22 @@
-# JantungIn - Aplikasi Penilaian Risiko Kardiovaskular
+<p align="center">
+  <img src="./JantungIn_API/public/logo.png" alt="JantungIn Logo" width="300"/>
+</p>
+
+<p align="center">
+  <b>JantungIn - Aplikasi Penilaian Risiko Kardiovaskular</b>
+</p>
 
 JantungIn adalah aplikasi yang dirancang untuk membantu pengguna menilai risiko penyakit kardiovaskular mereka. Proyek ini merupakan Tugas Akhir untuk Studi Independen DBS Foundation dan Dicoding.
+
+## Documentation
+
+Dokumentasi lengkap untuk setiap komponen tersedia di:
+
+- [Frontend - Web Application](JantungIn-FE/README.md)
+- [Backend - REST API](JantungIn_API/README.md)
+- [Machine Learning - Model & Training](JantungIn_ML/README.md)
+- [API Documentation - Postman Collection](JantungIn_API/postman/)
+- [ML Model - Jupyter Notebook](JantungIn_ML/notebook/)
 
 ## Deskripsi Aplikasi
 
@@ -85,18 +101,29 @@ npm install
 npm start
 ```
 
-### Konfigurasi Inference Model
+### Konfigurasi Machine Learning Model
 
 ```sh
-# Masuk ke direktori inference
-cd Inference
+# Masuk ke direktori machine learning
+cd JantungIn_ML
 
-# Instal dependensi
-npm install
-
-# Jalankan untuk development
-npm run dev
+# Buka notebook untuk training dan evaluasi model
+# Menggunakan Jupyter Notebook atau Google Colab
+jupyter notebook notebook/Notebook_JantungIn.ipynb
 ```
+
+**Hasil Model sudah tersedia dalam format TensorFlow.js di folder model/:**
+- `group1-shard1of1.bin`: Model weights
+- `model.json`: Model architecture  
+- `scaler_info.json`: Preprocessing parameters
+```
+
+**Model Specifications:**
+- **Akurasi**: 96.67% pada test set
+- **Arsitektur**: Multi-Layer Perceptron (MLP) dengan 3 layer
+- **Input**: 13 parameter medis kardiovaskular
+- **Output**: Binary classification (0: Tidak ada risiko, 1: Ada risiko)
+- **Zero False Negatives**: Sangat penting untuk aplikasi medis
 
 ## Deployment
 
