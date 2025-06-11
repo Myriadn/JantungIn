@@ -9,6 +9,7 @@ import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
 import historyService from '@/services/HistoryService'
 import { handleApiError } from '@/utils/apiErrorHandler'
 import { withCache, createCacheKey } from '@/utils/apiCache'
+import ChatbotComponent from '@/components/ChatbotComponent.vue'
 
 defineOptions({
   name: 'HistoryPage',
@@ -865,6 +866,9 @@ const goBack = () => {
 
     <!-- Footer Component -->
     <FooterComponent />
+
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
 
   </div>
 </template>

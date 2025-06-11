@@ -85,9 +85,8 @@ onMounted(() => {
     <div class="chatbot-panel" :class="{ open: isOpen }">
       <div v-if="isMounted && !isFirstOpen" class="chatbot-wrapper">
         <df-messenger
-          location="us-central1"
-          project-id="heartcare-chatbot-461709"
-          agent-id="18ae7f88-3c37-4156-810a-03220c1bc6e3"
+          project-id="bold-guide-460509-t6"
+          agent-id="b044a8eb-c5bc-4ada-a860-b02d95cf2092"
           language-code="id"
           max-query-length="-1"
         >
