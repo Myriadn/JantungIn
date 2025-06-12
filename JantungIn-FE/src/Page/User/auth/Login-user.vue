@@ -171,12 +171,14 @@ const handleResetPassword = () => {
       <div class="login-form-section">
         <div class="login-form-container">
           <!-- Heart Icon Logo -->
-          <div class="logo-container" @click="navigateToDoctorLogin" style="cursor: pointer">
+          <div class="logo-container">
             <svg
               class="heart-logo"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              @click="navigateToDoctorLogin"
+              style="cursor: pointer"
             >
               <path
                 d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
@@ -227,7 +229,6 @@ const handleResetPassword = () => {
 
           <form class="login-form" @submit.prevent="submitLogin">
             <!-- Login Method Toggle -->
-            
 
             <!-- NIK Input Field (shown when loginMethod is 'nik') -->
             <div v-if="loginMethod === 'nik'" class="form-group">
@@ -441,42 +442,19 @@ const handleResetPassword = () => {
 }
 
 .heart-logo {
+  position: relative;
   width: 3rem;
   height: 3rem;
   color: #f43f5e;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.5));
   transition:
     transform 0.3s ease,
     filter 0.3s ease;
 }
 
-.logo-container:hover .heart-logo {
+.heart-logo:hover {
   transform: scale(1.1);
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
-}
-
-.logo-container::after {
-  content: 'Login as Doctor';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-  white-space: nowrap;
-}
-
-.logo-container:hover::after {
-  opacity: 1;
-  transform: translateX(-50%) translateY(5px);
+  filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.8));
 }
 
 .illustration-title {

@@ -102,6 +102,29 @@ const viewDiagnosisDetails = (diagnosis) => {
 const goBack = () => {
   selectedDiagnosis.value = null
 }
+
+// Handle printing the diagnosis report
+const printReport = () => {
+  if (!selectedDiagnosis.value) return
+
+  // Get the diagnosis ID to use in the print URL
+  const diagnosisId = selectedDiagnosis.value.id || Date.now().toString()
+
+  // Store diagnosis data in sessionStorage for the print page to access
+  sessionStorage.setItem('printDiagnosis', JSON.stringify(selectedDiagnosis.value))
+
+  // Open a new window with just the report content for printing
+  const printWindow = window.open(`/print/diagnosis/${diagnosisId}`, '_blank')
+
+  // Handle popup blockers
+  if (!printWindow) {
+    alert('Please allow popups for this website to print the report')
+  }
+
+  if (!printWindow) {
+    alert('Please allow popups for this website to print the report')
+  }
+}
 </script>
 
 <template>
@@ -246,7 +269,7 @@ const goBack = () => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M13 16h-1v-4h-1m-4 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
                 Did you know?
@@ -328,7 +351,7 @@ const goBack = () => {
                         <div>
                           <div class="font-bold text-gray-800">Heart Health Assessment</div>
                           <div class="text-sm text-gray-500">
-                            {{ formatDate(diagnosis.sentAt || diagnosis.savedAt) }}
+                            {{ formatDate(diagnosis.createdAt) }}
                           </div>
                         </div>
                       </div>
@@ -390,7 +413,11 @@ const goBack = () => {
         </div>
 
         <!-- Selected Diagnosis Detail View -->
-        <div v-else class="bg-white/90 backdrop-blur-md rounded-xl shadow-xl p-0 overflow-hidden">
+        <div
+          v-else
+          class="bg-white/90 backdrop-blur-md rounded-xl shadow-xl p-0 overflow-hidden"
+          :data-date="formatDate(selectedDiagnosis.createdAt)"
+        >
           <!-- Top banner with risk level -->
           <div
             :class="{
@@ -435,7 +462,7 @@ const goBack = () => {
                       />
                     </svg>
                     <p class="text-sm opacity-90">
-                      {{ formatDate(selectedDiagnosis.sentAt || selectedDiagnosis.savedAt) }}
+                      {{ formatDate(selectedDiagnosis.createdAt) }}
                     </p>
                   </div>
                 </div>
@@ -451,6 +478,29 @@ const goBack = () => {
           </div>
 
           <div class="p-6">
+            <!-- Print-only header -->
+            <div class="print-only-header" style="display: none">
+              <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                <div class="flex items-center">
+                  <img src="/logo.png" alt="JantungIn Logo" class="h-14 mr-3" />
+                  <div>
+                    <h1 class="text-2xl font-bold text-blue-600">JantungIn</h1>
+                    <p class="text-sm text-gray-500">Heart Health Assessment Report</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-medium">
+                    Report ID: JI-{{
+                      new Date(selectedDiagnosis.createdAt).getTime().toString().substring(0, 8)
+                    }}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Date: {{ formatDate(selectedDiagnosis.createdAt) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- Summary Card -->
             <div class="mb-6 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
               <div
@@ -523,7 +573,7 @@ const goBack = () => {
 
                     <div class="flex justify-between text-xs text-gray-600 mt-1">
                       <span>0%</span>
-                      <span class="ml-[46%]">50%</span>
+                      <span class="ml-[3%]">50%</span>
                       <span>100%</span>
                     </div>
                     <div class="flex justify-between text-xs text-gray-500 mt-px">
@@ -813,7 +863,7 @@ const goBack = () => {
                 </div>
 
                 <div class="flex justify-center mt-8">
-                  <button class="print-report-btn">
+                  <button class="print-report-btn" @click="printReport">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-5 w-5 mr-2"
@@ -859,6 +909,48 @@ const goBack = () => {
                 </p>
               </div>
             </div>
+
+            <!-- Print-only footer -->
+            <div class="print-only-footer mt-8" style="display: none">
+              <div class="border-t border-gray-200 pt-4 mt-8">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 class="font-medium text-gray-700">Disclaimer</h4>
+                    <p class="text-xs text-gray-500 mt-1">
+                      This report is generated based on the data provided and is intended for
+                      informational purposes only. It is not a substitute for professional medical
+                      advice, diagnosis, or treatment. Always seek the advice of your physician or
+                      other qualified health provider with any questions you may have regarding a
+                      medical condition.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-gray-700">JantungIn Healthcare</h4>
+                    <p class="text-xs text-gray-500 mt-1">
+                      123 Health Avenue<br />
+                      Jakarta, Indonesia 12345<br />
+                      Phone: (021) 555-1234<br />
+                      Email: care@jantungin.com<br />
+                      Website: www.jantungin.com
+                    </p>
+                  </div>
+                </div>
+                <div class="mt-4 pt-2 border-t border-gray-100 text-center">
+                  <p class="text-xs text-gray-400">
+                    Printed on:
+                    {{
+                      new Date().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -869,7 +961,6 @@ const goBack = () => {
 
     <!-- Chatbot Component -->
     <ChatbotComponent />
-
   </div>
 </template>
 
@@ -1159,5 +1250,189 @@ button {
 button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Print styles for report */
+.print-report-btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.print-report-btn:hover {
+  background-color: #2563eb;
+}
+
+/* Media query for print */
+@media print {
+  /* General print settings */
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+
+  /* Hide non-printable elements */
+  body * {
+    visibility: hidden;
+  }
+
+  body.printing {
+    background-color: white;
+  }
+
+  /* Only show the diagnosis report */
+  .bg-white\/90.backdrop-blur-md.rounded-xl.shadow-xl,
+  .bg-white\/90.backdrop-blur-md.rounded-xl.shadow-xl * {
+    visibility: visible;
+  }
+
+  /* Show the print-only elements */
+  .print-only-header {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Hide the print-only footer as requested */
+  .print-only-footer {
+    display: none !important;
+  }
+
+  /* Positioning the report for print */
+  .bg-white\/90.backdrop-blur-md.rounded-xl.shadow-xl {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Hide buttons and non-necessary elements in print */
+  .print-report-btn,
+  .view-details-btn,
+  button[type='button'],
+  .history-page > section,
+  .bg-gradient-to-b,
+  .floating-shape,
+  footer,
+  header,
+  .ChatbotComponent,
+  .mt-6.p-4.bg-blue-50.rounded-lg.border.border-blue-200 {
+    display: none !important;
+  }
+
+  /* Hide the footer and background elements */
+  footer,
+  .bg-gradient-to-r.from-blue-500.to-indigo-600 {
+    visibility: hidden !important;
+    display: none !important;
+  }
+
+  /* Remove original report header */
+  .bg-gradient-to-r.text-white.p-6 {
+    display: none !important;
+  }
+
+  /* Ensure proper page breaks and avoid content splitting */
+  .health-data-card,
+  .recommendation-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Make text darker for better printing */
+  p,
+  li,
+  .health-data-value,
+  .health-data-label,
+  h2,
+  h3,
+  h4 {
+    color: #000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Enhance grid layout for A4 paper */
+  .grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  /* Adjust card sizes for better A4 layout */
+  .health-data-card,
+  .recommendation-card {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 10px !important;
+    background-color: #f9fafb !important;
+  }
+
+  /* Make icons print-friendly */
+  .health-data-icon,
+  .recommendation-icon {
+    background-color: #f3f4f6 !important;
+    color: #3b82f6 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Ensure proper A4 paper orientation and margins */
+  .bg-white\/90.backdrop-blur-md.rounded-xl.shadow-xl {
+    max-width: 210mm;
+    min-height: auto;
+    padding: 10mm 0;
+    margin: 0 auto;
+  }
+
+  /* Remove background colors that don't print well */
+  [class*='bg-'] {
+    background-color: white !important;
+  }
+
+  /* Ensure proper contrast for risk indicator */
+  [class*='from-green'],
+  [class*='to-green'],
+  [class*='from-red'],
+  [class*='to-red'] {
+    background: none !important;
+    background-color: white !important;
+    border-top: 5px solid #000 !important;
+  }
+
+  /* Format risk indicator for print */
+  .my-4 .relative.pt-1 [class*='bg-green'],
+  .my-4 .relative.pt-1 [class*='bg-red'] {
+    background-color: #000 !important;
+    border: none !important;
+  }
+
+  /* Ensure better print quality for fonts */
+  * {
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* Hide elements with data-print-hide attribute */
+  [data-print-hide='true'] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Focus on the actual diagnosis data */
+  .mb-6.bg-white.rounded-xl.shadow-sm.overflow-hidden.border.border-gray-100,
+  .mb-8.bg-white.rounded-xl.shadow-sm.overflow-hidden.border.border-gray-100,
+  .bg-white.rounded-xl.shadow-sm.overflow-hidden.border.border-gray-100 {
+    margin-bottom: 15px !important;
+    page-break-inside: avoid;
+  }
 }
 </style>

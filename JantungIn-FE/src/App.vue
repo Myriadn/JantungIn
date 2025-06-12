@@ -94,7 +94,7 @@ onUnmounted(() => {
   <!-- Application Shell Architecture -->
   <div class="flex flex-col min-h-screen">
     <!-- Static Shell Content (Header) -->
-    <header>
+    <header v-if="route.meta.layout !== 'print'">
       <!-- Show admin navbar for admin pages -->
       <NavbarAdmin v-if="isAdminPage && route.name !== 'admin'" />
       <!-- Show regular navbar for user pages -->
@@ -158,16 +158,16 @@ onUnmounted(() => {
     </main>
 
     <!-- Static Shell Content (Footer) -->
-    <footer>
+    <footer v-if="route.meta.layout !== 'print'">
       <!-- Footer content if needed -->
     </footer>
 
     <!-- PWA Components -->
-    <RefreshApp />
-    <PWAStatus />
+    <RefreshApp v-if="route.meta.layout !== 'print'" />
+    <PWAStatus v-if="route.meta.layout !== 'print'" />
 
     <!-- Ad Popup Component -->
-    <AdPopupComponent />
+    <AdPopupComponent v-if="route.meta.layout !== 'print'" />
   </div>
 </template>
 

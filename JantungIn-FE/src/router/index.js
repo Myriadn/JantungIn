@@ -5,6 +5,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    path: '/print/diagnosis/:id',
+    name: 'diagnosisPrint',
+    component: () => import('@/Page/Print/DiagnosisPrint.vue'),
+    meta: { layout: 'print' },
+  },
+  {
     path: '/',
     name: 'login',
     component: () => import('@/Page/User/auth/Login-user.vue'),

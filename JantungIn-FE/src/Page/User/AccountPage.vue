@@ -786,10 +786,9 @@ const healthData = ref([
 
     <!-- Footer Component -->
     <FooterComponent />
-    
+
     <!-- Chatbot Component -->
     <ChatbotComponent />
-
   </div>
 </template>
 
