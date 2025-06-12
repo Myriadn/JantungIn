@@ -6,7 +6,7 @@
   <b>JantungIn - Aplikasi Penilaian Risiko Kardiovaskular</b>
 </p>
 
-JantungIn adalah aplikasi yang dirancang untuk membantu pengguna menilai risiko penyakit kardiovaskular mereka. Proyek ini merupakan Tugas Akhir untuk Studi Independen DBS Foundation dan Dicoding.
+JantungIn adalah aplikasi yang dirancang untuk membantu seorang dokter sebagai efisiensi waktu dalam menilai risiko penyakit kardiovaskular para pasien. Proyek ini merupakan Tugas Akhir untuk Studi Independen DBS Foundation dan Dicoding.
 
 ## Documentation
 
@@ -56,7 +56,7 @@ Teknologi yang digunakan:
 - MySQL/PostgreSQL
 - JWT untuk autentikasi
 
-### 3. Inference (Model Machine Learning)
+### 3. JantungIn_ML (Model Machine Learning)
 
 Komponen machine learning untuk prediksi risiko kardiovaskular:
 
@@ -116,7 +116,6 @@ jupyter notebook notebook/Notebook_JantungIn.ipynb
 - `group1-shard1of1.bin`: Model weights
 - `model.json`: Model architecture  
 - `scaler_info.json`: Preprocessing parameters
-```
 
 **Model Specifications:**
 - **Akurasi**: 96.67% pada test set
@@ -127,11 +126,11 @@ jupyter notebook notebook/Notebook_JantungIn.ipynb
 
 ## Deployment
 
-Aplikasi ini dirancang untuk dapat di-deploy dalam beberapa cara:
+Aplikasi ini di-deploy pada layanan seperti:
 
-- Frontend: Netlify, Vercel, atau hosting statis lainnya
-- Backend: Heroku, AWS, atau layanan cloud lainnya
-- Database: Layanan database terkelola
+- Frontend: Netlify
+- Backend: Railway
+- Database: Supabase
 
 ## Tim Pengembang
 
