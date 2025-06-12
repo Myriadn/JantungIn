@@ -64,17 +64,6 @@ onUnmounted(() => {
   // Restore scrolling when component is destroyed
   document.body.style.overflow = ''
 })
-
-// Expose handleResetPassword to template (not included in ViewModel)
-const handleResetPassword = () => {
-  if (isOfflineMode.value) {
-    errorMessage.value = 'Password reset is not available in offline mode'
-    return
-  }
-
-  // TODO: Implement password reset functionality
-  console.log('Password reset requested')
-}
 </script>
 
 <template>
@@ -359,14 +348,6 @@ const handleResetPassword = () => {
                 <input type="checkbox" />
                 <span>Remember me</span>
               </label>
-              <button
-                type="button"
-                @click="handleResetPassword"
-                class="forgot-password"
-                :class="{ 'disabled-link': isOfflineMode }"
-              >
-                Forgot password?
-              </button>
             </div>
 
             <button type="button" class="btn-primary" @click="submitLogin" :disabled="isLoading">
@@ -655,7 +636,6 @@ const handleResetPassword = () => {
 
 .remember-forgot {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
@@ -670,21 +650,6 @@ const handleResetPassword = () => {
 
 .remember-me input {
   margin-right: 0.5rem;
-}
-
-.forgot-password {
-  color: #3b82f6;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.forgot-password:hover:not(.disabled-link) {
-  color: #2563eb;
-  text-decoration: underline;
 }
 
 .btn-primary {

@@ -132,7 +132,7 @@ const printReport = () => {
     <!-- Preload critical images -->
     <ImagePreloader
       :images="[
-        '/images/diagnose-hero.jpg',
+        '/images/picu.jpg',
         '/images/loading-placeholder.svg',
         '/images/error-placeholder.svg',
       ]"
@@ -145,7 +145,7 @@ const printReport = () => {
       <div class="absolute inset-0">
         <LazyBackground
           class="absolute inset-0 hero-bg"
-          src="/images/diagnose-hero.jpg"
+          src="/images/picu.jpg"
           placeholder="/images/loading-placeholder.svg"
           :style="{ filter: 'brightness(0.4)' }"
         />

@@ -215,16 +215,17 @@ const togglePasswordVisibility = () => {
               </div>
             </div>
 
+            <!-- Error message - moved here for better positioning -->
+            <div class="error-message" v-if="errorMessage">
+              {{ errorMessage }}
+            </div>
+
             <!-- Remove prototype features -->
 
             <button type="submit" class="btn-primary" :disabled="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <span>{{ loading ? 'Signing in...' : 'Sign In' }}</span>
             </button>
-
-            <div class="error-message" v-if="errorMessage">
-              {{ errorMessage }}
-            </div>
 
             <div class="login-divider">
               <span>Healthcare Professional Access</span>
