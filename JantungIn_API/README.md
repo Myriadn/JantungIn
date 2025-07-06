@@ -175,6 +175,124 @@ docker build -t jantungin-api .
 docker run -p 3000:3000 -e NODE_ENV=production jantungin-api
 ```
 
+### 🚀 Deployment ke Heroku dengan Docker
+
+#### Prasyarat
+
+- [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+- [Node.js](https://nodejs.org/) (versi 18 atau lebih tinggi)
+- [Git](https://git-scm.com/)
+- [Docker](https://www.docker.com/) (opsional, untuk pengujian lokal)
+
+#### Langkah-langkah Deployment
+
+1. **Instalasi dan Login**
+
+   ```bash
+   # Instalasi Heroku CLI
+   curl https://cli-assets.heroku.com/install.sh | sh
+
+   # Login ke Heroku
+   heroku login
+   ```
+
+2. **Persiapan Aplikasi**
+
+   ```bash
+   # Buat aplikasi Heroku (jika belum ada)
+   heroku create nama-aplikasi-anda
+
+   # Set stack ke container
+   heroku stack:set container
+
+   # Tambahkan remote Heroku ke repo Git
+   heroku git:remote -a nama-aplikasi-anda
+   ```
+
+3. **Konfigurasi Variabel Lingkungan**
+
+   ```bash
+   heroku config:set JWT_SECRET=nilai_rahasia_anda
+   heroku config:set JWT_EXPIRATION=24h
+   heroku config:set ENCRYPTION_KEY=kunci_enkripsi_anda
+   heroku config:set ALLOWED_ORIGINS=https://domain-frontend-anda.com
+   heroku config:set RATE_LIMIT_WINDOW_MS=900000
+   heroku config:set RATE_LIMIT_MAX_REQUESTS=1000
+
+   # Tambahkan variabel database jika diperlukan
+   # heroku config:set DATABASE_URL=nilai_database_anda
+   ```
+
+4. **Deploy Aplikasi**
+
+   ```bash
+   # Commit perubahan
+   git add .
+   git commit -m "Persiapan untuk deployment Heroku"
+
+   # Deploy ke Heroku
+   git push heroku main
+   # Atau jika branch Anda adalah master
+   # git push heroku master
+   ```
+
+5. **Verifikasi Deployment**
+
+   ```bash
+   # Buka aplikasi di browser
+   heroku open
+
+   # Lihat log untuk debugging
+   heroku logs --tail
+   ```
+
+#### Troubleshooting
+
+Jika mengalami masalah dengan `heroku container:push web`:
+
+1. **Pastikan menggunakan heroku.yml**
+   File heroku.yml sudah ada dan dikonfigurasi dengan benar.
+
+2. **Gunakan Git push alih-alih container push**
+
+   ```bash
+   git push heroku main
+   ```
+
+3. **Periksa Logs**
+
+   ```bash
+   heroku logs --tail
+   ```
+
+4. **Jika masalah persisten**
+   Coba buat aplikasi baru:
+   ```bash
+   heroku apps:create nama-aplikasi-baru --stack container
+   git remote remove heroku
+   heroku git:remote -a nama-aplikasi-baru
+   git push heroku main
+   ```
+
+#### Pemeliharaan
+
+- **Scaling**
+
+  ```bash
+  heroku ps:scale web=1:standard-1x
+  ```
+
+- **Monitoring**
+
+  ```bash
+  heroku addons:create newrelic:wayne
+  ```
+
+- **Database Backup**
+  ```bash
+  heroku pg:backups:schedule DATABASE_URL --at '02:00 Asia/Jakarta'
+  ```
+
 ## 🔧 Pemecahan Masalah
 
 ### 🚨 Masalah Umum saat Deployment

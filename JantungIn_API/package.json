@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{js,json}\"",
     "test": "jest",
     "production": "NODE_ENV=production node src/server.js",
-    "prestart": "node src/utils/checkEnv.js"
+    "prestart": "node src/utils/checkEnv.js",
+    "heroku-deploy": "git push heroku main"
   },
   "jest": {
     "testEnvironment": "node",
