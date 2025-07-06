@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>Solusi Cerdas untuk Deteksi Dini Risiko Penyakit Kardiovaskular</b>
+  <b>Solusi Cerdas untuk Deteksi Dini Risiko Penyakit Kardiovaskular.</b>
 </p>
 
 JantungIn API adalah layanan backend RESTful untuk aplikasi JantungIn yang berfokus pada penilaian risiko penyakit kardiovaskular. API ini mendukung otentikasi pengguna, manajemen data pasien, dan prediksi risiko kardiovaskular menggunakan model pembelajaran mesin.
