@@ -7,7 +7,7 @@ import { generateOperationId } from '@/utils/notifications'
 class ApiService {
   constructor() {
     // Use environment variable for API URL with fallback
-    this.baseUrl = 'jantungin-atha.up.railway.app'
+    this.baseUrl = 'https://jantungin-atha.up.railway.app'
     console.log('API Service initialized with baseURL:', this.baseUrl)
 
     // Timeout configuration
