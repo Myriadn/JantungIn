@@ -1,3 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 *.ipynb linguist-vendored
+*.ipynb linguist-detectable=false
+
+JantungIn_ML/* linguist-vendored
+JantungIn_ML/* linguist-detectable=false
