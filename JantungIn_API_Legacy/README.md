@@ -43,7 +43,7 @@ JantungIn API adalah layanan backend RESTful untuk aplikasi JantungIn yang berfo
 
 ```bash
 git clone <repository-url>
-cd JantungIn_API
+cd JantungIn_API_Legacy
 ```
 
 2. Install dependensi:

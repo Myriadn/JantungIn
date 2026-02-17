@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./JantungIn_API/public/logo.png" alt="JantungIn Logo" width="200"/>
+  <img src="./JantungIn_API_Legacy/public/logo.png" alt="JantungIn Logo" width="200"/>
 </p>
 
 <p align="center">
@@ -13,9 +13,9 @@ JantungIn adalah aplikasi yang dirancang untuk membantu seorang dokter sebagai e
 Dokumentasi lengkap untuk setiap komponen tersedia di:
 
 - [Frontend - Web Application](JantungIn-FE/README.md)
-- [Backend - REST API](JantungIn_API/README.md)
+- [Backend - REST API](JantungIn_API_Legacy/README.md)
 - [Machine Learning - Model & Training](JantungIn_ML/README.md)
-- [API Documentation - Postman Collection](JantungIn_API/postman/)
+- [API Documentation - Postman Collection](JantungIn_API_Legacy/postman/)
 - [ML Model - Jupyter Notebook](JantungIn_ML/notebook/)
 
 ## Deskripsi Aplikasi
@@ -40,7 +40,7 @@ Antarmuka pengguna web yang dibangun menggunakan:
 - GSAP untuk animasi
 - Progressive Web App (PWA) support
 
-### 2. JantungIn_API (Backend)
+### 2. JantungIn_API_Legacy (Backend)
 
 Layanan RESTful API yang mendukung:
 
@@ -92,7 +92,7 @@ npm run build
 
 ```sh
 # Masuk ke direktori backend
-cd JantungIn_API
+cd JantungIn_API_Legacy
 
 # Instal dependensi
 npm install
@@ -113,11 +113,13 @@ jupyter notebook notebook/Notebook_JantungIn.ipynb
 ```
 
 **Hasil Model sudah tersedia dalam format TensorFlow.js di folder model/:**
+
 - `group1-shard1of1.bin`: Model weights
-- `model.json`: Model architecture  
+- `model.json`: Model architecture
 - `scaler_info.json`: Preprocessing parameters
 
 **Model Specifications:**
+
 - **Akurasi**: 96.67% pada test set
 - **Arsitektur**: Multi-Layer Perceptron (MLP) dengan 3 layer
 - **Input**: 13 parameter medis kardiovaskular
