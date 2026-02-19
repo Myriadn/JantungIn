@@ -1,8 +1,18 @@
+SHELL := powershell.exe
+.SHELLFLAGS := -NoProfile -Command
+
+APP_DIR := JantungIn_Go_Latest
+
+.PHONY: run stop
+
 run:
-	cd JantungIn_Go_Latest && go run main.go
+	@echo "Starting JantungIn Backend..."
+	@cd $(APP_DIR) ; go run main.go
 
 sync:
-	cd JantungIn_Go_Latest && go mod tidy
+	@echo "Syncing Module..."
+	@cd $(APP_DIR) ; go mod tidy
 
 clean:
-	cd JantungIn_Go_Latest && go clean
+	@echo "Cleaning Cache..."
+	@cd $(APP_DIR) ; go clean

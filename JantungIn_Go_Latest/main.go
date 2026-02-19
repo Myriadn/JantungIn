@@ -4,6 +4,7 @@ import (
 	"context"
 	"jantungin-api-server/cmd"
 	"jantungin-api-server/internal/wire"
+	"jantungin-api-server/pkg/database"
 	"jantungin-api-server/pkg/utils"
 	"os"
 	"os/signal"
@@ -29,8 +30,14 @@ func main() {
 		zap.String("port", cfg.App.Port),
 	)
 
+	dbManager, err := database.NewManager(cfg)
+	if err != nil {
+		utils.Fatal("Failed to initialize databases", zap.Error(err))
+	}
+	defer dbManager.Close()
+
 	ctx := context.Background()
-	router := wire.Wiring()
+	router := wire.Wiring(cfg, dbManager.Postgres.GetDB())
 
 	// Create and run server
 	server := cmd.NewServer(router, cfg)
