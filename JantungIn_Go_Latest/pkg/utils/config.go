@@ -26,6 +26,7 @@ type AppConfig struct {
 	Port            string
 	Timezone        string
 	ShutdownTimeout time.Duration
+	EncryptionKey   string
 }
 
 type DatabaseConfig struct {
@@ -82,11 +83,12 @@ func LoadConfig() (*Config, error) {
 
 	cfg := &Config{
 		App: AppConfig{
-			Name:            getEnv("APP_NAME", "E-Commerce API"),
+			Name:            getEnv("APP_NAME", "My App"),
 			Env:             getEnv("APP_ENV", "development"),
 			Port:            getEnv("APP_PORT", "8080"),
 			Timezone:        getEnv("APP_TIMEZONE", "Asia/Jakarta"),
 			ShutdownTimeout: parseDuration("SHUTDOWN_TIMEOUT", "10s"),
+			EncryptionKey:   getEnv("ENCRYPTION_KEY", "12345678901234567890123456789012"),
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),
@@ -106,11 +108,11 @@ func LoadConfig() (*Config, error) {
 		// 	DB:        getEnvInt("REDIS_DB", 0),
 		// 	SessionDB: getEnvInt("REDIS_SESSION_DB", 1),
 		// },
-		// JWT: JWTConfig{
-		// 	Secret:             getEnv("JWT_SECRET", "change-this-secret-key"),
-		// 	AccessTokenExpire:  parseDuration("JWT_ACCESS_TOKEN_EXPIRE", "15m"),
-		// 	RefreshTokenExpire: parseDuration("JWT_REFRESH_TOKEN_EXPIRE", "168h"), // 7 days
-		// },
+		JWT: JWTConfig{
+			Secret:             getEnv("JWT_SECRET", "change-this-secret-key"),
+			AccessTokenExpire:  parseDuration("JWT_ACCESS_TOKEN_EXPIRE", "15m"),
+			RefreshTokenExpire: parseDuration("JWT_REFRESH_TOKEN_EXPIRE", "168h"), // 7 days
+		},
 		SMTP: SMTPConfig{
 			Host:      getEnv("SMTP_HOST", "smtp.gmail.com"),
 			Port:      getEnvInt("SMTP_PORT", 587),
