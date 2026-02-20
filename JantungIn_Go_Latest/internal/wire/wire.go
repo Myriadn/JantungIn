@@ -23,9 +23,9 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	router.Use(middleware.Logger())
 	router.Use(middleware.CORS(cfg))
 
-	usecases := usecase.NewUseCase(repo, cfg, db)
-	adaptors := adaptor.NewAdaptor(usecases)
-	authRepo := repository.NewAuthRepository(repo)
+	// usecases := usecase.NewUseCase(repo, cfg, db)
+	// adaptors := adaptor.NewAdaptor(usecases)
+	// authRepo := repository.NewAuthRepository(repo)
 
 	return router
 }
