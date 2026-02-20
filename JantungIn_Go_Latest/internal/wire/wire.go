@@ -3,7 +3,6 @@ package wire
 import (
 	"jantungin-api-server/pkg/middleware"
 	"jantungin-api-server/pkg/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,11 +23,9 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	router.Use(middleware.Logger())
 	router.Use(middleware.CORS(cfg))
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	usecases := usecase.NewUseCase(repo, cfg, db)
+	adaptors := adaptor.NewAdaptor(usecases)
+	authRepo := repository.NewAuthRepository(repo)
 
 	return router
 }
