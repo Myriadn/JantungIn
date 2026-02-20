@@ -12,3 +12,13 @@ type AuthLoginRequest struct {
 	NIK      string `json:"nik" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type AuthLoginEmailRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type UpdateProfileRequest struct {
+	Name        string `json:"name"`
+	DateOfBirth string `json:"dateOfBirth"`
+}
