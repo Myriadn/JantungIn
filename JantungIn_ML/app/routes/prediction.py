@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.model.predictor import Predictor
-from app.schemas.prediction import DiagnosisInput, PredictionResponse
+from app.schemas.prediction import DiagnosisInput, PredictionResponse, PredictionResult
 
 router = APIRouter()
 
@@ -59,5 +59,5 @@ def predict(payload: DiagnosisInput):
     return PredictionResponse(
         success=True,
         message="Prediction successful",
-        data=result,
+        data=PredictionResult(**result),
     )
