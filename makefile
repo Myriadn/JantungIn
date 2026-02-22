@@ -6,6 +6,7 @@ SHELL := powershell.exe
 DB_URL := postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 APP_DIR := JantungIn_Go_Latest
+ML_DIR := JantungIn_ML
 
 .PHONY: run stop
 
@@ -32,3 +33,7 @@ db-up:
 db-down:
 	@echo "Rolling back $(DB_NAME)..."
 	migrate -path $(APP_DIR)/internal/data/migrations -database "$(DB_URL)" down 1
+
+ml-run:
+	@echo "Machine is learning...."
+	cd $(ML_DIR) ; uv run main.py
