@@ -5,11 +5,13 @@ import (
 )
 
 type Adaptor struct {
-	AuthAdaptor *AuthAdaptor
+	AuthAdaptor      *AuthAdaptor
+	DiagnosisAdaptor *DiagnosisAdaptor
 }
 
 func NewAdaptor(usecases *usecase.UseCase) *Adaptor {
 	return &Adaptor{
-		AuthAdaptor: NewAuthAdaptor(usecases.AuthUseCase),
+		AuthAdaptor:      NewAuthAdaptor(usecases.AuthUseCase),
+		DiagnosisAdaptor: NewDiagnosisAdaptor(usecases.DiagnosisUseCase),
 	}
 }

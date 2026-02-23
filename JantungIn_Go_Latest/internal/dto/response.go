@@ -53,3 +53,12 @@ type UpdateProfileData struct {
 	Email       *string `json:"email"`
 	DateOfBirth *string `json:"dateOfBirth,omitempty"`
 }
+
+type DiagnosisResultData struct {
+	ID                 string  `json:"id"`
+	UserID             string  `json:"userId"`
+	ResultPercentage   float64 `json:"resultPercentage"`
+	CardiovascularRisk string  `json:"cardiovascularRisk"`
+	Prediction         string  `json:"prediction"`
+	CreatedAt          string  `json:"createdAt"`
+}

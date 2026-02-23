@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"jantungin-api-server/internal/data/entity"
 
 	"github.com/google/uuid"
@@ -10,7 +11,9 @@ import (
 
 type DiagnosisRepository interface {
 	Create(ctx context.Context, diagnosis *entity.Diagnosis) error
-	FindByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Diagnosis, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.Diagnosis, error)
+	FindAll(ctx context.Context) ([]entity.Diagnosis, error)
+	FindByPatientID(ctx context.Context, patientID uuid.UUID) ([]entity.Diagnosis, error)
 }
 
 type diagnosisRepository struct {
@@ -27,14 +30,33 @@ func (r *diagnosisRepository) Create(ctx context.Context, diagnosis *entity.Diag
 	return r.db.WithContext(ctx).Create(diagnosis).Error
 }
 
-func (r *diagnosisRepository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Diagnosis, error) {
-	var diagnoses []entity.Diagnosis
+func (r *diagnosisRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Diagnosis, error) {
+	var diagnosis entity.Diagnosis
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&diagnosis).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &diagnosis, nil
+}
 
+func (r *diagnosisRepository) FindAll(ctx context.Context) ([]entity.Diagnosis, error) {
+	var diagnoses []entity.Diagnosis
+	err := r.db.WithContext(ctx).Order("created_at DESC").Find(&diagnoses).Error
+	if err != nil {
+		return nil, err
+	}
+	return diagnoses, nil
+}
+
+func (r *diagnosisRepository) FindByPatientID(ctx context.Context, patientID uuid.UUID) ([]entity.Diagnosis, error) {
+	var diagnoses []entity.Diagnosis
 	err := r.db.WithContext(ctx).
-		Where("user_id = ?", userID).
+		Where("user_id = ?", patientID).
 		Order("created_at DESC").
 		Find(&diagnoses).Error
-
 	if err != nil {
 		return nil, err
 	}

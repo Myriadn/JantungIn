@@ -38,6 +38,7 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	// Register routes
 	api := router.Group("/api/v1")
 	registerAuthRoutes(api, adaptors, cfg)
+	registerDiagnosisRoutes(api, adaptors, cfg)
 
 	utils.Info("Route wiring completed")
 
@@ -59,5 +60,29 @@ func registerAuthRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *ut
 	{
 		authProtected.GET("/profile", adaptors.AuthAdaptor.GetProfile)
 		authProtected.PUT("/profile", adaptors.AuthAdaptor.UpdateProfile)
+	}
+}
+
+func registerDiagnosisRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *utils.Config) {
+	diagnosis := api.Group("/diagnosis")
+	diagnosis.Use(middleware.AuthRequired(cfg))
+	{
+		diagnosis.GET("/history", adaptors.DiagnosisAdaptor.GetDiagnosisHistory)
+		diagnosis.GET("/:id", adaptors.DiagnosisAdaptor.GetDiagnosisByID)
+	}
+
+	diagnosisAdmin := api.Group("/diagnosis")
+	diagnosisAdmin.Use(middleware.AuthRequired(cfg))
+	diagnosisAdmin.Use(middleware.RoleRequired("admin", "dokter"))
+	{
+		diagnosisAdmin.POST("", adaptors.DiagnosisAdaptor.CreateDiagnosis)
+	}
+
+	admin := api.Group("/admin/diagnosis")
+	admin.Use(middleware.AuthRequired(cfg))
+	admin.Use(middleware.RoleRequired("admin", "dokter"))
+	{
+		admin.GET("/all", adaptors.DiagnosisAdaptor.GetAllDiagnoses)
+		admin.GET("/patient/:patientId", adaptors.DiagnosisAdaptor.GetPatientDiagnoses)
 	}
 }

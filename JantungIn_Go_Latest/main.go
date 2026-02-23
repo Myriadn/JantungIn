@@ -55,7 +55,5 @@ func main() {
 	utils.Info("Shutting down application")
 	server.Shutdown(ctx)
 	utils.Info("Application stopped gracefully")
-func main() {
-	println("Test")
-	println("do something")
+
 }

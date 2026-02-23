@@ -22,6 +22,7 @@ clean:
 	@echo "Cleaning Cache..."
 	@cd $(APP_DIR) ; go clean
 
+# make db-go name=create_users_table
 db-go:
 	@echo "Creating file migrations..."
 	migrate create -ext sql -dir $(APP_DIR)/internal/data/migrations -seq $(name)
