@@ -30,15 +30,20 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	repo := repository.NewRepository(db)
 
 	// Initialize usecases
-	usecases := usecase.NewUseCase(repo.UserRepo, repo.DiagnosisRepo, cfg, db)
+	usecases := usecase.NewUseCase(repo.UserRepo, repo.DiagnosisRepo, repo.StatsRepo, cfg, db)
 
 	// Initialize adaptors
 	adaptors := adaptor.NewAdaptor(usecases)
+
+	// RequestTracker middleware — catat setiap request ke DB
+	// Dipasang setelah router global middleware agar status code sudah tersedia
+	router.Use(middleware.RequestTracker(repo.StatsRepo))
 
 	// Register routes
 	api := router.Group("/api/v1")
 	registerAuthRoutes(api, adaptors, cfg)
 	registerDiagnosisRoutes(api, adaptors, cfg)
+	registerStatsRoutes(api, adaptors, cfg)
 
 	utils.Info("Route wiring completed")
 
@@ -64,6 +69,7 @@ func registerAuthRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *ut
 }
 
 func registerDiagnosisRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *utils.Config) {
+	// Semua user terauth: ambil history dan detail
 	diagnosis := api.Group("/diagnosis")
 	diagnosis.Use(middleware.AuthRequired(cfg))
 	{
@@ -71,6 +77,7 @@ func registerDiagnosisRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cf
 		diagnosis.GET("/:id", adaptors.DiagnosisAdaptor.GetDiagnosisByID)
 	}
 
+	// Hanya admin/dokter: buat diagnosis
 	diagnosisAdmin := api.Group("/diagnosis")
 	diagnosisAdmin.Use(middleware.AuthRequired(cfg))
 	diagnosisAdmin.Use(middleware.RoleRequired("admin", "dokter"))
@@ -78,11 +85,25 @@ func registerDiagnosisRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cf
 		diagnosisAdmin.POST("", adaptors.DiagnosisAdaptor.CreateDiagnosis)
 	}
 
+	// Hanya admin/dokter: endpoint admin
 	admin := api.Group("/admin/diagnosis")
 	admin.Use(middleware.AuthRequired(cfg))
 	admin.Use(middleware.RoleRequired("admin", "dokter"))
 	{
 		admin.GET("/all", adaptors.DiagnosisAdaptor.GetAllDiagnoses)
 		admin.GET("/patient/:patientId", adaptors.DiagnosisAdaptor.GetPatientDiagnoses)
+	}
+}
+
+func registerStatsRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *utils.Config) {
+	// Public endpoint — untuk homepage (total users & diagnoses)
+	api.GET("/stats", adaptors.StatsAdaptor.GetPublicStats)
+
+	// Admin only endpoint — untuk dashboard admin (kunjungan, grafik harian, dll)
+	adminStats := api.Group("/admin/stats")
+	adminStats.Use(middleware.AuthRequired(cfg))
+	adminStats.Use(middleware.RoleRequired("admin", "dokter"))
+	{
+		adminStats.GET("", adaptors.StatsAdaptor.GetAdminStats)
 	}
 }

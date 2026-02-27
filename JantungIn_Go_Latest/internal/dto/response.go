@@ -62,3 +62,34 @@ type DiagnosisResultData struct {
 	Prediction         string  `json:"prediction"`
 	CreatedAt          string  `json:"createdAt"`
 }
+
+type DiagnosisUserInfo struct {
+	Name string `json:"name"`
+	Role string `json:"role"`
+}
+
+type DiagnosisResponse struct {
+	ID                    string             `json:"id"`
+	UserID                string             `json:"userId"`
+	CreatedBy             *string            `json:"createdBy"`
+	Age                   int                `json:"age"`
+	Sex                   string             `json:"sex"`
+	ChestPainType         string             `json:"chestPainType"`
+	RestingEcgResults     string             `json:"restingEcgResults"`
+	FastingBloodSugar     float64            `json:"fastingBloodSugar"`
+	RestingBloodPressure  float64            `json:"restingBloodPressure"`
+	MaximumHeartRate      int                `json:"maximumHeartRate"`
+	ExerciseInducedAngina string             `json:"exerciseInducedAngina"`
+	StSegment             string             `json:"stSegment"`
+	MajorVessels          int                `json:"majorVessels"`
+	Thalassemia           string             `json:"thalassemia"`
+	SerumCholesterol      float64            `json:"serumCholesterol"`
+	StDepression          float64            `json:"stDepression"`
+	ResultPercentage      float64            `json:"resultPercentage"`
+	CardiovascularRisk    string             `json:"cardiovascularRisk"`
+	Prediction            string             `json:"prediction"`
+	Patient               DiagnosisUserInfo  `json:"patient"`
+	Creator               *DiagnosisUserInfo `json:"creator,omitempty"`
+	CreatedAt             string             `json:"createdAt"`
+	UpdatedAt             string             `json:"updatedAt"`
+}

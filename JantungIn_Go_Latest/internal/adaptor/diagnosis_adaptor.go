@@ -66,7 +66,7 @@ func (h *DiagnosisAdaptor) GetDiagnosisHistory(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Diagnoses retrieved successfully", diagnoses)
+	utils.SuccessResponse(c, http.StatusOK, "Diagnoses retrieved successfully", dto.ToDiagnosisResponseList(diagnoses))
 }
 
 // GetDiagnosisByID - semua user terauth
@@ -89,7 +89,7 @@ func (h *DiagnosisAdaptor) GetDiagnosisByID(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Diagnosis retrieved successfully", diagnosis)
+	utils.SuccessResponse(c, http.StatusOK, "Diagnosis retrieved successfully", dto.ToDiagnosisResponse(*diagnosis))
 }
 
 // GetAllDiagnoses - hanya admin/dokter (enforced di route level)
@@ -100,7 +100,7 @@ func (h *DiagnosisAdaptor) GetAllDiagnoses(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "All diagnoses retrieved successfully", diagnoses)
+	utils.SuccessResponse(c, http.StatusOK, "All diagnoses retrieved successfully", dto.ToDiagnosisResponseList(diagnoses))
 }
 
 func (h *DiagnosisAdaptor) GetPatientDiagnoses(c *gin.Context) {
@@ -119,5 +119,5 @@ func (h *DiagnosisAdaptor) GetPatientDiagnoses(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Patient diagnoses retrieved successfully", diagnoses)
+	utils.SuccessResponse(c, http.StatusOK, "Patient diagnoses retrieved successfully", dto.ToDiagnosisResponseList(diagnoses))
 }

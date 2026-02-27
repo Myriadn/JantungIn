@@ -7,11 +7,13 @@ import (
 type Adaptor struct {
 	AuthAdaptor      *AuthAdaptor
 	DiagnosisAdaptor *DiagnosisAdaptor
+	StatsAdaptor     *StatsAdaptor
 }
 
 func NewAdaptor(usecases *usecase.UseCase) *Adaptor {
 	return &Adaptor{
 		AuthAdaptor:      NewAuthAdaptor(usecases.AuthUseCase),
 		DiagnosisAdaptor: NewDiagnosisAdaptor(usecases.DiagnosisUseCase),
+		StatsAdaptor:     NewStatsAdaptor(usecases.StatsUseCase),
 	}
 }

@@ -32,7 +32,15 @@ func (r *diagnosisRepository) Create(ctx context.Context, diagnosis *entity.Diag
 
 func (r *diagnosisRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Diagnosis, error) {
 	var diagnosis entity.Diagnosis
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&diagnosis).Error
+	err := r.db.WithContext(ctx).
+		Preload("Patient", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
+		Preload("Creator", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
+		Where("id = ?", id).
+		First(&diagnosis).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -44,7 +52,15 @@ func (r *diagnosisRepository) FindByID(ctx context.Context, id uuid.UUID) (*enti
 
 func (r *diagnosisRepository) FindAll(ctx context.Context) ([]entity.Diagnosis, error) {
 	var diagnoses []entity.Diagnosis
-	err := r.db.WithContext(ctx).Order("created_at DESC").Find(&diagnoses).Error
+	err := r.db.WithContext(ctx).
+		Preload("Patient", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
+		Preload("Creator", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
+		Order("created_at DESC").
+		Find(&diagnoses).Error
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +70,12 @@ func (r *diagnosisRepository) FindAll(ctx context.Context) ([]entity.Diagnosis, 
 func (r *diagnosisRepository) FindByPatientID(ctx context.Context, patientID uuid.UUID) ([]entity.Diagnosis, error) {
 	var diagnoses []entity.Diagnosis
 	err := r.db.WithContext(ctx).
+		Preload("Patient", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
+		Preload("Creator", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, role")
+		}).
 		Where("user_id = ?", patientID).
 		Order("created_at DESC").
 		Find(&diagnoses).Error
