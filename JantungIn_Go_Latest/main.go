@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"jantungin-api-server/cmd"
+	"jantungin-api-server/internal/data"
 	"jantungin-api-server/internal/wire"
 	"jantungin-api-server/pkg/database"
 	"jantungin-api-server/pkg/utils"
@@ -14,6 +16,9 @@ import (
 )
 
 func main() {
+	seedMode := flag.Bool("seed", false, "Jalankan seeder data dokter dummy lalu keluar")
+	flag.Parse()
+
 	cfg, err := utils.LoadConfig()
 	if err != nil {
 		panic("Failed to load config: " + err.Error())
@@ -36,6 +41,16 @@ func main() {
 	}
 	defer dbManager.Close()
 
+	// Mode seed: jalankan seeder lalu keluar, tidak start server
+	if *seedMode {
+		utils.Info("Running doctor seeder...")
+		if err := data.SeedDoctors(dbManager.Postgres.GetDB(), cfg); err != nil {
+			utils.Fatal("Seeder failed", zap.Error(err))
+		}
+		utils.Info("Seeder completed successfully")
+		os.Exit(0)
+	}
+
 	ctx := context.Background()
 	router := wire.Wiring(cfg, dbManager.Postgres.GetDB())
 
@@ -55,5 +70,4 @@ func main() {
 	utils.Info("Shutting down application")
 	server.Shutdown(ctx)
 	utils.Info("Application stopped gracefully")
-
 }
