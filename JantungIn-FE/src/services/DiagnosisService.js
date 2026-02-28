@@ -31,7 +31,7 @@ class DiagnosisService {
       // Continue with the copied data
       diagnosisData = diagnosisDataCopy
 
-      // Prepare diagnosis data according to API format
+      // Validasi patientId sebelum kirim
       const preparedData = this.prepareDiagnosisData(diagnosisData)
 
       console.log('Sending diagnosis data to API:', preparedData)
@@ -66,52 +66,18 @@ class DiagnosisService {
    * @returns {Object} Prepared data in API format
    */
   prepareDiagnosisData(rawData) {
-    // Validasi patient ID
     if (!rawData.patientId) {
-      console.error('Missing patient ID in diagnosis data')
       throw new Error('ID pasien diperlukan untuk diagnosa')
     }
 
-    // Validate the data type of patient ID
-    if (typeof rawData.patientId !== 'string' && typeof rawData.patientId !== 'number') {
-      console.error(`Invalid patient ID type: ${typeof rawData.patientId}`)
-      throw new Error('Format ID pasien tidak valid')
-    }
-
-    // Convert to string if it's a number
     const patientId = String(rawData.patientId).trim()
-
-    // Ensure it's not empty after trimming
     if (patientId === '') {
-      console.error('Empty patient ID after trimming')
       throw new Error('ID pasien tidak boleh kosong')
     }
 
-    console.log(`Validated patient ID for diagnosis: ${patientId}`)
-
-    // Format the data according to API expectations
-    // Store patient name locally for UI but don't send it to the API
-    const patientName = rawData.patientName || 'Unknown'
-    console.log(`Preparing diagnosis for patient: ${patientName} (ID: ${rawData.patientId})`)
-
-    // Return formatted data WITHOUT patientName as the API doesn't accept it
-    return {
-      patientId: rawData.patientId, // Include only patient ID
-      age: parseInt(rawData.age) || 50,
-      sex: rawData.sex || 'Male',
-      chestPainType: rawData.chestPainType || 'Typical angina',
-      restingBloodPressure: parseInt(rawData.restingBloodPressure) || 120,
-      serumCholesterol: parseInt(rawData.serumCholesterol) || 200,
-      fastingBloodSugar:
-        rawData.fastingBloodSugar === '1' || parseInt(rawData.fastingBloodSugar) === 1 ? 120 : 80,
-      restingEcgResults: rawData.restingEcgResults || 'Normal',
-      maximumHeartRate: parseInt(rawData.maximumHeartRate) || 150,
-      exerciseInducedAngina: rawData.exerciseInducedAngina || 'No',
-      stDepression: parseFloat(rawData.stDepression) || 1.0,
-      stSegment: rawData.stSegment || 'Flat',
-      majorVessels: parseInt(rawData.majorVessels) || 0,
-      thalassemia: rawData.thalassemia || 'Normal',
-    }
+    // Kembalikan data apa adanya — nilai sudah benar dari form
+    // Tidak ada override default di sini
+    return { ...rawData }
   }
 
   /**

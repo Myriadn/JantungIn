@@ -11,6 +11,7 @@ import (
 
 type PublicStats struct {
 	TotalUsers     int64 `json:"totalUsers"`
+	TotalDoctors   int64 `json:"totalDoctors"`
 	TotalDiagnoses int64 `json:"totalDiagnoses"`
 }
 
@@ -45,6 +46,12 @@ func (u *statsUsecase) GetPublicStats(ctx context.Context) (*PublicStats, error)
 		return nil, err
 	}
 
+	totalDoctors, err := u.statsRepo.CountTotalDoctors(ctx)
+	if err != nil {
+		utils.Error("Failed to count total doctors", zap.Error(err))
+		return nil, err
+	}
+
 	totalDiagnoses, err := u.statsRepo.CountTotalDiagnoses(ctx)
 	if err != nil {
 		utils.Error("Failed to count total diagnoses", zap.Error(err))
@@ -53,6 +60,7 @@ func (u *statsUsecase) GetPublicStats(ctx context.Context) (*PublicStats, error)
 
 	return &PublicStats{
 		TotalUsers:     totalUsers,
+		TotalDoctors:   totalDoctors,
 		TotalDiagnoses: totalDiagnoses,
 	}, nil
 }

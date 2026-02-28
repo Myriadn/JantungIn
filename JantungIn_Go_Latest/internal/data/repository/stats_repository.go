@@ -20,6 +20,7 @@ type StatsRepository interface {
 	CountTodayVisits(ctx context.Context) (int64, error)
 	CountMonthlyVisits(ctx context.Context) (int64, error)
 	CountTotalUsers(ctx context.Context) (int64, error)
+	CountTotalDoctors(ctx context.Context) (int64, error)
 	CountTotalDiagnoses(ctx context.Context) (int64, error)
 	GetDailyVisits(ctx context.Context, days int) ([]DailyVisit, error)
 }
@@ -65,7 +66,13 @@ func (r *statsRepository) CountMonthlyVisits(ctx context.Context) (int64, error)
 
 func (r *statsRepository) CountTotalUsers(ctx context.Context) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Table("users").Count(&count).Error
+	err := r.db.WithContext(ctx).Table("users").Where("role = 'user'").Count(&count).Error
+	return count, err
+}
+
+func (r *statsRepository) CountTotalDoctors(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Table("users").Where("role = 'dokter' OR role = 'admin'").Count(&count).Error
 	return count, err
 }
 

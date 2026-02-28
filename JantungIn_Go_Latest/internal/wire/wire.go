@@ -44,6 +44,7 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	registerAuthRoutes(api, adaptors, cfg)
 	registerDiagnosisRoutes(api, adaptors, cfg)
 	registerStatsRoutes(api, adaptors, cfg)
+	registerPatientRoutes(api, adaptors, cfg)
 
 	utils.Info("Route wiring completed")
 
@@ -92,6 +93,21 @@ func registerDiagnosisRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cf
 	{
 		admin.GET("/all", adaptors.DiagnosisAdaptor.GetAllDiagnoses)
 		admin.GET("/patient/:patientId", adaptors.DiagnosisAdaptor.GetPatientDiagnoses)
+	}
+}
+
+func registerPatientRoutes(api *gin.RouterGroup, adaptors *adaptor.Adaptor, cfg *utils.Config) {
+	// Semua endpoint patient hanya untuk admin/dokter
+	patients := api.Group("/admin/patients")
+	patients.Use(middleware.AuthRequired(cfg))
+	patients.Use(middleware.RoleRequired("admin", "dokter"))
+	{
+		// GET /api/v1/admin/patients/search?query=... — harus sebelum /:id
+		patients.GET("/search", adaptors.PatientAdaptor.SearchPatients)
+		// GET /api/v1/admin/patients
+		patients.GET("", adaptors.PatientAdaptor.GetAllPatients)
+		// GET /api/v1/admin/patients/:id
+		patients.GET("/:id", adaptors.PatientAdaptor.GetPatientByID)
 	}
 }
 

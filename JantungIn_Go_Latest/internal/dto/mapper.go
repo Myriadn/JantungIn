@@ -4,6 +4,30 @@ import (
 	"jantungin-api-server/internal/data/entity"
 )
 
+func ToPatientResponse(u entity.User) PatientResponse {
+	var dob *string
+	if u.DateOfBirth != nil {
+		s := u.DateOfBirth.Format("2006-01-02")
+		dob = &s
+	}
+	return PatientResponse{
+		ID:          u.ID.String(),
+		Name:        u.Name,
+		Email:       u.Email,
+		DateOfBirth: dob,
+		Role:        u.Role,
+		CreatedAt:   u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+}
+
+func ToPatientResponseList(users []entity.User) []PatientResponse {
+	result := make([]PatientResponse, len(users))
+	for i, u := range users {
+		result[i] = ToPatientResponse(u)
+	}
+	return result
+}
+
 func ToDiagnosisResponse(d entity.Diagnosis) DiagnosisResponse {
 	var createdByStr *string
 	if d.CreatedBy != nil {

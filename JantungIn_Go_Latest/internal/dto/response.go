@@ -1,5 +1,15 @@
 package dto
 
+// PatientResponse digunakan untuk endpoint GET /api/v1/admin/patients
+type PatientResponse struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Email       *string `json:"email,omitempty"`
+	DateOfBirth *string `json:"dateOfBirth,omitempty"`
+	Role        string  `json:"role"`
+	CreatedAt   string  `json:"createdAt"`
+}
+
 type AuthUserResponse struct {
 	ID    string  `json:"id"`
 	Name  string  `json:"name"`

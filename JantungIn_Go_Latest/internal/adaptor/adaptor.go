@@ -8,6 +8,7 @@ type Adaptor struct {
 	AuthAdaptor      *AuthAdaptor
 	DiagnosisAdaptor *DiagnosisAdaptor
 	StatsAdaptor     *StatsAdaptor
+	PatientAdaptor   *PatientAdaptor
 }
 
 func NewAdaptor(usecases *usecase.UseCase) *Adaptor {
@@ -15,5 +16,6 @@ func NewAdaptor(usecases *usecase.UseCase) *Adaptor {
 		AuthAdaptor:      NewAuthAdaptor(usecases.AuthUseCase),
 		DiagnosisAdaptor: NewDiagnosisAdaptor(usecases.DiagnosisUseCase),
 		StatsAdaptor:     NewStatsAdaptor(usecases.StatsUseCase),
+		PatientAdaptor:   NewPatientAdaptor(usecases.PatientUseCase),
 	}
 }

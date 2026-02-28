@@ -19,7 +19,7 @@ const handleLogin = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
-    await authService.adminLogin(email.value, password.value)
+    await authService.loginWithEmail(email.value, password.value)
     router.push('/home-admin')
   } catch (err) {
     errorMessage.value = err.message || 'Login failed. Please try again.'
@@ -116,13 +116,13 @@ const togglePasswordVisibility = () => {
                 />
               </svg>
             </div>
-            <h2 class="login-title">Welcome Back, Doctor</h2>
+            <h2 class="login-title">Welcome Back</h2>
             <p class="login-subtitle">Sign in to access your dashboard</p>
           </div>
 
           <form @submit.prevent="handleLogin">
             <div class="form-group">
-              <label for="email">Doctor Email</label>
+              <label for="email">Email</label>
               <div class="input-container">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

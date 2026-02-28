@@ -40,51 +40,50 @@ const selectedPatient = ref({ id: '', name: '' })
 
 // Form options - Values match those needed by the ML model
 const sexOptions = [
-  { text: 'Female', value: '0' },
-  { text: 'Male', value: '1' },
+  { text: 'Female', value: 'Female' },
+  { text: 'Male', value: 'Male' },
 ]
 
 const chestPainTypeOptions = [
-  { text: 'Typical Angina', value: '0' },
-  { text: 'Atypical Angina', value: '1' },
-  { text: 'Non-anginal Pain', value: '2' },
-  { text: 'Asymptomatic', value: '3' },
+  { text: 'Typical Angina', value: 'Typical angina' },
+  { text: 'Atypical Angina', value: 'Atypical angina' },
+  { text: 'Non-anginal Pain', value: 'Non-anginal pain' },
+  { text: 'Asymptomatic', value: 'Asymptomatic' },
 ]
 
 const stSlopeOptions = [
-  { text: 'Upsloping', value: '0' },
-  { text: 'Flat', value: '1' },
-  { text: 'Downsloping', value: '2' },
+  { text: 'Upsloping', value: 'Upsloping' },
+  { text: 'Flat', value: 'Flat' },
+  { text: 'Downsloping', value: 'Downsloping' },
 ]
 
 const restingECGOptions = [
-  { text: 'Normal', value: '0' },
-  { text: 'ST-T Wave Abnormality', value: '1' },
-  { text: 'Left Ventricular Hypertrophy', value: '2' },
+  { text: 'Normal', value: 'Normal' },
+  { text: 'ST-T Wave Abnormality', value: 'ST-T wave abnormality' },
+  { text: 'Left Ventricular Hypertrophy', value: 'Left ventricular hypertrophy' },
 ]
 
 const numberOfVesselsOptions = [
-  { text: '0', value: '0' },
-  { text: '1', value: '1' },
-  { text: '2', value: '2' },
-  { text: '3', value: '3' },
-  { text: '4', value: '4' },
+  { text: '0', value: 0 },
+  { text: '1', value: 1 },
+  { text: '2', value: 2 },
+  { text: '3', value: 3 },
 ]
 
 const fastingBloodSugarOptions = [
-  { text: 'No (< 120 mg/dl)', value: '0' },
-  { text: 'Yes (> 120 mg/dl)', value: '1' },
+  { text: 'No (< 120 mg/dl)', value: 80 },
+  { text: 'Yes (> 120 mg/dl)', value: 120 },
 ]
 
 const thallassemiaOptions = [
-  { text: 'Normal', value: '1' },
-  { text: 'Fixed Defect', value: '2' },
-  { text: 'Reversible Defect', value: '3' },
+  { text: 'Normal', value: 'Normal' },
+  { text: 'Fixed Defect', value: 'Fixed defect' },
+  { text: 'Reversible Defect', value: 'Reversible defect' },
 ]
 
 const yesNoOptions = [
-  { text: 'No', value: '0' },
-  { text: 'Yes', value: '1' },
+  { text: 'No', value: 'No' },
+  { text: 'Yes', value: 'Yes' },
 ]
 
 // Current step for multi-step form
@@ -141,71 +140,32 @@ const handleSubmit = async () => {
     isLoading.value = true
     showResult.value = true
 
-    // Convert values from the form to appropriate types for the ML model
-    const numericFormData = {
-      age: parseFloat(diagnosisForm.value.age),
-      sex: parseFloat(diagnosisForm.value.sex),
-      cp: parseFloat(diagnosisForm.value.cp),
-      trestbps: parseFloat(diagnosisForm.value.trestbps),
-      chol: parseFloat(diagnosisForm.value.chol),
-      fbs: parseFloat(diagnosisForm.value.fbs),
-      restecg: parseFloat(diagnosisForm.value.restecg),
-      thalach: parseFloat(diagnosisForm.value.thalach),
-      exang: parseFloat(diagnosisForm.value.exang),
-      oldpeak: parseFloat(diagnosisForm.value.oldpeak),
-      slope: parseFloat(diagnosisForm.value.slope),
-      ca: parseFloat(diagnosisForm.value.ca),
-      thal: parseFloat(diagnosisForm.value.thal),
-    }
-
-    // Prepare data for API - map numeric codes to human-readable values for the backend
-    // Store patient information locally but don't send patientName to API
-    const patientInfo = {
-      id: diagnosisForm.value.patientId,
-      name: diagnosisForm.value.patientName || 'Unknown',
-    }
-
-    // The actual data to send to the API (without patientName)
+    // Bangun payload langsung dari form — nilai sudah berupa string/number yang benar
     const apiFormData = {
-      patientId: diagnosisForm.value.patientId, // Include only patient ID, not name
-      age: numericFormData.age,
-      sex: numericFormData.sex === 1 ? 'Male' : 'Female',
-      chestPainType: getChestPainTypeText(numericFormData.cp),
-      restingBloodPressure: numericFormData.trestbps,
-      serumCholesterol: numericFormData.chol,
-      fastingBloodSugar: numericFormData.fbs === 1 ? 120 : 80,
-      restingEcgResults: getEcgResultsText(numericFormData.restecg),
-      maximumHeartRate: numericFormData.thalach,
-      exerciseInducedAngina: numericFormData.exang === 1 ? 'Yes' : 'No',
-      stDepression: numericFormData.oldpeak,
-      stSegment: getStSlopeText(numericFormData.slope),
-      majorVessels: parseInt(numericFormData.ca),
-      thalassemia: getThalassemiaText(numericFormData.thal),
+      patientId: diagnosisForm.value.patientId,
+      age: parseInt(diagnosisForm.value.age),
+      sex: diagnosisForm.value.sex,
+      chestPainType: diagnosisForm.value.cp,
+      restingBloodPressure: parseFloat(diagnosisForm.value.trestbps),
+      serumCholesterol: parseFloat(diagnosisForm.value.chol),
+      fastingBloodSugar: parseFloat(diagnosisForm.value.fbs),
+      restingEcgResults: diagnosisForm.value.restecg,
+      maximumHeartRate: parseInt(diagnosisForm.value.thalach),
+      exerciseInducedAngina: diagnosisForm.value.exang,
+      stDepression: parseFloat(diagnosisForm.value.oldpeak),
+      stSegment: diagnosisForm.value.slope,
+      majorVessels: parseInt(diagnosisForm.value.ca),
+      thalassemia: diagnosisForm.value.thal,
     }
 
-    // Log patient info separately (kept only for UI)
-    console.log(`Processing diagnosis for patient: ${patientInfo.name} (ID: ${patientInfo.id})`)
-
-    // Log detailed request data for debugging
-    console.log('API form data with field validation:')
-    Object.entries(apiFormData).forEach(([key, value]) => {
-      console.log(`${key}: ${value} (${typeof value})`)
-    })
-
-    console.log('Diagnosis form submitted to API:', apiFormData)
+    console.log(
+      `Processing diagnosis for patient: ${diagnosisForm.value.patientName} (ID: ${diagnosisForm.value.patientId})`,
+    )
+    console.log('Diagnosis payload:', apiFormData)
 
     try {
-      // Log for debugging
-      console.log('About to submit diagnosis to service with data:', apiFormData)
-
-      // Create a copy of apiFormData and explicitly remove patientName just to be safe
-      const apiDataForSubmission = { ...apiFormData }
-      if (apiDataForSubmission.patientName) {
-        delete apiDataForSubmission.patientName
-      }
-
       // Use the DiagnosisService to submit the diagnosis
-      const result = await diagnosisService.submitDiagnosis(apiDataForSubmission)
+      const result = await diagnosisService.submitDiagnosis(apiFormData)
       console.log('Diagnosis API response:', result)
 
       // Use the result data from the diagnosis service
@@ -254,25 +214,6 @@ const handleSubmit = async () => {
 }
 
 // Helper functions to map numeric codes back to text values
-function getChestPainTypeText(value) {
-  const option = chestPainTypeOptions.find((opt) => opt.value === value.toString())
-  return option ? option.text : 'Unknown'
-}
-
-function getEcgResultsText(value) {
-  const option = restingECGOptions.find((opt) => opt.value === value.toString())
-  return option ? option.text : 'Unknown'
-}
-
-function getStSlopeText(value) {
-  const option = stSlopeOptions.find((opt) => opt.value === value.toString())
-  return option ? option.text : 'Unknown'
-}
-
-function getThalassemiaText(value) {
-  const option = thallassemiaOptions.find((opt) => opt.value === value.toString())
-  return option ? option.text : 'Unknown'
-}
 
 // Function to validate the form
 const validateForm = () => {
@@ -300,7 +241,8 @@ const validateForm = () => {
   ]
 
   for (const field of requiredFields) {
-    if (!diagnosisForm.value[field]) {
+    const val = diagnosisForm.value[field]
+    if (val === '' || val === null || val === undefined) {
       return false
     }
   }
@@ -338,26 +280,33 @@ const viewDetailedReport = () => {
   }
 }
 
+// hasValue: 0 dan string kosong dibedakan — 0 dianggap valid, string kosong tidak
+const hasValue = (val) => val !== '' && val !== null && val !== undefined
+
 // Function to check if step is complete
 const isStepComplete = (step) => {
   if (step === 1) {
-    return !!selectedPatient.value.id && !!diagnosisForm.value.age && !!diagnosisForm.value.sex
+    return (
+      hasValue(selectedPatient.value.id) &&
+      hasValue(diagnosisForm.value.age) &&
+      hasValue(diagnosisForm.value.sex)
+    )
   } else if (step === 2) {
     return (
-      !!diagnosisForm.value.cp &&
-      !!diagnosisForm.value.trestbps &&
-      !!diagnosisForm.value.chol &&
-      !!diagnosisForm.value.fbs &&
-      !!diagnosisForm.value.restecg &&
-      !!diagnosisForm.value.thalach
+      hasValue(diagnosisForm.value.cp) &&
+      hasValue(diagnosisForm.value.trestbps) &&
+      hasValue(diagnosisForm.value.chol) &&
+      hasValue(diagnosisForm.value.fbs) &&
+      hasValue(diagnosisForm.value.restecg) &&
+      hasValue(diagnosisForm.value.thalach)
     )
   } else if (step === 3) {
     return (
-      !!diagnosisForm.value.exang &&
-      !!diagnosisForm.value.oldpeak &&
-      !!diagnosisForm.value.slope &&
-      !!diagnosisForm.value.ca &&
-      !!diagnosisForm.value.thal
+      hasValue(diagnosisForm.value.exang) &&
+      hasValue(diagnosisForm.value.oldpeak) &&
+      hasValue(diagnosisForm.value.slope) &&
+      hasValue(diagnosisForm.value.ca) &&
+      hasValue(diagnosisForm.value.thal)
     )
   }
   return false
