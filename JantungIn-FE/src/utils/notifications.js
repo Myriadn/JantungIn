@@ -23,7 +23,7 @@ export function useApiNotifications() {
    * @param {Function} options.onCancel - Callback when user cancels the operation
    */
   const showRetryNotification = (operationId, options) => {
-    const { message, attempt, maxAttempts, type = 'info', onCancel } = options
+    const { message, attempt, maxAttempts, type = 'info' } = options
 
     // Check if we already have an active notification for this operation
     if (activeNotifications.has(operationId)) {

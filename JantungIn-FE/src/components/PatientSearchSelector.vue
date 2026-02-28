@@ -66,7 +66,7 @@
               v-model="searchQuery"
               type="text"
               ref="searchInputRef"
-              placeholder="Cari pasien berdasarkan nama atau NIK"
+              placeholder="Cari pasien berdasarkan nama"
               class="flex-1 border border-gray-300 px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
               @keyup.enter="searchPatient"
             />

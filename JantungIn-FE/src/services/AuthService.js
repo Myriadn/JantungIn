@@ -1,6 +1,5 @@
 import apiService from './ApiService'
 import { UserModel } from '@/models/UserModel'
-import { useErrorHandler } from '@/utils/errorHandler'
 
 /**
  * Authentication service for login, register, and user management
