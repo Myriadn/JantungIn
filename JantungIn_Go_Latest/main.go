@@ -5,6 +5,7 @@ import (
 	"flag"
 	"jantungin-api-server/cmd"
 	"jantungin-api-server/internal/data"
+	"jantungin-api-server/internal/data/entity"
 	"jantungin-api-server/internal/wire"
 	"jantungin-api-server/pkg/database"
 	"jantungin-api-server/pkg/utils"
@@ -41,10 +42,22 @@ func main() {
 	}
 	defer dbManager.Close()
 
+	db := dbManager.Postgres.GetDB()
+	err = db.AutoMigrate(
+		&entity.User{},
+		&entity.Diagnosis{},
+		&entity.RequestLog{},
+		&entity.UserDevice{},
+	)
+	if err != nil {
+		utils.Fatal("Auto Migration failed", zap.Error(err))
+	}
+	utils.Info("Auto Migration successful")
+
 	// Mode seed: jalankan seeder lalu keluar, tidak start server
 	if *seedMode {
 		utils.Info("Running doctor seeder...")
-		if err := data.SeedDoctors(dbManager.Postgres.GetDB(), cfg); err != nil {
+		if err := data.SeedDoctors(db, cfg); err != nil {
 			utils.Fatal("Seeder failed", zap.Error(err))
 		}
 		utils.Info("Seeder completed successfully")
@@ -52,7 +65,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	router := wire.Wiring(cfg, dbManager.Postgres.GetDB())
+	router := wire.Wiring(cfg, db)
 
 	// Create and run server
 	server := cmd.NewServer(router, cfg)

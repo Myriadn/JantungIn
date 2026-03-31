@@ -18,6 +18,7 @@ type User struct {
 	UpdatedAt    time.Time  `json:"updatedAt"`
 
 	// Relasi
-	PatientDiagnoses []Diagnosis `gorm:"foreignKey:UserID" json:"patientDiagnoses,omitempty"`
-	CreatedDiagnoses []Diagnosis `gorm:"foreignKey:CreatedBy" json:"createdDiagnoses,omitempty"`
+	PatientDiagnoses []Diagnosis  `gorm:"foreignKey:UserID" json:"patientDiagnoses,omitempty"`
+	CreatedDiagnoses []Diagnosis  `gorm:"foreignKey:CreatedBy" json:"createdDiagnoses,omitempty"`
+	UserDevices      []UserDevice `gorm:"foreignKey:UserID" json:"userDevices,omitempty"`
 }

@@ -56,7 +56,12 @@ func (h *AuthAdaptor) Login(c *gin.Context) {
 		return
 	}
 
-	data, err := h.authUsecase.Login(c.Request.Context(), req)
+	// Extract device info from request
+	userAgent := c.Request.Header.Get("User-Agent")
+	ip := c.ClientIP()
+	deviceFingerprint := utils.GenerateDeviceFingerprint(userAgent, ip)
+
+	data, err := h.authUsecase.Login(c.Request.Context(), req, userAgent, ip, deviceFingerprint)
 	if err != nil {
 		switch err.Error() {
 		case "NIK harus 16 digit angka":
@@ -80,7 +85,12 @@ func (h *AuthAdaptor) LoginWithEmail(c *gin.Context) {
 		return
 	}
 
-	data, err := h.authUsecase.LoginWithEmail(c.Request.Context(), req)
+	// Extract device info from request
+	userAgent := c.Request.Header.Get("User-Agent")
+	ip := c.ClientIP()
+	deviceFingerprint := utils.GenerateDeviceFingerprint(userAgent, ip)
+
+	data, err := h.authUsecase.LoginWithEmail(c.Request.Context(), req, userAgent, ip, deviceFingerprint)
 	if err != nil {
 		switch err.Error() {
 		case "email atau password tidak valid":
