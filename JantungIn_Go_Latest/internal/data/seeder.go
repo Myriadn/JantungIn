@@ -144,3 +144,113 @@ func birthDateFromIndex(i int) time.Time {
 	day := 1 + (i*7)%28
 	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 }
+
+// patientFirstNames - nama depan pasaran Indonesia
+var patientFirstNames = []string{
+	"Ahmad", "Budi", "Citra", "Dian", "Eka", "Fajar", "Gilang", "Hendra", "Indah", "Joko",
+	"Kartini", "Lukman", "Maya", "Nanda", "Okta", "Putri", "Qori", "Rini", "Siti", "Teguh",
+	"Umi", "Vina", "Wahyu", "Xenia", "Yani", "Zahra", "Agus", "Bayu", "Cahyo", "Dewi",
+	"Endang", "Firman", "Gita", "Hesti", "Ivan", "Krisna", "Laras", "Mirah", "Niken", "Oscar",
+	"Prita", "Reza", "Sari", "Tri", "Udin", "Vicky", "Wardi", "Yoga", "Zulfan", "Adinda",
+}
+
+var patientLastNames = []string{
+	"Saputra", "Wijaya", "Hermawan", "Kusuma", "Rahman", "Handoko", "Santoso", "Pranoto", "Nugroho", "Prabowo",
+	"Setiawan", "Hartono", "Gunawan", "Sutrisno", "Mulyadi", "Wibowo", "Suryadi", "Maulana", "Purwanto", "Kartini",
+	"Rahayu", "Safitri", "Susandi", "Wahyuni", "Suryani", "Pratiwi", "Samsinar", "Hadiwijaya", "Siswanto", "Ermawan",
+	"Suryana", "Sugito", "Putro", "Harsono", "Agustian", "Prayitno", "Subarno", "Budiman", "Darman", "Gunarto",
+	"Haryanto", "Ibrahim", "Jumadi", "Kustarto", "Lismanto", "Mukhlas", "Narwanto", "Oerip", "Prasetya", "Rachmat",
+}
+
+// SeedPatients menyisipkan 100 data pasien dummy ke database.
+// Age range: 20-55 tahun, mayoritas 25-30
+func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
+	encryptionKey := cfg.App.EncryptionKey
+	defaultPassword := "pasien123"
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("gagal hash password: %w", err)
+	}
+
+	ctx := context.Background()
+	inserted := 0
+	skipped := 0
+	failed := 0
+
+	for i := 0; i < 100; i++ {
+		firstName := patientFirstNames[i%len(patientFirstNames)]
+		lastName := patientLastNames[i%len(patientLastNames)]
+		name := firstName + " " + lastName
+
+		// Generate age: mayoritas 25-30, range 20-55
+		age := generateAge(i)
+		dob := time.Now().AddDate(-age, 0, 0)
+
+		// Generate valid 16-digit NIK
+		nikPlain := generateNIK(i)
+
+		// Check jika NIK sudah ada
+		var existing entity.User
+		err := db.WithContext(ctx).Where("nik_encrypted LIKE ?", "%"+nikPlain[:4]+"%").First(&existing).Error
+		if err == nil {
+			skipped++
+			continue
+		}
+
+		encryptedNIK, err := utils.EncryptNIK(nikPlain, encryptionKey)
+		if err != nil {
+			log.Printf("[SEEDER PATIENT] Gagal enkripsi NIK untuk %s: %v", name, err)
+			failed++
+			continue
+		}
+
+		patient := entity.User{
+			Name:         name,
+			Email:        nil,
+			NIKEncrypted: encryptedNIK,
+			Password:     string(hashedPassword),
+			Role:         "user",
+			DateOfBirth:  &dob,
+		}
+
+		if err := db.WithContext(ctx).Create(&patient).Error; err != nil {
+			log.Printf("[SEEDER PATIENT] Gagal insert pasien %s: %v", name, err)
+			failed++
+			continue
+		}
+
+		inserted++
+	}
+
+	log.Printf("[SEEDER PATIENT] Selesai: %d diinsert, %d dilewati, %d gagal", inserted, skipped, failed)
+	return nil
+}
+
+// generateAge menghasilkan umur mayoritas 25-30, range 20-55
+func generateAge(index int) int {
+	// 60% range 25-30
+	if index%10 < 6 {
+		return 25 + (index % 6) // 25-30
+	}
+	// 40% range lainnya: 20-24 dan 31-55
+	if index%10 < 8 {
+		return 20 + (index % 5) // 20-24
+	}
+	return 31 + (index % 25) // 31-55
+}
+
+// generateNIK menghasilkan NIK 16 digit yang terlihat valid
+// Format: PPKKDDTTHH + 4 digit acak untuk identifikasi
+func generateNIK(index int) string {
+	// Province code (01-34), district, birth date, birth order
+	// Simplified: gunakan format yang valid
+	provCode := "33"                                    // Jawa Timur
+	distCode := fmt.Sprintf("%02d", 10+(index%20))      // 10-29
+	dateCode := fmt.Sprintf("%02d", 1+(index%28))       // 01-28
+	monthCode := fmt.Sprintf("%02d", 1+(index%12))      // 01-12
+	yearCode := fmt.Sprintf("%02d", 70+(index%30))      // 70-99
+	orderCode := fmt.Sprintf("%04d", 1000+(index%9000)) // 1000-9999
+
+	return provCode + distCode + dateCode + monthCode + yearCode + orderCode
+}

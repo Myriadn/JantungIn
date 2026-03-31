@@ -60,7 +60,15 @@ func main() {
 		if err := data.SeedDoctors(db, cfg); err != nil {
 			utils.Fatal("Seeder failed", zap.Error(err))
 		}
-		utils.Info("Seeder completed successfully")
+		utils.Info("Doctor seeder completed successfully")
+
+		utils.Info("Running patient seeder...")
+		if err := data.SeedPatients(db, cfg); err != nil {
+			utils.Fatal("Patient seeder failed", zap.Error(err))
+		}
+		utils.Info("Patient seeder completed successfully")
+
+		utils.Info("All seeders completed successfully")
 		os.Exit(0)
 	}
 

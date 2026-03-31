@@ -58,7 +58,13 @@ func (h *AuthAdaptor) Login(c *gin.Context) {
 
 	// Extract device info from request
 	userAgent := c.Request.Header.Get("User-Agent")
-	ip := c.ClientIP()
+	ip := c.Request.Header.Get("X-Test-IP") // Testing header
+	if ip == "" {
+		ip = c.Request.Header.Get("X-Forwarded-For") // Production reverse proxy
+	}
+	if ip == "" {
+		ip = c.ClientIP() // Default
+	}
 	deviceFingerprint := utils.GenerateDeviceFingerprint(userAgent, ip)
 
 	data, err := h.authUsecase.Login(c.Request.Context(), req, userAgent, ip, deviceFingerprint)
@@ -87,7 +93,13 @@ func (h *AuthAdaptor) LoginWithEmail(c *gin.Context) {
 
 	// Extract device info from request
 	userAgent := c.Request.Header.Get("User-Agent")
-	ip := c.ClientIP()
+	ip := c.Request.Header.Get("X-Test-IP") // Testing header
+	if ip == "" {
+		ip = c.Request.Header.Get("X-Forwarded-For") // Production reverse proxy
+	}
+	if ip == "" {
+		ip = c.ClientIP() // Default
+	}
 	deviceFingerprint := utils.GenerateDeviceFingerprint(userAgent, ip)
 
 	data, err := h.authUsecase.LoginWithEmail(c.Request.Context(), req, userAgent, ip, deviceFingerprint)
