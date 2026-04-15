@@ -22,8 +22,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=os.getenv("APP_NAME", "JantungIn ML Service"),
     version=os.getenv("VERSION", "1.0.0"),
-    title="JantungIn ML Service",
-    version="1.0.0",
     docs_url="/docs",
     lifespan=lifespan,
 )

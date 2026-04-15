@@ -8,8 +8,6 @@ import (
 	"log"
 	"math/rand/v2"
 	"strings"
-	"fmt"
-	"log"
 	"time"
 
 	"jantungin-api-server/internal/data/entity"
