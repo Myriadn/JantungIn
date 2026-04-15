@@ -74,6 +74,12 @@ func main() {
 		}
 		utils.Info("Diagnosis seeder completed successfully")
 
+		utils.Info("Running user devices seeder...")
+		if err := data.SeedUserDevices(db, cfg); err != nil {
+			utils.Fatal("User devices seeder failed", zap.Error(err))
+		}
+		utils.Info("User devices seeder completed successfully")
+
 		utils.Info("All seeders completed successfully")
 		os.Exit(0)
 	}
