@@ -5,6 +5,7 @@ import (
 	"flag"
 	"jantungin-api-server/cmd"
 	"jantungin-api-server/internal/data"
+	"jantungin-api-server/internal/data/entity"
 	"jantungin-api-server/internal/wire"
 	"jantungin-api-server/pkg/database"
 	"jantungin-api-server/pkg/utils"
@@ -41,18 +42,50 @@ func main() {
 	}
 	defer dbManager.Close()
 
+	db := dbManager.Postgres.GetDB()
+	err = db.AutoMigrate(
+		&entity.User{},
+		&entity.Diagnosis{},
+		&entity.RequestLog{},
+		&entity.UserDevice{},
+	)
+	if err != nil {
+		utils.Fatal("Auto Migration failed", zap.Error(err))
+	}
+	utils.Info("Auto Migration successful")
+
 	// Mode seed: jalankan seeder lalu keluar, tidak start server
 	if *seedMode {
 		utils.Info("Running doctor seeder...")
-		if err := data.SeedDoctors(dbManager.Postgres.GetDB(), cfg); err != nil {
+		if err := data.SeedDoctors(db, cfg); err != nil {
 			utils.Fatal("Seeder failed", zap.Error(err))
 		}
-		utils.Info("Seeder completed successfully")
+		utils.Info("Doctor seeder completed successfully")
+
+		utils.Info("Running patient seeder...")
+		if err := data.SeedPatients(db, cfg); err != nil {
+			utils.Fatal("Patient seeder failed", zap.Error(err))
+		}
+		utils.Info("Patient seeder completed successfully")
+
+		utils.Info("Running diagnosis seeder...")
+		if err := data.SeedDiagnoses(db, cfg); err != nil {
+			utils.Fatal("Diagnosis seeder failed", zap.Error(err))
+		}
+		utils.Info("Diagnosis seeder completed successfully")
+
+		utils.Info("Running user devices seeder...")
+		if err := data.SeedUserDevices(db, cfg); err != nil {
+			utils.Fatal("User devices seeder failed", zap.Error(err))
+		}
+		utils.Info("User devices seeder completed successfully")
+
+		utils.Info("All seeders completed successfully")
 		os.Exit(0)
 	}
 
 	ctx := context.Background()
-	router := wire.Wiring(cfg, dbManager.Postgres.GetDB())
+	router := wire.Wiring(cfg, db)
 
 	// Create and run server
 	server := cmd.NewServer(router, cfg)

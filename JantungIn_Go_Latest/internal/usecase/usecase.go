@@ -15,11 +15,11 @@ type UseCase struct {
 	PatientUseCase   PatientUsecase
 }
 
-func NewUseCase(userRepo repository.UserRepository, diagnosisRepo repository.DiagnosisRepository, statsRepo repository.StatsRepository, cfg *utils.Config, db *gorm.DB) *UseCase {
+func NewUseCase(userRepo repository.UserRepository, diagnosisRepo repository.DiagnosisRepository, statsRepo repository.StatsRepository, userDeviceRepo repository.UserDeviceRepository, cfg *utils.Config, db *gorm.DB) *UseCase {
 	mlClient := services.NewMLClient(cfg.App.MLServiceURL)
 
 	return &UseCase{
-		AuthUseCase:      NewAuthUsecase(userRepo, cfg),
+		AuthUseCase:      NewAuthUsecase(userRepo, userDeviceRepo, cfg),
 		DiagnosisUseCase: NewDiagnosisUsecase(diagnosisRepo, userRepo, mlClient),
 		StatsUseCase:     NewStatsUsecase(statsRepo),
 		PatientUseCase:   NewPatientUsecase(userRepo),

@@ -30,7 +30,7 @@ func Wiring(cfg *utils.Config, db *gorm.DB) *gin.Engine {
 	repo := repository.NewRepository(db)
 
 	// Initialize usecases
-	usecases := usecase.NewUseCase(repo.UserRepo, repo.DiagnosisRepo, repo.StatsRepo, cfg, db)
+	usecases := usecase.NewUseCase(repo.UserRepo, repo.DiagnosisRepo, repo.StatsRepo, repo.UserDeviceRepo, cfg, db)
 
 	// Initialize adaptors
 	adaptors := adaptor.NewAdaptor(usecases)
