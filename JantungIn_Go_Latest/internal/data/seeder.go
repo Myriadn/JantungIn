@@ -8,6 +8,8 @@ import (
 	"log"
 	"math/rand/v2"
 	"strings"
+	"fmt"
+	"log"
 	"time"
 
 	"jantungin-api-server/internal/data/entity"
@@ -17,18 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
-
-// =========================================================================
-// JAWABAN UNTUK PGADMIN:
-// Di PostgreSQL, urutan kolom secara fisik di dalam tabel (storage) tidak bisa
-// diubah (drag and drop) setelah dibuat. Jika ingin mengubahnya secara permanen,
-// Anda harus drop tabel dan membuat ulang dengan urutan yang baru.
-//
-// NAMUN, jika hanya untuk tampilan saat melihat data di pgAdmin (View/Edit Data),
-// Anda bisa men-drag and drop (tahan klik pada header nama kolom lalu geser ke kiri/kanan)
-// untuk memindahkan posisi kolom "username" ke sebelah "name".
-// Ini hanya mengubah tampilan visual di sesi tersebut.
-// =========================================================================
 
 // doctorSeeds berisi data dokter dummy dengan variasi nama 1, 2, dan 3 kata
 var doctorSeeds = []struct {
