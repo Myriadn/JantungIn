@@ -1,11 +1,25 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '@/components/Footer-component.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
 import profileService from '@/services/ProfileService'
+import statisticsService from '@/services/StatisticsService'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Line } from 'vue-chartjs'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
 defineOptions({
   name: 'AccountPageAdmin',
@@ -40,12 +54,74 @@ const user = ref({
 // Initialize empty activities
 const recentActivities = ref([])
 
-// Initialize empty stats
-const stats = ref([
-  { title: 'This Week', diagnoses: 0, consultations: 0, reviews: 0 },
-  { title: 'This Month', diagnoses: 0, consultations: 0, reviews: 0 },
-  { title: 'Total', diagnoses: 0, patients: 0 },
-])
+// Initialize empty stats — sesuai AdminStats dari backend
+const stats = ref({
+  todayVisits: 0,
+  monthlyVisits: 0,
+  totalVisits: 0,
+  totalDiagnoses: 0,
+  totalUsers: 0,
+})
+
+// Daily visits data untuk chart (7 hari terakhir)
+const dailyVisits = ref([])
+
+// Chart.js data computed dari dailyVisits
+const chartData = computed(() => {
+  const labels = dailyVisits.value.map((d) => {
+    const date = new Date(d.date)
+    return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })
+  })
+  const data = dailyVisits.value.map((d) => d.count)
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Kunjungan',
+        data,
+        fill: true,
+        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+        borderColor: 'rgba(59, 130, 246, 0.9)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+      },
+    ],
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(30, 58, 138, 0.95)',
+      titleColor: '#fff',
+      bodyColor: '#bfdbfe',
+      padding: 10,
+      callbacks: {
+        label: (ctx) => ` ${ctx.parsed.y} kunjungan`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: '#6b7280', font: { size: 11 } },
+    },
+    y: {
+      beginAtZero: true,
+      grid: { color: 'rgba(229, 231, 235, 0.8)' },
+      ticks: { color: '#6b7280', font: { size: 11 }, precision: 0 },
+    },
+  },
+}
 
 // Function to load profile data
 const loadProfileData = async () => {
@@ -88,44 +164,21 @@ const loadProfileData = async () => {
       console.warn('No profile data found in response')
     }
 
-    // Load dashboard stats
-    const statsResponse = await profileService.getDashboardStats()
+    // Load admin stats dari endpoint /api/v1/admin/stats
+    // Response: { totalVisits, todayVisits, monthlyVisits, totalUsers, totalDiagnoses, dailyVisits }
+    const statsData = await statisticsService.getAdminStats()
 
-    // Format respons bisa berbeda-beda, seperti pada profile
-    const statsResponseData = statsResponse?.data?.data || statsResponse?.data || {}
-    const statsData = statsResponseData?.data || statsResponseData
+    console.log('Admin stats loaded:', statsData)
 
-    console.log('Stats response structure:', {
-      hasDataData: !!statsResponse?.data?.data,
-      hasData: !!statsResponse?.data,
-      statsData,
-    })
-
-    if (statsData) {
-      console.log('Dashboard stats loaded:', statsData)
-      const { users = {}, diagnoses = {} } = statsData
-      stats.value = [
-        {
-          title: 'This Week',
-          diagnoses: diagnoses?.newLastWeek || 0,
-          consultations: diagnoses?.recentConsultations || 0,
-          reviews: diagnoses?.recentReviews || 0,
-        },
-        {
-          title: 'This Month',
-          diagnoses: diagnoses?.monthlyTotal || 0,
-          consultations: diagnoses?.monthlyConsultations || 0,
-          reviews: diagnoses?.monthlyReviews || 0,
-        },
-        {
-          title: 'Total',
-          diagnoses: diagnoses?.total || 0,
-          patients: users?.total || 0,
-        },
-      ]
-    } else {
-      console.warn('No dashboard stats found in response')
+    stats.value = {
+      todayVisits: statsData?.todayVisits || 0,
+      monthlyVisits: statsData?.monthlyVisits || 0,
+      totalVisits: statsData?.totalVisits || 0,
+      totalDiagnoses: statsData?.totalDiagnoses || 0,
+      totalUsers: statsData?.totalUsers || 0,
     }
+
+    dailyVisits.value = Array.isArray(statsData?.dailyVisits) ? statsData.dailyVisits : []
 
     // Load activities
     const activitiesResponse = await profileService.getRecentActivities()
@@ -678,27 +731,117 @@ onMounted(() => {
                 </div>
 
                 <div class="p-6">
-                  <div class="space-y-5">
-                    <div v-for="(stat, index) in stats" :key="index" class="stat-group">
-                      <h4 class="text-sm font-semibold text-gray-600 mb-3">{{ stat.title }}</h4>
-                      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div v-if="stat.diagnoses" class="stat-card">
-                          <div class="stat-number">{{ stat.diagnoses }}</div>
-                          <div class="stat-label">Diagnoses</div>
-                        </div>
-                        <div v-if="stat.consultations" class="stat-card">
-                          <div class="stat-number">{{ stat.consultations }}</div>
-                          <div class="stat-label">Consultations</div>
-                        </div>
-                        <div v-if="stat.reviews" class="stat-card">
-                          <div class="stat-number">{{ stat.reviews }}</div>
-                          <div class="stat-label">Reviews</div>
-                        </div>
-                        <div v-if="stat.patients" class="stat-card">
-                          <div class="stat-number">{{ stat.patients }}</div>
-                          <div class="stat-label">Patients</div>
-                        </div>
+                  <!-- Summary cards: 4 metrik utama -->
+                  <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="stat-card">
+                      <div class="stat-icon bg-blue-100 text-blue-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
                       </div>
+                      <div class="stat-number">{{ stats.todayVisits }}</div>
+                      <div class="stat-label">Kunjungan Hari Ini</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon bg-indigo-100 text-indigo-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div class="stat-number">{{ stats.monthlyVisits }}</div>
+                      <div class="stat-label">Kunjungan Bulan Ini</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon bg-green-100 text-green-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
+                        </svg>
+                      </div>
+                      <div class="stat-number">{{ stats.totalDiagnoses }}</div>
+                      <div class="stat-label">Total Diagnosa</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-icon bg-rose-100 text-rose-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div class="stat-number">{{ stats.totalUsers }}</div>
+                      <div class="stat-label">Total Pasien</div>
+                    </div>
+                  </div>
+
+                  <!-- Area chart: tren kunjungan 7 hari terakhir -->
+                  <div class="chart-container">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-semibold text-gray-600">
+                        Tren Kunjungan 7 Hari Terakhir
+                      </h4>
+                      <span class="text-xs text-gray-400">Total: {{ stats.totalVisits }}</span>
+                    </div>
+                    <div v-if="dailyVisits.length > 0" class="chart-wrapper">
+                      <Line :data="chartData" :options="chartOptions" />
+                    </div>
+                    <div v-else class="chart-empty">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 mx-auto text-gray-300 mb-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      <p class="text-xs text-gray-400 text-center">Belum ada data kunjungan</p>
                     </div>
                   </div>
                 </div>
@@ -847,40 +990,68 @@ onMounted(() => {
 }
 
 /* Stats styling */
-.stat-group {
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.stat-group:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
 .stat-card {
   background-color: #f9fafb;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 0.875rem;
+  border-radius: 0.625rem;
   text-align: center;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .stat-card:hover {
   background-color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.125rem;
 }
 
 .stat-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #1e3a8a;
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #6b7280;
-  margin-top: 0.25rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Chart section */
+.chart-container {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 160px;
+}
+
+.chart-empty {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
 }
 
 /* Responsive adjustments */
@@ -890,11 +1061,15 @@ onMounted(() => {
   }
 
   .stat-card {
-    padding: 0.75rem;
+    padding: 0.625rem;
   }
 
   .stat-number {
     font-size: 1.25rem;
+  }
+
+  .chart-wrapper {
+    height: 130px;
   }
 }
 </style>

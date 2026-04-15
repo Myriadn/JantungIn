@@ -1,6 +1,6 @@
 include .env
 
-SHELL := powershell.exe
+SHELL := pwsh.exe
 .SHELLFLAGS := -NoProfile -Command
 
 DB_URL := postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
@@ -22,6 +22,7 @@ clean:
 	@echo "Cleaning Cache..."
 	@cd $(APP_DIR) ; go clean
 
+# make db-go name=create_users_table
 db-go:
 	@echo "Creating file migrations..."
 	migrate create -ext sql -dir $(APP_DIR)/internal/data/migrations -seq $(name)

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"slices"
 	"strings"
 
 	"jantungin-api-server/pkg/utils"
@@ -94,13 +95,7 @@ func RoleRequired(roles ...string) gin.HandlerFunc {
 			return
 		}
 
-		allowed := false
-		for _, role := range roles {
-			if userRole == role {
-				allowed = true
-				break
-			}
-		}
+		allowed := slices.Contains(roles, userRole)
 
 		if !allowed {
 			utils.Warn("Insufficient role privileges",

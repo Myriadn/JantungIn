@@ -7,6 +7,7 @@ import ImagePreloader from '@/components/ImagePreloader.vue'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import NetworkErrorComponent from '@/components/NetworkErrorComponent.vue'
 import ChatbotComponent from '@/components/ChatbotComponent.vue'
+import statisticsService from '@/services/StatisticsService'
 
 defineOptions({
   name: 'HomeUserPage',
@@ -56,17 +57,32 @@ const upcomingFeatures = ref([
   },
 ])
 
-// Sample statistics
+// Statistik dari API — fallback ke placeholder saat API tidak tersedia
 const healthStats = ref({
-  users: '10,000+',
-  doctors: '200+',
-  hospitals: '50+',
-  diagnoses: '25,000+',
+  users: '...',
+  doctors: '...',
+  diagnoses: '...',
 })
 
-onMounted(() => {
-  // Initialize any required components
+const formatCount = (num) => {
+  if (!num || num === 0) return '0'
+  if (num >= 1000) return num.toLocaleString('id-ID') + '+'
+  return num.toString()
+}
+
+onMounted(async () => {
   console.log('Home page mounted')
+  try {
+    const stats = await statisticsService.getPublicStats()
+    healthStats.value.users = formatCount(stats.totalUsers)
+    healthStats.value.doctors = formatCount(stats.totalDoctors)
+    healthStats.value.diagnoses = formatCount(stats.totalDiagnoses)
+  } catch (e) {
+    console.warn('Failed to load public stats:', e.message)
+    healthStats.value.users = '0'
+    healthStats.value.doctors = '0'
+    healthStats.value.diagnoses = '0'
+  }
 })
 </script>
 
@@ -264,7 +280,7 @@ onMounted(() => {
         <div
           class="mb-20 bg-blue-900/30 backdrop-blur-md rounded-2xl p-8 border border-blue-700/30"
         >
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div class="stat-item">
               <div class="text-4xl font-bold text-white mb-2">{{ healthStats.users }}</div>
               <div class="text-blue-200">Active Users</div>
@@ -272,10 +288,6 @@ onMounted(() => {
             <div class="stat-item">
               <div class="text-4xl font-bold text-white mb-2">{{ healthStats.doctors }}</div>
               <div class="text-blue-200">Doctors</div>
-            </div>
-            <div class="stat-item">
-              <div class="text-4xl font-bold text-white mb-2">{{ healthStats.hospitals }}</div>
-              <div class="text-blue-200">Partner Hospitals</div>
             </div>
             <div class="stat-item">
               <div class="text-4xl font-bold text-white mb-2">{{ healthStats.diagnoses }}</div>
@@ -343,7 +355,7 @@ onMounted(() => {
     </div>
 
     <!-- Need Help Section with Chatbot Introduction -->
-    
+
     <div class="bg-white py-16 px-4">
       <div class="max-w-4xl mx-auto text-center">
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Need Assistance?</h2>
@@ -447,13 +459,11 @@ onMounted(() => {
           </div>
         </div>
       </div>
-    
     </div>
     <!-- Chatbot Component -->
     <ChatbotComponent />
     <!-- Footer Component -->
     <FooterComponent />
-
   </div>
 </template>
 

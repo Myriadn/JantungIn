@@ -17,21 +17,23 @@ import (
 
 type AuthUsecase interface {
 	Register(ctx context.Context, req dto.AuthRegisterRequest) (*dto.AuthRegisterData, error)
-	Login(ctx context.Context, req dto.AuthLoginRequest) (*dto.AuthLoginData, error)
-	LoginWithEmail(ctx context.Context, req dto.AuthLoginEmailRequest) (*dto.AuthLoginData, error)
+	Login(ctx context.Context, req dto.AuthLoginRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error)
+	LoginWithEmail(ctx context.Context, req dto.AuthLoginEmailRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error)
 	GetProfile(ctx context.Context, userID string) (*dto.AuthUserResponse, error)
 	UpdateProfile(ctx context.Context, userID string, req dto.UpdateProfileRequest) (*dto.UpdateProfileData, error)
 }
 
 type authUsecase struct {
-	userRepo repository.UserRepository
-	cfg      *utils.Config
+	userRepo       repository.UserRepository
+	userDeviceRepo repository.UserDeviceRepository
+	cfg            *utils.Config
 }
 
-func NewAuthUsecase(userRepo repository.UserRepository, cfg *utils.Config) AuthUsecase {
+func NewAuthUsecase(userRepo repository.UserRepository, userDeviceRepo repository.UserDeviceRepository, cfg *utils.Config) AuthUsecase {
 	return &authUsecase{
-		userRepo: userRepo,
-		cfg:      cfg,
+		userRepo:       userRepo,
+		userDeviceRepo: userDeviceRepo,
+		cfg:            cfg,
 	}
 }
 
@@ -133,7 +135,7 @@ func (u *authUsecase) Register(ctx context.Context, req dto.AuthRegisterRequest)
 	}, nil
 }
 
-func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest) (*dto.AuthLoginData, error) {
+func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error) {
 	if len(req.NIK) != 16 {
 		return nil, errors.New("NIK harus 16 digit angka")
 	}
@@ -171,6 +173,14 @@ func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest) (*dto
 		return nil, errors.New("gagal membuat token")
 	}
 
+	// Track device login (non-blocking: log errors but don't fail the login)
+	if err := u.userDeviceRepo.CreateOrUpdate(ctx, foundUser.ID, userAgent, ipAddress, deviceFingerprint); err != nil {
+		utils.Warn("Failed to track device login",
+			zap.String("user_id", foundUser.ID.String()),
+			zap.Error(err),
+		)
+	}
+
 	utils.Info("User logged in successfully",
 		zap.String("user_id", foundUser.ID.String()),
 		zap.String("role", foundUser.Role),
@@ -185,7 +195,7 @@ func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest) (*dto
 	}, nil
 }
 
-func (u *authUsecase) LoginWithEmail(ctx context.Context, req dto.AuthLoginEmailRequest) (*dto.AuthLoginData, error) {
+func (u *authUsecase) LoginWithEmail(ctx context.Context, req dto.AuthLoginEmailRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error) {
 	user, err := u.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		utils.Error("Failed to find user by email", zap.Error(err))
@@ -207,6 +217,14 @@ func (u *authUsecase) LoginWithEmail(ctx context.Context, req dto.AuthLoginEmail
 	if err != nil {
 		utils.Error("Failed to generate token", zap.Error(err))
 		return nil, errors.New("gagal membuat token")
+	}
+
+	// Track device login (non-blocking: log errors but don't fail the login)
+	if err := u.userDeviceRepo.CreateOrUpdate(ctx, user.ID, userAgent, ipAddress, deviceFingerprint); err != nil {
+		utils.Warn("Failed to track device login",
+			zap.String("user_id", user.ID.String()),
+			zap.Error(err),
+		)
 	}
 
 	utils.Info("User logged in with email successfully",

@@ -4,3 +4,5 @@ logs/
 bin/
 dist/
 /tmp
+postgres_data/
+docker/

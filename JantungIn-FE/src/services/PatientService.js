@@ -25,12 +25,18 @@ class PatientService {
 
       console.log('Patient search response:', response)
 
+      // Go API: { statusCode, message, data: [...] }
+      const responseData = response.data || response
+      const patients = responseData.data || responseData
+
+      const patientArray = Array.isArray(patients) ? patients : []
+
       // Ensure we're caching the results for offline use
-      if (response && response.data && Array.isArray(response.data)) {
-        this.cachePatients(response.data)
+      if (patientArray.length > 0) {
+        this.cachePatients(patientArray)
       }
 
-      return response.data || []
+      return patientArray
     } catch (error) {
       console.error('Error searching for patients:', error)
 
@@ -57,7 +63,10 @@ class PatientService {
         limit,
       })
 
-      return response.data || []
+      // Go API: { statusCode, message, data: [...] }
+      const responseData = response.data || response
+      const patients = responseData.data || responseData
+      return Array.isArray(patients) ? patients : []
     } catch (error) {
       console.error('Error getting all patients:', error)
       throw error
@@ -74,7 +83,10 @@ class PatientService {
       if (!id) throw new Error('Patient ID is required')
 
       const response = await apiService.get(`/api/v1/admin/patients/${id}`)
-      return response.data || null
+
+      // Go API: { statusCode, message, data: {...} }
+      const responseData = response.data || response
+      return responseData.data || responseData || null
     } catch (error) {
       console.error(`Error getting patient with ID ${id}:`, error)
       throw error

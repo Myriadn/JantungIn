@@ -88,7 +88,7 @@ export function createCacheKey(endpoint, params = {}) {
   }
 
   const paramString = Object.entries(params)
-    .filter(([_, value]) => value !== undefined && value !== null)
+    .filter(([, value]) => value !== undefined && value !== null)
     .map(([key, value]) => `${key}=${value}`)
     .join('&')
 

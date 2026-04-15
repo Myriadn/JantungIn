@@ -27,6 +27,7 @@ type AppConfig struct {
 	Timezone        string
 	ShutdownTimeout time.Duration
 	EncryptionKey   string
+	MLServiceURL    string
 }
 
 type DatabaseConfig struct {
@@ -89,6 +90,7 @@ func LoadConfig() (*Config, error) {
 			Timezone:        getEnv("APP_TIMEZONE", "Asia/Jakarta"),
 			ShutdownTimeout: parseDuration("SHUTDOWN_TIMEOUT", "10s"),
 			EncryptionKey:   getEnv("ENCRYPTION_KEY", "12345678901234567890123456789012"),
+			MLServiceURL:    getEnv("ML_SERVICE_URL", "http://localhost:1001"),
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),
