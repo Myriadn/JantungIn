@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"time"
 
 	"jantungin-api-server/internal/data/entity"
 	"jantungin-api-server/pkg/utils"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -178,7 +180,7 @@ func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
 	skipped := 0
 	failed := 0
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		firstName := patientFirstNames[i%len(patientFirstNames)]
 		lastName := patientLastNames[i%len(patientLastNames)]
 		name := firstName + " " + lastName
@@ -224,6 +226,118 @@ func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
 	}
 
 	log.Printf("[SEEDER PATIENT] Selesai: %d diinsert, %d dilewati, %d gagal", inserted, skipped, failed)
+	return nil
+}
+
+// SeedDiagnoses menyisipkan 100 data diagnosa dummy ke database untuk pasien yang ada.
+func SeedDiagnoses(db *gorm.DB, cfg *utils.Config) error {
+	ctx := context.Background()
+
+	// Ambil semua users dengan role = "user"
+	var patients []entity.User
+	if err := db.WithContext(ctx).Where("role = ?", "user").Find(&patients).Error; err != nil {
+		return fmt.Errorf("gagal mengambil data pasien: %w", err)
+	}
+
+	if len(patients) == 0 {
+		return fmt.Errorf("tidak ada pasien untuk diseed diagnosanya")
+	}
+
+	// Ambil dokter untuk CreatedBy (beberapa diagnosa dibuat oleh dokter)
+	var doctors []entity.User
+	db.WithContext(ctx).Where("role = ?", "dokter").Find(&doctors)
+
+	var count int64
+	db.WithContext(ctx).Model(&entity.Diagnosis{}).Count(&count)
+	if count >= 100 {
+		log.Printf("[SEEDER DIAGNOSIS] Dilewati: Sudah ada %d data diagnosa", count)
+		return nil
+	}
+
+	inserted := 0
+	failed := 0
+
+	chestPainTypes := []string{"Typical Angina", "Atypical Angina", "Non-anginal Pain", "Asymptomatic"}
+	restingEcgResults := []string{"Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"}
+	exerciseAngina := []string{"Ya", "Tidak"}
+	stSegments := []string{"Upsloping", "Flat", "Downsloping"}
+	thalassemiaTypes := []string{"Normal", "Fixed Defect", "Reversable Defect"}
+	predictions := []string{"Berisiko", "Tidak Berisiko"}
+
+	for range 100 {
+		// Pilih random pasien menggunakan math/rand/v2
+		patient := patients[rand.IntN(len(patients))]
+
+		// 50% chance created by doctor, 50% self-diagnosis (null)
+		var createdBy *uuid.UUID
+		if len(doctors) > 0 && rand.Float32() > 0.5 {
+			docID := doctors[rand.IntN(len(doctors))].ID
+			createdBy = &docID
+		}
+
+		// Random date between 1 year ago and now
+		randomDaysAgo := rand.IntN(365)
+		createdAt := time.Now().AddDate(0, 0, -randomDaysAgo)
+
+		// Determine age
+		age := 0
+		if patient.DateOfBirth != nil {
+			age = int(time.Since(*patient.DateOfBirth).Hours() / 24 / 365)
+		} else {
+			age = rand.IntN(40) + 20 // default 20-60
+		}
+
+		sex := "Laki-laki"
+		if rand.Float32() > 0.5 {
+			sex = "Perempuan"
+		}
+
+		resultPercentage := 10.0 + float64(rand.Float32())*89.0 // 10.0 to 99.0
+
+		cardioRisk := "Rendah"
+		if resultPercentage > 75.0 {
+			cardioRisk = "Tinggi"
+		} else if resultPercentage > 40.0 {
+			cardioRisk = "Sedang"
+		}
+
+		prediction := predictions[0] // Berisiko
+		if resultPercentage < 50.0 {
+			prediction = predictions[1] // Tidak Berisiko
+		}
+
+		diagnosis := entity.Diagnosis{
+			UserID:                patient.ID,
+			CreatedBy:             createdBy,
+			Age:                   age,
+			Sex:                   sex,
+			ChestPainType:         chestPainTypes[rand.IntN(len(chestPainTypes))],
+			RestingEcgResults:     restingEcgResults[rand.IntN(len(restingEcgResults))],
+			FastingBloodSugar:     float64(rand.IntN(150) + 70), // 70-220
+			RestingBloodPressure:  float64(rand.IntN(80) + 90),  // 90-170
+			MaximumHeartRate:      rand.IntN(100) + 80,          // 80-180
+			ExerciseInducedAngina: exerciseAngina[rand.IntN(len(exerciseAngina))],
+			StSegment:             stSegments[rand.IntN(len(stSegments))],
+			MajorVessels:          rand.IntN(4), // 0-3
+			Thalassemia:           thalassemiaTypes[rand.IntN(len(thalassemiaTypes))],
+			SerumCholesterol:      float64(rand.IntN(200) + 120), // 120-320
+			StDepression:          float64(rand.Float32()) * 4.0, // 0.0-4.0
+			ResultPercentage:      resultPercentage,
+			CardiovascularRisk:    cardioRisk,
+			Prediction:            prediction,
+			CreatedAt:             createdAt,
+			UpdatedAt:             createdAt,
+		}
+
+		if err := db.WithContext(ctx).Create(&diagnosis).Error; err != nil {
+			log.Printf("[SEEDER DIAGNOSIS] Gagal insert diagnosa untuk pasien %s: %v", patient.Name, err)
+			failed++
+			continue
+		}
+		inserted++
+	}
+
+	log.Printf("[SEEDER DIAGNOSIS] Selesai: %d diinsert, %d gagal", inserted, failed)
 	return nil
 }
 
