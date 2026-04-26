@@ -18,20 +18,20 @@
       "retry": "Mencoba menghubungkan kembali..."
     },
     "auth": {
-      "invalidCredentials": "NIK atau password tidak valid.",
+      "invalidCredentials": "Username atau password tidak valid.",
       "invalidEmailCredentials": "Email atau password tidak valid.",
       "tokenExpired": "Sesi Anda telah berakhir. Silakan login kembali.",
       "invalidToken": "Sesi tidak valid. Silakan login kembali.",
       "accessDenied": "Akses ditolak. Anda tidak memiliki izin untuk mengakses sumber daya ini.",
       "registrationFailed": "Pendaftaran gagal. Silakan coba lagi.",
       "userNotFound": "Pengguna tidak ditemukan.",
-      "nikAlreadyRegistered": "NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.",
+      "usernameAlreadyRegistered": "Username sudah terdaftar.",
       "emailAlreadyRegistered": "Email sudah terdaftar.",
       "missingFields": "Mohon lengkapi semua kolom yang diperlukan.",
       "loginFailed": "Login gagal. Silakan coba lagi."
     },
     "validation": {
-      "nikFormat": "NIK harus terdiri dari 16 digit angka.",
+      "usernameFormat": "Username minimal 3 karakter.",
       "emailFormat": "Format email tidak valid.",
       "passwordLength": "Password harus terdiri dari minimal 8 karakter.",
       "passwordsDoNotMatch": "Password tidak cocok.",

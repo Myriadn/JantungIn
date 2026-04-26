@@ -9,8 +9,8 @@ import (
 	"io"
 )
 
-// EncryptNIK mengenkripsi teks menggunakan AES-256-GCM
-func EncryptNIK(plaintext string, secretKey string) (string, error) {
+// EncryptSensitiveText mengenkripsi teks menggunakan AES-256-GCM.
+func EncryptSensitiveText(plaintext string, secretKey string) (string, error) {
 	// Pastikan secretKey panjangnya 32 byte (dari file .env)
 	block, err := aes.NewCipher([]byte(secretKey))
 	if err != nil {
@@ -35,8 +35,8 @@ func EncryptNIK(plaintext string, secretKey string) (string, error) {
 	return hex.EncodeToString(ciphertext), nil
 }
 
-// DecryptNIK mendekripsi teks hex menggunakan AES-256-GCM
-func DecryptNIK(cipherHex string, secretKey string) (string, error) {
+// DecryptSensitiveText mendekripsi teks hex menggunakan AES-256-GCM.
+func DecryptSensitiveText(cipherHex string, secretKey string) (string, error) {
 	data, err := hex.DecodeString(cipherHex)
 	if err != nil {
 		return "", err

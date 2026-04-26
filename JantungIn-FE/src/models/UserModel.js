@@ -4,7 +4,6 @@
 export class UserModel {
   constructor(data = {}) {
     this.id = data.id || null
-    this.nik = data.nik || ''
     this.username = data.username || ''
     this.name = data.name || ''
     this.email = data.email || ''
@@ -17,7 +16,7 @@ export class UserModel {
    * @returns {boolean} True if valid, false otherwise
    */
   isValid() {
-    return this.id && (this.nik || this.email) && this.token
+    return this.id && this.username && this.token
   }
 
   /**
@@ -27,7 +26,6 @@ export class UserModel {
   toStorageObject() {
     return {
       id: this.id,
-      nik: this.nik,
       username: this.username,
       name: this.name,
       email: this.email,

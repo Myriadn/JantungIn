@@ -11,10 +11,11 @@ type PatientResponse struct {
 }
 
 type AuthUserResponse struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Email *string `json:"email"`
-	Role  string  `json:"role"`
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Username *string `json:"username,omitempty"`
+	Email    *string `json:"email"`
+	Role     string  `json:"role"`
 }
 
 type AuthRegisterResponse struct {
@@ -24,11 +25,12 @@ type AuthRegisterResponse struct {
 }
 
 type AuthRegisterData struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Email *string `json:"email"`
-	Role  string  `json:"role"`
-	Token string  `json:"token"`
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Username *string `json:"username,omitempty"`
+	Email    *string `json:"email"`
+	Role     string  `json:"role"`
+	Token    string  `json:"token"`
 }
 
 type AuthLoginResponse struct {
@@ -38,11 +40,12 @@ type AuthLoginResponse struct {
 }
 
 type AuthLoginData struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Email *string `json:"email"`
-	Role  string  `json:"role"`
-	Token string  `json:"token"`
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Username *string `json:"username,omitempty"`
+	Email    *string `json:"email"`
+	Role     string  `json:"role"`
+	Token    string  `json:"token"`
 }
 
 type ProfileResponse struct {
@@ -60,6 +63,7 @@ type UpdateProfileResponse struct {
 type UpdateProfileData struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
+	Username    *string `json:"username,omitempty"`
 	Email       *string `json:"email"`
 	DateOfBirth *string `json:"dateOfBirth,omitempty"`
 }

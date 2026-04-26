@@ -7,17 +7,17 @@ import { UserModel } from '@/models/UserModel'
 class AuthService {
   /**
    * User login
-   * @param {string} nik - User NIK
+   * @param {string} username - Username
    * @param {string} password - User password
    * @returns {Promise<UserModel>} User model with token
    */
-  async login(nik, password) {
+  async login(username, password) {
     try {
       // Try to make the API call if online
       if (navigator.onLine) {
         const response = await apiService.post(
           '/api/v1/auth/login',
-          { nik, password },
+          { username, password },
           {
             showNotifications: true,
             operationName: 'Login',
@@ -46,14 +46,14 @@ class AuthService {
         // Save user data to local storage for offline mode
         this.saveUserToStorage({
           ...userData,
-          nik: nik,
+          username: userData.username || username,
           password: password, // Only for offline login, in a real app use more secure methods
         })
 
         return new UserModel(userData)
       } else {
         // Offline login from cache
-        return await this.offlineLogin(nik, password)
+        return await this.offlineLogin(username, password)
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -115,11 +115,11 @@ class AuthService {
 
   /**
    * Offline login from cached credentials
-   * @param {string} nik - User NIK
+   * @param {string} username - Username
    * @param {string} password - User password
    * @returns {Promise<UserModel>} User model
    */
-  async offlineLogin(nik, password) {
+  async offlineLogin(username, password) {
     const userData = localStorage.getItem('jantungin_user')
 
     if (!userData) {
@@ -128,7 +128,7 @@ class AuthService {
 
     const parsedData = JSON.parse(userData)
 
-    if (parsedData.nik === nik && parsedData.password === password) {
+    if (parsedData.username === username && parsedData.password === password) {
       return new UserModel(parsedData)
     } else {
       throw new Error('Invalid credentials for offline login')
@@ -137,22 +137,24 @@ class AuthService {
 
   /**
    * User registration
-   * @param {Object} userData - User registration data with name, nik, password, and optional email and dateOfBirth
+   * @param {Object} userData - User registration data with username, password, and optional name/email/dateOfBirth
    * @returns {Promise} Registration result
    */
   async register(userData) {
     try {
       // Validate user data
-      if (!userData.nik || !userData.password || !userData.name) {
+      if (!userData.username || !userData.password) {
         throw this.formatError(
           new Error('Missing required fields for registration'),
           'Registration failed - missing required fields',
         )
       }
 
-      // Validate NIK format
-      if (!/^\d{16}$/.test(userData.nik)) {
-        throw this.formatError(new Error('NIK harus 16 digit angka'), 'Invalid NIK format')
+      if (userData.username.trim().length < 3) {
+        throw this.formatError(
+          new Error('username minimal 3 karakter'),
+          'Invalid username format',
+        )
       }
 
       // Validate email if provided
@@ -186,7 +188,7 @@ class AuthService {
       // Save user data for offline usage
       this.saveUserToStorage({
         ...userData2,
-        nik: userData.nik,
+        username: userData2.username || userData.username,
         password: userData.password, // Only for offline login
       })
 
@@ -308,10 +310,10 @@ class AuthService {
       formattedError.category = 'network'
     } else if (
       error.message &&
-      (error.message.includes('NIK') ||
-        error.message.includes('password') ||
-        error.message.includes('email') ||
-        error.message.includes('required field'))
+      (error.message.toLowerCase().includes('username') ||
+        error.message.toLowerCase().includes('password') ||
+        error.message.toLowerCase().includes('email') ||
+        error.message.toLowerCase().includes('required field'))
     ) {
       formattedError.category = 'validation'
     } else if (error.status === 401 || error.status === 403) {

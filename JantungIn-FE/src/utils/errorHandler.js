@@ -48,16 +48,16 @@ export function useErrorHandler() {
           }
           break
         case 409:
-          if (error.message?.includes('NIK')) {
-            messageKey = 'errors.auth.nikAlreadyRegistered'
+          if (error.message?.toLowerCase().includes('username')) {
+            messageKey = 'errors.auth.usernameAlreadyRegistered'
           } else if (error.message?.includes('Email')) {
             messageKey = 'errors.auth.emailAlreadyRegistered'
           }
           break
         case 422:
           // Validation errors, try to find a specific message
-          if (error.message?.includes('NIK')) {
-            messageKey = 'errors.validation.nikFormat'
+          if (error.message?.toLowerCase().includes('username')) {
+            messageKey = 'errors.validation.usernameFormat'
           } else if (error.message?.includes('Email')) {
             messageKey = 'errors.validation.emailFormat'
           } else if (error.message?.includes('Password')) {
@@ -76,11 +76,11 @@ export function useErrorHandler() {
     // Specific error types
     else if (error?.message) {
       // Handle specific error messages
-      if (error.message.includes('NIK')) {
-        if (error.message.includes('16 digit')) {
-          messageKey = 'errors.validation.nikFormat'
+      if (error.message.toLowerCase().includes('username')) {
+        if (error.message.includes('minimal 3')) {
+          messageKey = 'errors.validation.usernameFormat'
         } else if (error.message.includes('terdaftar')) {
-          messageKey = 'errors.auth.nikAlreadyRegistered'
+          messageKey = 'errors.auth.usernameAlreadyRegistered'
         }
       } else if (error.message.includes('email')) {
         if (error.message.includes('format')) {
@@ -131,9 +131,12 @@ export function useErrorHandler() {
     } else if (error?.status) {
       category = error.status >= 400 && error.status < 500 ? 'client' : 'server'
       code = `http${error.status}`
-    } else if (error?.message?.includes('NIK') || error?.message?.includes('password')) {
+    } else if (
+      error?.message?.toLowerCase().includes('username') ||
+      error?.message?.includes('password')
+    ) {
       category = 'validation'
-      code = error?.message?.includes('NIK') ? 'nik' : 'password'
+      code = error?.message?.toLowerCase().includes('username') ? 'username' : 'password'
     }
 
     return { category, code }
@@ -161,7 +164,7 @@ export function getValidationErrorKey(field, type) {
   }
 
   const fieldMap = {
-    nik: 'nik',
+    username: 'username',
     email: 'email',
     password: 'password',
     name: 'name',

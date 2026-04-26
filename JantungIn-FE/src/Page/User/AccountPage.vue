@@ -22,7 +22,7 @@ const error = ref(null)
 // User information from API
 const user = ref({
   name: '',
-  nik: '',
+  username: '',
   email: '',
   lastLogin: (() => {
     const date = new Date()
@@ -39,7 +39,7 @@ const user = ref({
 
 // Computed property to check if user data is loaded
 const isUserDataLoaded = computed(() => {
-  return user.value.name !== '' && user.value.nik !== ''
+  return user.value.name !== '' && user.value.username !== ''
 })
 
 // Notification system
@@ -152,7 +152,7 @@ const loadUserData = async () => {
       user.value = {
         ...user.value,
         name: currentUser.name || 'User',
-        nik: currentUser.nik || '',
+        username: currentUser.username || '',
         email: currentUser.email || '',
       }
 
@@ -166,8 +166,8 @@ const loadUserData = async () => {
           user.value = {
             ...user.value,
             name: userData.data.name || user.value.name,
+            username: userData.data.username || user.value.username,
             email: userData.data.email || user.value.email,
-            // NIK is stored locally as it's not returned by the API for security
           }
         }
       }
@@ -538,9 +538,9 @@ const healthData = ref([
                           d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
                         />
                       </svg>
-                      NIK
+                      Username
                     </label>
-                    <div class="form-field font-mono">{{ user.nik }}</div>
+                    <div class="form-field font-mono">{{ user.username }}</div>
                   </div>
 
                   <div>

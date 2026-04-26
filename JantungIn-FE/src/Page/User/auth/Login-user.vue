@@ -9,16 +9,13 @@ const router = useRouter()
 
 // Get all reactive state and methods from the ViewModel
 const {
-  nik,
-  email,
+  username,
   password,
   showPassword,
   errorMessage,
   isOfflineMode,
   isLoading,
-  loginMethod,
   handleLogin,
-  toggleLoginMethod,
 
   goToRegister: navigateToRegister,
   togglePasswordVisibility,
@@ -217,11 +214,8 @@ onUnmounted(() => {
           </div>
 
           <form class="login-form" @submit.prevent="submitLogin">
-            <!-- Login Method Toggle -->
-
-            <!-- NIK Input Field (shown when loginMethod is 'nik') -->
-            <div v-if="loginMethod === 'nik'" class="form-group">
-              <label for="nik">NIK (National ID)</label>
+            <div class="form-group">
+              <label for="username">Username</label>
               <div class="input-container">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -238,40 +232,11 @@ onUnmounted(() => {
                   />
                 </svg>
                 <input
-                  id="nik"
-                  v-model="nik"
+                  id="username"
+                  v-model="username"
                   type="text"
                   class="form-control"
-                  placeholder="Enter your NIK"
-                  required
-                />
-              </div>
-            </div>
-
-            <!-- Email Input Field (shown when loginMethod is 'email') -->
-            <div v-if="loginMethod === 'email'" class="form-group">
-              <label for="email">Email</label>
-              <div class="input-container">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="input-icon"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-                <input
-                  id="email"
-                  v-model="email"
-                  type="email"
-                  class="form-control"
-                  placeholder="Enter your email"
+                  placeholder="Enter your username"
                   required
                 />
               </div>

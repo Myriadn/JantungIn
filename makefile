@@ -3,7 +3,7 @@ include .env
 SHELL := pwsh.exe
 .SHELLFLAGS := -NoProfile -Command
 
-DB_URL := postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
+DB_URL := postgresql://$(strip $(DB_USER)):$(strip $(DB_PASSWORD))@$(strip $(DB_HOST)):$(strip $(DB_PORT))/$(strip $(DB_NAME))?sslmode=$(strip $(DB_SSLMODE))
 
 APP_DIR := JantungIn_Go_Latest
 ML_DIR := JantungIn_ML

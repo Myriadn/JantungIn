@@ -9,7 +9,6 @@ const router = useRouter()
 const { t } = useI18n()
 const { getErrorMessage } = useErrorHandler()
 
-const nik = ref('')
 const username = ref('')
 const email = ref('') // Added email field
 const password = ref('')
@@ -48,15 +47,9 @@ const validateForm = () => {
     return false
   }
 
-  // Validate NIK as 16 digit number
-  if (!/^\d{16}$/.test(nik.value)) {
-    errorMessage.value = t('errors.validation.nikFormat')
-    return false
-  }
-
   // Validate username
   if (username.value.length < 3) {
-    errorMessage.value = t('errors.validation.nameLength')
+    errorMessage.value = t('errors.validation.usernameFormat')
     return false
   }
 
@@ -78,14 +71,14 @@ const handleRegister = async () => {
   try {
     // Panggil backend register
     console.log('Attempting to register with:', {
-      nik: nik.value,
+      username: username.value,
       name: username.value,
       email: email.value || '[not provided]',
       dateOfBirth: dateOfBirth.value || '[not provided]',
     })
 
     await authService.register({
-      nik: nik.value,
+      username: username.value,
       name: username.value,
       email: email.value || undefined, // Include email if provided
       password: password.value,
@@ -237,34 +230,6 @@ const handleRegister = async () => {
           </div>
 
           <form @submit.prevent="handleRegister" class="register-form">
-            <div class="form-group">
-              <label for="nik">NIK (National ID)</label>
-              <div class="input-container">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="input-icon"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-                  />
-                </svg>
-                <input
-                  id="nik"
-                  v-model="nik"
-                  type="text"
-                  class="form-control"
-                  placeholder="Enter your NIK"
-                  required
-                />
-              </div>
-            </div>
-
             <div class="form-group">
               <label for="username">Username</label>
               <div class="input-container">

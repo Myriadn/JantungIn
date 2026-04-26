@@ -32,11 +32,12 @@ func (h *AuthAdaptor) Register(c *gin.Context) {
 	data, err := h.authUsecase.Register(c.Request.Context(), req)
 	if err != nil {
 		switch err.Error() {
-		case "NIK harus 16 digit angka",
+		case "username wajib diisi",
+			"username minimal 3 karakter",
 			"password minimal 6 karakter",
 			"format tanggal lahir tidak valid, gunakan YYYY-MM-DD":
 			utils.BadRequestResponse(c, err.Error(), nil)
-		case "NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.",
+		case "username sudah terdaftar",
 			"email sudah terdaftar":
 			utils.ErrorResponse(c, http.StatusConflict, err.Error(), nil)
 		default:
@@ -70,9 +71,9 @@ func (h *AuthAdaptor) Login(c *gin.Context) {
 	data, err := h.authUsecase.Login(c.Request.Context(), req, userAgent, ip, deviceFingerprint)
 	if err != nil {
 		switch err.Error() {
-		case "NIK harus 16 digit angka":
+		case "username wajib diisi":
 			utils.BadRequestResponse(c, err.Error(), nil)
-		case "NIK atau password tidak valid":
+		case "username atau password tidak valid":
 			utils.UnauthorizedResponse(c, err.Error())
 		default:
 			utils.InternalServerErrorResponse(c, err.Error(), nil)

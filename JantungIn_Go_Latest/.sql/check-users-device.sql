@@ -1,5 +1,5 @@
 SELECT 
-    u.name,
+    u.username,
     u.role,
     COUNT(ud.id) as device_count,
     STRING_AGG(DISTINCT 
@@ -27,4 +27,4 @@ WHERE u.role = 'user'
 GROUP BY u.id, u.name, u.role
 HAVING COUNT(ud.id) > 1
 ORDER BY device_count DESC
-LIMIT 10;
+LIMIT 50;

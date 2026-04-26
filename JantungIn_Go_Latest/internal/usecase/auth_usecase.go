@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"jantungin-api-server/internal/data/entity"
@@ -38,48 +39,39 @@ func NewAuthUsecase(userRepo repository.UserRepository, userDeviceRepo repositor
 }
 
 func (u *authUsecase) Register(ctx context.Context, req dto.AuthRegisterRequest) (*dto.AuthRegisterData, error) {
-	if len(req.NIK) != 16 {
-		return nil, errors.New("NIK harus 16 digit angka")
+	username := strings.ToLower(strings.TrimSpace(req.Username))
+	if username == "" {
+		return nil, errors.New("username wajib diisi")
 	}
-	for _, c := range req.NIK {
-		if c < '0' || c > '9' {
-			return nil, errors.New("NIK harus 16 digit angka")
-		}
+	if len(username) < 3 {
+		return nil, errors.New("username minimal 3 karakter")
 	}
 
 	if len(req.Password) < 6 {
 		return nil, errors.New("password minimal 6 karakter")
 	}
 
-	encryptionKey := u.cfg.App.EncryptionKey
-
-	// Cek apakah NIK sudah terdaftar dengan mendekripsi semua user
-	nikRegistered, err := u.isNIKRegistered(ctx, req.NIK, encryptionKey)
+	existingUser, err := u.userRepo.FindByUsername(ctx, username)
 	if err != nil {
-		utils.Error("Failed to check NIK registration", zap.Error(err))
-		return nil, errors.New("gagal memeriksa NIK")
+		utils.Error("Failed to check username", zap.Error(err))
+		return nil, errors.New("gagal memeriksa username")
 	}
-	if nikRegistered {
-		return nil, errors.New("NIK sudah terdaftar. Setiap NIK hanya dapat digunakan sekali.")
+	if existingUser != nil {
+		return nil, errors.New("username sudah terdaftar")
 	}
+
+	normalizedEmail := strings.ToLower(strings.TrimSpace(req.Email))
 
 	// Cek email jika diisi
-	if req.Email != "" {
-		existingUser, err := u.userRepo.FindByEmail(ctx, req.Email)
+	if normalizedEmail != "" {
+		existingUserByEmail, err := u.userRepo.FindByEmail(ctx, normalizedEmail)
 		if err != nil {
 			utils.Error("Failed to check email", zap.Error(err))
 			return nil, errors.New("gagal memeriksa email")
 		}
-		if existingUser != nil {
+		if existingUserByEmail != nil {
 			return nil, errors.New("email sudah terdaftar")
 		}
-	}
-
-	// Enkripsi NIK
-	encryptedNIK, err := utils.EncryptNIK(req.NIK, encryptionKey)
-	if err != nil {
-		utils.Error("Failed to encrypt NIK", zap.Error(err))
-		return nil, errors.New("gagal mengenkripsi NIK")
 	}
 
 	// Hash password
@@ -98,15 +90,20 @@ func (u *authUsecase) Register(ctx context.Context, req dto.AuthRegisterRequest)
 		dob = &parsedDate
 	}
 
-	newUser := entity.User{
-		Name:         req.Name,
-		NIKEncrypted: encryptedNIK,
-		Password:     string(hashedPassword),
-		Role:         "user",
-		DateOfBirth:  dob,
+	displayName := strings.TrimSpace(req.Name)
+	if displayName == "" {
+		displayName = username
 	}
-	if req.Email != "" {
-		newUser.Email = &req.Email
+
+	newUser := entity.User{
+		Name:        displayName,
+		Username:    &username,
+		Password:    string(hashedPassword),
+		Role:        "user",
+		DateOfBirth: dob,
+	}
+	if normalizedEmail != "" {
+		newUser.Email = &normalizedEmail
 	}
 
 	if err := u.userRepo.Create(ctx, &newUser); err != nil {
@@ -127,35 +124,29 @@ func (u *authUsecase) Register(ctx context.Context, req dto.AuthRegisterRequest)
 	)
 
 	return &dto.AuthRegisterData{
-		ID:    newUser.ID.String(),
-		Name:  newUser.Name,
-		Email: newUser.Email,
-		Role:  newUser.Role,
-		Token: token,
+		ID:       newUser.ID.String(),
+		Name:     newUser.Name,
+		Username: newUser.Username,
+		Email:    newUser.Email,
+		Role:     newUser.Role,
+		Token:    token,
 	}, nil
 }
 
 func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error) {
-	if len(req.NIK) != 16 {
-		return nil, errors.New("NIK harus 16 digit angka")
-	}
-	for _, c := range req.NIK {
-		if c < '0' || c > '9' {
-			return nil, errors.New("NIK harus 16 digit angka")
-		}
+	username := strings.ToLower(strings.TrimSpace(req.Username))
+	if username == "" {
+		return nil, errors.New("username wajib diisi")
 	}
 
-	encryptionKey := u.cfg.App.EncryptionKey
-
-	// Ambil semua user dan dekripsi NIK untuk mencari yang cocok (sama seperti legacy)
-	foundUser, err := u.findUserByNIK(ctx, req.NIK, encryptionKey)
+	foundUser, err := u.userRepo.FindByUsername(ctx, username)
 	if err != nil {
-		utils.Error("Failed to find user by NIK", zap.Error(err))
-		return nil, errors.New("NIK atau password tidak valid")
+		utils.Error("Failed to find user by username", zap.Error(err))
+		return nil, errors.New("username atau password tidak valid")
 	}
 	if foundUser == nil {
-		utils.Warn("No user found with matching NIK")
-		return nil, errors.New("NIK atau password tidak valid")
+		utils.Warn("No user found with matching username")
+		return nil, errors.New("username atau password tidak valid")
 	}
 
 	// Verifikasi password
@@ -163,7 +154,7 @@ func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest, userA
 		utils.Warn("Password verification failed",
 			zap.String("user_id", foundUser.ID.String()),
 		)
-		return nil, errors.New("NIK atau password tidak valid")
+		return nil, errors.New("username atau password tidak valid")
 	}
 
 	// Generate JWT token
@@ -187,22 +178,24 @@ func (u *authUsecase) Login(ctx context.Context, req dto.AuthLoginRequest, userA
 	)
 
 	return &dto.AuthLoginData{
-		ID:    foundUser.ID.String(),
-		Name:  foundUser.Name,
-		Email: foundUser.Email,
-		Role:  foundUser.Role,
-		Token: token,
+		ID:       foundUser.ID.String(),
+		Name:     foundUser.Name,
+		Username: foundUser.Username,
+		Email:    foundUser.Email,
+		Role:     foundUser.Role,
+		Token:    token,
 	}, nil
 }
 
 func (u *authUsecase) LoginWithEmail(ctx context.Context, req dto.AuthLoginEmailRequest, userAgent, ipAddress, deviceFingerprint string) (*dto.AuthLoginData, error) {
-	user, err := u.userRepo.FindByEmail(ctx, req.Email)
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	user, err := u.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		utils.Error("Failed to find user by email", zap.Error(err))
 		return nil, errors.New("email atau password tidak valid")
 	}
 	if user == nil {
-		utils.Warn("No user found with email", zap.String("email", req.Email))
+		utils.Warn("No user found with email", zap.String("email", email))
 		return nil, errors.New("email atau password tidak valid")
 	}
 
@@ -233,11 +226,12 @@ func (u *authUsecase) LoginWithEmail(ctx context.Context, req dto.AuthLoginEmail
 	)
 
 	return &dto.AuthLoginData{
-		ID:    user.ID.String(),
-		Name:  user.Name,
-		Email: user.Email,
-		Role:  user.Role,
-		Token: token,
+		ID:       user.ID.String(),
+		Name:     user.Name,
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     user.Role,
+		Token:    token,
 	}, nil
 }
 
@@ -257,10 +251,11 @@ func (u *authUsecase) GetProfile(ctx context.Context, userID string) (*dto.AuthU
 	}
 
 	return &dto.AuthUserResponse{
-		ID:    user.ID.String(),
-		Name:  user.Name,
-		Email: user.Email,
-		Role:  user.Role,
+		ID:       user.ID.String(),
+		Name:     user.Name,
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     user.Role,
 	}, nil
 }
 
@@ -300,9 +295,10 @@ func (u *authUsecase) UpdateProfile(ctx context.Context, userID string, req dto.
 	)
 
 	result := &dto.UpdateProfileData{
-		ID:    user.ID.String(),
-		Name:  user.Name,
-		Email: user.Email,
+		ID:       user.ID.String(),
+		Name:     user.Name,
+		Username: user.Username,
+		Email:    user.Email,
 	}
 	if user.DateOfBirth != nil {
 		formatted := user.DateOfBirth.Format("2006-01-02")
@@ -326,60 +322,4 @@ func (u *authUsecase) generateToken(user *entity.User) (string, error) {
 		user.Role, // RoleCode diisi dengan role string
 		u.cfg,
 	)
-}
-
-// isNIKRegistered memeriksa apakah NIK sudah terdaftar
-// Menggunakan pendekatan legacy: dekripsi semua NIK dan bandingkan
-func (u *authUsecase) isNIKRegistered(ctx context.Context, nik string, encryptionKey string) (bool, error) {
-	users, err := u.userRepo.FindAll(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	for _, user := range users {
-		decryptedNIK, decErr := utils.DecryptNIK(user.NIKEncrypted, encryptionKey)
-		if decErr != nil {
-			utils.Warn("Failed to decrypt NIK for user",
-				zap.String("user_id", user.ID.String()),
-				zap.Error(decErr),
-			)
-			continue
-		}
-		if decryptedNIK == nik {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-// findUserByNIK mencari user berdasarkan NIK dengan mendekripsi semua NIK
-func (u *authUsecase) findUserByNIK(ctx context.Context, nik string, encryptionKey string) (*entity.User, error) {
-	users, err := u.userRepo.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	utils.Debug("Searching user by NIK",
-		zap.Int("total_users", len(users)),
-	)
-
-	for i := range users {
-		decryptedNIK, decErr := utils.DecryptNIK(users[i].NIKEncrypted, encryptionKey)
-		if decErr != nil {
-			utils.Warn("Failed to decrypt NIK for user",
-				zap.String("user_id", users[i].ID.String()),
-				zap.Error(decErr),
-			)
-			continue
-		}
-		if decryptedNIK == nik {
-			utils.Debug("Found matching user by NIK",
-				zap.String("user_id", users[i].ID.String()),
-			)
-			return &users[i], nil
-		}
-	}
-
-	return nil, nil
 }

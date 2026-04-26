@@ -14,12 +14,10 @@ export function useLoginViewModel() {
   const { getErrorMessage } = useErrorHandler()
 
   // State
-  const nik = ref('')
-  const email = ref('') // Add email for alternative login
+  const username = ref('')
   const password = ref('')
   const rememberMe = ref(false)
   const showPassword = ref(false)
-  const loginMethod = ref('nik') // 'nik' or 'email'
 
   // UI state
   const isLoading = ref(false)
@@ -30,15 +28,7 @@ export function useLoginViewModel() {
    * Computed property to check if form is valid
    */
   const isFormValid = computed(() => {
-    if (loginMethod.value === 'nik') {
-      // NIK must be 16 digits and password must not be empty
-      return (
-        nik.value.trim().length === 16 && /^\d+$/.test(nik.value) && password.value.trim() !== ''
-      )
-    } else {
-      // Email must be in valid format and password must not be empty
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) && password.value.trim() !== ''
-    }
+    return username.value.trim() !== '' && password.value.trim() !== ''
   })
 
   /**
@@ -46,24 +36,10 @@ export function useLoginViewModel() {
    */
   const handleLogin = async () => {
     if (!isFormValid.value) {
-      if (loginMethod.value === 'nik') {
-        if (nik.value.trim() === '') {
-          errorMessage.value = t('errors.validation.requiredField')
-        } else if (nik.value.trim().length !== 16) {
-          errorMessage.value = t('errors.validation.nikFormat')
-        } else if (!/^\d+$/.test(nik.value)) {
-          errorMessage.value = t('errors.validation.nikFormat')
-        } else {
-          errorMessage.value = t('errors.auth.missingFields')
-        }
+      if (username.value.trim() === '') {
+        errorMessage.value = t('errors.validation.requiredField')
       } else {
-        if (email.value.trim() === '') {
-          errorMessage.value = t('errors.validation.requiredField')
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-          errorMessage.value = t('errors.validation.emailFormat')
-        } else {
-          errorMessage.value = t('errors.auth.missingFields')
-        }
+        errorMessage.value = t('errors.auth.missingFields')
       }
       return
     }
@@ -72,12 +48,7 @@ export function useLoginViewModel() {
       isLoading.value = true
       errorMessage.value = ''
 
-      let user
-      if (loginMethod.value === 'nik') {
-        user = await authService.login(nik.value, password.value)
-      } else {
-        user = await authService.loginWithEmail(email.value, password.value)
-      }
+      const user = await authService.login(username.value, password.value)
 
       console.log('Login successful:', user)
 
@@ -96,15 +67,6 @@ export function useLoginViewModel() {
   }
 
   /**
-   * Toggle login method between NIK and email
-   */
-  const toggleLoginMethod = () => {
-    loginMethod.value = loginMethod.value === 'nik' ? 'email' : 'nik'
-    // Reset fields when changing login method
-    errorMessage.value = ''
-  }
-
-  /**
    * Navigate to register page
    */
   const goToRegister = () => {
@@ -115,7 +77,7 @@ export function useLoginViewModel() {
    * Reset login form
    */
   const resetForm = () => {
-    nik.value = ''
+    username.value = ''
     password.value = ''
     errorMessage.value = ''
   }
@@ -137,8 +99,7 @@ export function useLoginViewModel() {
 
   return {
     // State
-    nik,
-    email,
+    username,
     password,
     rememberMe,
     showPassword,
@@ -146,13 +107,11 @@ export function useLoginViewModel() {
     errorMessage,
     isOfflineMode,
     isFormValid,
-    loginMethod,
 
     // Methods
     handleLogin,
     goToRegister,
     resetForm,
     togglePasswordVisibility,
-    toggleLoginMethod,
   }
 }

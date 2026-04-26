@@ -5,8 +5,8 @@ CREATE TYPE user_role AS ENUM ('user', 'admin', 'dokter');
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255) UNIQUE,
-    nik_encrypted TEXT NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     date_of_birth DATE,
     role user_role DEFAULT 'user',

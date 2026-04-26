@@ -82,7 +82,6 @@ var doctorSeeds = []struct {
 
 // SeedDoctors menyisipkan 50 data dokter dummy ke database.
 func SeedDoctors(db *gorm.DB, cfg *utils.Config) error {
-	encryptionKey := cfg.App.EncryptionKey
 	defaultPassword := "dokter123"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
@@ -114,27 +113,17 @@ func SeedDoctors(db *gorm.DB, cfg *utils.Config) error {
 			continue
 		}
 
-		nikPlain := fmt.Sprintf("8800%012d", i+1)
-
-		encryptedNIK, err := utils.EncryptNIK(nikPlain, encryptionKey)
-		if err != nil {
-			log.Printf("[SEEDER] Gagal enkripsi NIK untuk %s: %v", seed.name, err)
-			failed++
-			continue
-		}
-
 		dob := birthDateFromIndex(i)
 		emailCopy := seed.email
 		usernameCopy := username
 
 		doctor := entity.User{
-			Name:         "dr. " + seed.name,
-			Username:     &usernameCopy,
-			Email:        &emailCopy,
-			NIKEncrypted: encryptedNIK,
-			Password:     string(hashedPassword),
-			Role:         "dokter",
-			DateOfBirth:  &dob,
+			Name:        "dr. " + seed.name,
+			Username:    &usernameCopy,
+			Email:       &emailCopy,
+			Password:    string(hashedPassword),
+			Role:        "dokter",
+			DateOfBirth: &dob,
 		}
 
 		if err := db.WithContext(ctx).Create(&doctor).Error; err != nil {
@@ -181,7 +170,6 @@ var patientEmailDomains = []string{
 
 // SeedPatients menyisipkan 100 data pasien dummy ke database dan membersihkan data yang bolong
 func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
-	encryptionKey := cfg.App.EncryptionKey
 	defaultPassword := "pasien123"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
@@ -244,12 +232,9 @@ func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
 		age := generateAge(i)
 		dob := time.Now().AddDate(-age, 0, 0)
 
-		// Generate valid 16-digit NIK
-		nikPlain := generateNIK(i)
-
-		// Check jika NIK sudah ada
+		// Check jika username sudah ada
 		var existing entity.User
-		err := db.WithContext(ctx).Where("nik_encrypted LIKE ?", "%"+nikPlain[:4]+"%").First(&existing).Error
+		err := db.WithContext(ctx).Where("username = ?", usernamePlain).First(&existing).Error
 		if err == nil {
 			updates := map[string]interface{}{}
 
@@ -274,21 +259,13 @@ func SeedPatients(db *gorm.DB, cfg *utils.Config) error {
 			continue
 		}
 
-		encryptedNIK, err := utils.EncryptNIK(nikPlain, encryptionKey)
-		if err != nil {
-			log.Printf("[SEEDER PATIENT] Gagal enkripsi NIK untuk %s: %v", name, err)
-			failed++
-			continue
-		}
-
 		patient := entity.User{
-			Name:         name,
-			Username:     &usernamePlain,
-			Email:        &emailPlain,
-			NIKEncrypted: encryptedNIK,
-			Password:     string(hashedPassword),
-			Role:         "user",
-			DateOfBirth:  &dob,
+			Name:        name,
+			Username:    &usernamePlain,
+			Email:       &emailPlain,
+			Password:    string(hashedPassword),
+			Role:        "user",
+			DateOfBirth: &dob,
 		}
 
 		if err := db.WithContext(ctx).Create(&patient).Error; err != nil {
@@ -532,15 +509,4 @@ func generateAge(index int) int {
 		return 20 + (index % 5)
 	}
 	return 31 + (index % 25)
-}
-
-func generateNIK(index int) string {
-	provCode := "33"
-	distCode := fmt.Sprintf("%02d", 10+(index%20))
-	dateCode := fmt.Sprintf("%02d", 1+(index%28))
-	monthCode := fmt.Sprintf("%02d", 1+(index%12))
-	yearCode := fmt.Sprintf("%02d", 70+(index%30))
-	orderCode := fmt.Sprintf("%04d", 1000+(index%9000))
-
-	return provCode + distCode + dateCode + monthCode + yearCode + orderCode
 }

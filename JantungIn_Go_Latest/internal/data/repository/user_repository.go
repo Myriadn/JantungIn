@@ -11,7 +11,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
-	FindByNIK(ctx context.Context, encryptedNIK string) (*entity.User, error)
+	FindByUsername(ctx context.Context, username string) (*entity.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindAll(ctx context.Context) ([]entity.User, error)
@@ -34,9 +34,9 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 	return r.db.WithContext(ctx).Create(user).Error
 }
 
-func (r *userRepository) FindByNIK(ctx context.Context, encryptedNIK string) (*entity.User, error) {
+func (r *userRepository) FindByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("nik_encrypted = ?", encryptedNIK).First(&user).Error
+	err := r.db.WithContext(ctx).Where("LOWER(username) = LOWER(?)", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
