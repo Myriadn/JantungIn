@@ -55,9 +55,13 @@ func (h *AuthAdaptor) Register(c *gin.Context) {
 func (h *AuthAdaptor) Login(c *gin.Context) {
 	var req dto.AuthLoginRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		utils.BadRequestResponse(c, "Format data tidak valid", err.Error())
 		return
+	}
+
+	if strings.TrimSpace(req.Username) != "" {
+		c.Set(middleware.RequestLogTargetUserKey, req.Username)
 	}
 
 	data, err := h.authUsecase.Login(c.Request.Context(), req)
@@ -81,9 +85,13 @@ func (h *AuthAdaptor) Login(c *gin.Context) {
 func (h *AuthAdaptor) LoginWithEmail(c *gin.Context) {
 	var req dto.AuthLoginEmailRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		utils.BadRequestResponse(c, "Format data tidak valid", err.Error())
 		return
+	}
+
+	if strings.TrimSpace(req.Email) != "" {
+		c.Set(middleware.RequestLogTargetUserKey, req.Email)
 	}
 
 	data, err := h.authUsecase.LoginWithEmail(c.Request.Context(), req)
@@ -107,9 +115,13 @@ func (h *AuthAdaptor) LoginWithEmail(c *gin.Context) {
 func (h *AuthAdaptor) VerifyOTP(c *gin.Context) {
 	var req dto.AuthVerifyOTPRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		utils.BadRequestResponse(c, "Format data tidak valid", err.Error())
 		return
+	}
+
+	if strings.TrimSpace(req.UserID) != "" {
+		c.Set(middleware.RequestLogTargetUserKey, req.UserID)
 	}
 
 	// Extract device info from request
