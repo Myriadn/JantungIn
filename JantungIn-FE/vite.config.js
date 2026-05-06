@@ -6,7 +6,18 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  esbuild: {
+    // hapus console command 'build'
+    drop: command === 'build' ? ['console', 'debugger'] : [],
+  },
+  preview: {
+    port: 5173, // bun preview
+    strictPort: false, //true jika ingin error saat port terpakai
+  },
+  server: {
+    port: 5173, // bun dev
+  },
   plugins: [
     vue(),
     vueDevTools(),
@@ -82,4 +93,4 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-})
+}))
